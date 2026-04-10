@@ -252,6 +252,7 @@
     <string name="PinnedReactions_Apply">Update Pinned Reactions</string>
     <string name="HideStoriesFromHeader">Hide from Header</string>
     <string name="DisableAvatarBlur">Disable Avatar Blur</string>
+    <string name="DisableGooeyAvatarAnimation">Disable &quot;Gooey&quot; avatar animation</string>
     <string name="ExportSettingsIncludeApiKeys">Include API Keys</string>
     <string name="DisableInAppBrowserGestures">Disable Gestures</string>
     <string name="HowToObtain">How to obtain?</string>

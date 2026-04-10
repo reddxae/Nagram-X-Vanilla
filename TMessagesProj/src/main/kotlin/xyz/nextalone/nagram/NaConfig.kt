@@ -1344,6 +1344,12 @@ object NaConfig {
             ConfigItem.configTypeBool,
             false
         )
+    val disableGooeyAvatarAnimation =
+        addConfig(
+            "DisableGooeyAvatarAnimation",
+            ConfigItem.configTypeBool,
+            false
+        )
     val disableInAppBrowserGestures =
         addConfig(
             "DisableInAppBrowserGestures",

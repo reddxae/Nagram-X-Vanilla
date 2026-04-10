@@ -6174,7 +6174,13 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
             avatarGooey.setAlpha(1f - v);
             avatarGooey.setBlurIntensity(0f);
             avatarGooey.setGooeyEnabled(false);
+        } else if (NaConfig.INSTANCE.getDisableGooeyAvatarAnimation().Bool()) {
+            avatarGooey.setAlpha(1f - Utilities.clamp01(pullUpProgress));
+            avatarGooey.setPullProgress(0f);
+            avatarGooey.setBlurIntensity(0f);
+            avatarGooey.setGooeyEnabled(false);
         } else {
+            avatarGooey.setAlpha(1f);
             avatarGooey.setPullProgress(pullUpProgress);
             avatarGooey.setBlurIntensity(Math.min((MathUtils.clamp(pullUpProgress, 0.2f, 0.7f) - 0.2f) / 0.5f, 0.75f));
             avatarGooey.setGooeyEnabled(pullUpProgress > 0 && pullUpProgress < 1);
