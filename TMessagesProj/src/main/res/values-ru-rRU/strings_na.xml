@@ -51,6 +51,7 @@
     <string name="DoActionsInCommonGroups">Применить в общих группах</string>
     <string name="ShowFullAbout">Всегда разворачивать описание чатов</string>
     <string name="TypeMessageHintUseGroupName">Название группы как текст подсказки в поле ввода</string>
+    <string name="HideGiftButtonInProfiles">Скрыть кнопку подарка в профилях</string>
     <string name="HideBotButtonInInputField">Скрыть кнопку бота в поле ввода</string>
     <string name="ShowSendAsUnderMessageHint">Показывать отправителя под подсказкой «Сообщение» в поле ввода</string>
     <string name="CheckAllForum">Добавить форум</string>

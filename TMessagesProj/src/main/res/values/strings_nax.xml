@@ -255,7 +255,7 @@
     <string name="Camera">Camera</string>
     <string name="Resolution">Resolution</string>
     <string name="Bitrate">Bitrate</string>
-    <string name="DisableGooeyAvatarAnimation">Disable &quot;Gooey&quot; avatar animation</string>
+    <string name="DisableGooeyAvatarAnimation">Disable &quot;Gooey&quot; Avatar Animation</string>
     <string name="ExportSettingsIncludeApiKeys">Include API Keys</string>
     <string name="DisableInAppBrowserGestures">Disable Gestures</string>
     <string name="HowToObtain">How to obtain?</string>

@@ -53,6 +53,7 @@
     <string name="DoActionsInCommonGroups">Applied in common groups</string>
     <string name="ShowFullAbout">Always Expand Chat Description</string>
     <string name="TypeMessageHintUseGroupName">Use Group Name as Hint Text</string>
+    <string name="HideGiftButtonInProfiles">Hide Gift Button in Profiles</string>
     <string name="HideBotButtonInInputField">Hide Bot Button in Input Field</string>
     <string name="ShowSendAsUnderMessageHint">Show Sender Under Message Hint</string>
     <string name="CheckAllForum">Add forum</string>

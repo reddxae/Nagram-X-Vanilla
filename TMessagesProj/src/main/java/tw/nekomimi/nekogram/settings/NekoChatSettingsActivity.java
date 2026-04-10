@@ -428,6 +428,7 @@ public class NekoChatSettingsActivity extends BaseNekoXSettingsActivity implemen
     private final AbstractConfigCell showFullAboutRow = cellGroup.appendCell(new ConfigCellTextCheck(NaConfig.INSTANCE.getShowFullAbout()));
     private final AbstractConfigCell typeMessageHintUseGroupNameRow = cellGroup.appendCell(new ConfigCellTextCheck(NaConfig.INSTANCE.getTypeMessageHintUseGroupName()));
     private final AbstractConfigCell showSendAsUnderMessageHintRow = cellGroup.appendCell(new ConfigCellTextCheck(NaConfig.INSTANCE.getShowSendAsUnderMessageHint()));
+    private final AbstractConfigCell hideGiftButtonInProfilesRow = cellGroup.appendCell(new ConfigCellTextCheck(NekoConfig.hideGiftButtonInProfiles));
     private final AbstractConfigCell hideBotButtonInInputFieldRow = cellGroup.appendCell(new ConfigCellTextCheck(NaConfig.INSTANCE.getHideBotButtonInInputField()));
     private final AbstractConfigCell disableMarkdownRow = cellGroup.appendCell(new ConfigCellTextCheck(NaConfig.INSTANCE.getDisableMarkdown()));
     private final AbstractConfigCell showQuickReplyInBotCommandsRow = cellGroup.appendCell(new ConfigCellTextCheck(NaConfig.INSTANCE.getShowQuickReplyInBotCommands()));
@@ -681,6 +682,8 @@ public class NekoChatSettingsActivity extends BaseNekoXSettingsActivity implemen
                 stickerSizeCell.invalidate();
             } else if (key.equals(NaConfig.INSTANCE.getPremiumItemCustomColorInReplies().getKey())) {
                 stickerSizeCell.invalidate();
+            } else if (key.equals(NekoConfig.hideGiftButtonInProfiles.getKey())) {
+                NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.reloadInterface);
             } else if (key.equals(NaConfig.INSTANCE.getTranscribeProvider().getKey())) {
                 if ((int) newValue == TranscribeHelper.TRANSCRIBE_OPENAI) {
                     if (!cellGroup.rows.contains(transcribeProviderOpenAiRow)) {

@@ -9658,7 +9658,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                     boolean gift = !BuildVars.IS_BILLING_UNAVAILABLE && !getMessagesController().premiumPurchaseBlocked() && chatInfo != null && chatInfo.stargifts_available;
                     otherItem.setSubItemShown(gift_premium, gift);
                     if (actionsView != null) {
-                        actionsView.set(ProfileActionsView.KEY_GIFT, gift);
+                        actionsView.set(ProfileActionsView.KEY_GIFT, gift && !NekoConfig.hideGiftButtonInProfiles.Bool());
                     }
                 }
             }
@@ -10770,7 +10770,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
             boolean gift = !BuildVars.IS_BILLING_UNAVAILABLE && !getMessagesController().premiumPurchaseBlocked() && chatInfo != null && chatInfo.stargifts_available;
             otherItem.setSubItemShown(gift_premium, gift);
             if (actionsView != null) {
-                actionsView.set(ProfileActionsView.KEY_GIFT, gift);
+                actionsView.set(ProfileActionsView.KEY_GIFT, gift && !NekoConfig.hideGiftButtonInProfiles.Bool());
             }
         }
     }
@@ -12774,6 +12774,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
         }
 
         isCallAvailable = callItemVisible;
+        giftAction = giftAction && !NekoConfig.hideGiftButtonInProfiles.Bool();
 
         if (actionsView != null) {
             actionsView.beginApplyingActions();
