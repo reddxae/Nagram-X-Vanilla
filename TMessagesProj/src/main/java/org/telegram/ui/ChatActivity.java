@@ -6909,6 +6909,9 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                     } else if (newState == RecyclerView.SCROLL_STATE_DRAGGING) {
                         if (NekoConfig.hideKeyboardOnChatScroll.Bool()) {
                             AndroidUtilities.hideKeyboard(getParentActivity().getCurrentFocus());
+                            if (chatActivityEnterView != null) {
+                                chatActivityEnterView.hideEmojiPopupByScroll();
+                            }
                         }
                         pollHintCell = null;
                         wasManualScroll = true;

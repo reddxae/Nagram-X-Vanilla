@@ -12295,6 +12295,24 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
         return hidePopup(byBackButton, false);
     }
 
+    public void hideEmojiPopupByScroll() {
+        if (currentPopupContentType != 0) {
+            return;
+        }
+        if (searchingType != 0) {
+            setSearchingTypeInternal(0, false);
+            if (emojiView != null) {
+                emojiView.closeSearch(false);
+            }
+        }
+        if (stickersExpanded) {
+            setStickersExpanded(false, false, false);
+        }
+        if (isPopupShowing()) {
+            showPopup(0, 0);
+        }
+    }
+
     public boolean hidePopup(boolean byBackButton, boolean forceAnimate) {
         if (isPopupShowing()) {
             if (currentPopupContentType == POPUP_CONTENT_BOT_KEYBOARD && botReplyMarkup != null && byBackButton && botButtonsMessageObject != null) {
