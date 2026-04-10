@@ -444,6 +444,7 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
     @Nullable
     private SenderSelectView senderSelectView;
     private SenderSelectPopup senderSelectPopupWindow;
+    private boolean hiddenSendAsSelectorVisible;
     private Runnable onEmojiSearchClosed;
     private int popupX, popupY;
     private Runnable onKeyboardClosed;
@@ -2625,6 +2626,7 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
                 }
             }
         });
+        emojiButton.setOnLongClickListener(v -> openHiddenSendAsSelectorFromEmojiButton());
         messageEditTextContainer.addView(emojiButton, LayoutHelper.createFrame(48, 48, Gravity.BOTTOM | Gravity.LEFT, 3, 0, 0, 0));
         setEmojiButtonImage(false, false);
 
@@ -4017,6 +4019,12 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
                 senderSelectPopupWindow.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_UNSPECIFIED);
                 senderSelectPopupWindow.getContentView().setFocusableInTouchMode(true);
                 senderSelectPopupWindow.setAnimationEnabled(false);
+                senderSelectPopupWindow.setOnDismissListener(() -> {
+                    if (hiddenSendAsSelectorVisible && NekoConfig.hideSendAsChannel.Bool()) {
+                        hiddenSendAsSelectorVisible = false;
+                        updateSendAsButton(true);
+                    }
+                });
 
                 int pad = -dp(4);
                 int[] location = new int[2];
@@ -10814,23 +10822,55 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
         updateSendAsButton(true);
     }
 
+    private TLRPC.Peer getDefaultSendAsPeer(TLRPC.ChatFull full) {
+        TLRPC.Peer defPeer = full != null ? full.default_send_as : null;
+        if (defPeer == null && delegate.getSendAsPeers() != null && !delegate.getSendAsPeers().peers.isEmpty()) {
+            defPeer = delegate.getSendAsPeers().peers.get(0).peer;
+        }
+        return defPeer;
+    }
+
+    private boolean canUseSendAsSelector(TLRPC.Chat chat, TLRPC.Peer defPeer) {
+        return defPeer != null && (delegate.getSendAsPeers() == null || delegate.getSendAsPeers().peers.size() > 1) &&
+            !isEditingMessage() && !isRecordingAudioVideo() && (recordedAudioPanel == null || recordedAudioPanel.getVisibility() != View.VISIBLE) &&
+            (!ChatObject.isChannelAndNotMegaGroup(chat) || ChatObject.canSendAsPeers(chat)) && !ChatObject.isMonoForum(chat);
+    }
+
+    private boolean openHiddenSendAsSelectorFromEmojiButton() {
+        if (!NekoConfig.hideSendAsChannel.Bool() || parentFragment == null || delegate == null) {
+            return false;
+        }
+        TLRPC.Chat chat = parentFragment.getMessagesController().getChat(-dialog_id);
+        TLRPC.ChatFull full = parentFragment.getMessagesController().getChatFull(-dialog_id);
+        if (!canUseSendAsSelector(chat, getDefaultSendAsPeer(full))) {
+            return false;
+        }
+        hiddenSendAsSelectorVisible = true;
+        updateSendAsButton(true);
+        if (senderSelectView != null) {
+            senderSelectView.post(() -> {
+                if (hiddenSendAsSelectorVisible && senderSelectView != null && senderSelectPopupWindow == null) {
+                    senderSelectView.callOnClick();
+                }
+            });
+        }
+        return true;
+    }
+
     public void updateSendAsButton(boolean animated) {
         if (parentFragment == null || delegate == null) {
             return;
         }
         createMessageEditText();
-        if (NekoConfig.hideSendAsChannel.Bool())
-            return;
         TLRPC.Chat chat = parentFragment.getMessagesController().getChat(-dialog_id);
         TLRPC.ChatFull full = parentFragment.getMessagesController().getChatFull(-dialog_id);
-        TLRPC.Peer defPeer = full != null ? full.default_send_as : null;
-        if (defPeer == null && delegate.getSendAsPeers() != null && !delegate.getSendAsPeers().peers.isEmpty()) {
-            defPeer = delegate.getSendAsPeers().peers.get(0).peer;
+        TLRPC.Peer defPeer = getDefaultSendAsPeer(full);
+        boolean canUseSendAs = canUseSendAsSelector(chat, defPeer);
+        if (!canUseSendAs) {
+            hiddenSendAsSelectorVisible = false;
         }
-        boolean isVisible = defPeer != null && (delegate.getSendAsPeers() == null || delegate.getSendAsPeers().peers.size() > 1) &&
-            !isEditingMessage() && !isRecordingAudioVideo() && (recordedAudioPanel == null || recordedAudioPanel.getVisibility() != View.VISIBLE) &&
-            (!ChatObject.isChannelAndNotMegaGroup(chat) || ChatObject.canSendAsPeers(chat)) && !ChatObject.isMonoForum(chat);
-        if (isVisible) {
+        boolean isVisible = canUseSendAs && (!NekoConfig.hideSendAsChannel.Bool() || hiddenSendAsSelectorVisible);
+        if (canUseSendAs || senderSelectView != null) {
             createSenderSelectView();
         }
         if (defPeer != null) {
