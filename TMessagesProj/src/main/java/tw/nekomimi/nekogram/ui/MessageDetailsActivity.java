@@ -1,8 +1,7 @@
 package tw.nekomimi.nekogram.ui;
 
 import static org.telegram.messenger.LocaleController.getString;
-import static tw.nekomimi.nekogram.DatacenterActivity.getDCLocation;
-import static tw.nekomimi.nekogram.DatacenterActivity.getDCName;
+import static tw.nekomimi.nekogram.DatacenterActivity.formatDcDescription;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
@@ -565,8 +564,7 @@ public class MessageDetailsActivity extends BaseFragment implements Notification
                         textCell.setTextAndValue("Media", String.format(Locale.US, "%dx%d", width, height) +
                                 (TextUtils.isEmpty(video_codec) ? "" : (", " + video_codec)), divider);
                     } else if (position == dcRow) {
-                        String value = String.format(Locale.US, "DC%d %s, %s", dc, getDCName(dc), getDCLocation(dc));
-                        textCell.setTextAndValue("DC", value, divider);
+                        textCell.setTextAndValue("DC", formatDcDescription(dc), divider);
                     } else if (position == restrictionReasonRow) {
                         ArrayList<TLRPC.RestrictionReason> reasons = messageObject.messageOwner.restriction_reason;
                         StringBuilder value = new StringBuilder();

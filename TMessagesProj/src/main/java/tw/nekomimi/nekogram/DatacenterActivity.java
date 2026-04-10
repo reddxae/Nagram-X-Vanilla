@@ -353,7 +353,7 @@ public class DatacenterActivity extends BaseNekoSettingsActivity implements Noti
         }
 
         public void setDC(NekoConfig.DatacenterInfo info, boolean divider) {
-            textView.setText(String.format(Locale.US, "DC%d %s, %s", info.id, getDCName(info.id), getDCLocation(info.id)));
+            textView.setText(formatDcDescription(info.id));
             currentInfo = info;
             needDivider = divider;
             setWillNotDraw(!needDivider);
@@ -410,6 +410,13 @@ public class DatacenterActivity extends BaseNekoSettingsActivity implements Noti
             case 5 -> "Flora";
             default -> "Unknown";
         };
+    }
+
+    public static String formatDcDescription(int dc) {
+        if (dc <= 0) {
+            return getString(R.string.CantRetrieveDcInfo);
+        }
+        return String.format(Locale.US, "DC%d, %s, %s", dc, getDCName(dc), getDCLocation(dc));
     }
 
 }

@@ -23,8 +23,7 @@ import static org.telegram.ui.Stars.StarGiftSheet.replaceUnderstood;
 import static org.telegram.ui.Stars.StarsIntroActivity.formatStarsAmountShort;
 import static org.telegram.ui.bots.AffiliateProgramFragment.percents;
 
-import static tw.nekomimi.nekogram.DatacenterActivity.getDCLocation;
-import static tw.nekomimi.nekogram.DatacenterActivity.getDCName;
+import static tw.nekomimi.nekogram.DatacenterActivity.formatDcDescription;
 
 import android.Manifest;
 import android.animation.Animator;
@@ -14045,7 +14044,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                         long id = getId(true);
                         int dc = getDc();
                         boolean isUserSelf = userId == UserConfig.getInstance(currentAccount).getClientUserId();
-                        detailCell.setTextAndValue(id + "", dc != 0 ? String.format(Locale.US, "DC%d %s, %s", dc, getDCName(dc), getDCLocation(dc)) : "DC " + getString(R.string.NumberUnknown), isUserSelf);
+                        detailCell.setTextAndValue(formatMonospaceId(id), formatDcDescription(dc), isUserSelf);
                     } else if (position == restrictionReasonRow) {
                         ArrayList<TLRPC.RestrictionReason> reasons = new ArrayList<>();
                         if (userId != 0) {
@@ -17385,15 +17384,21 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
         return dc;
     }
 
+    private CharSequence formatMonospaceId(long id) {
+        SpannableStringBuilder builder = new SpannableStringBuilder(String.valueOf(id));
+        builder.setSpan(new TypefaceSpan(Typeface.MONOSPACE), 0, builder.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        return builder;
+    }
+
     private void showIdDcBottomSheet() {
         long id = getId(true);
         long idForLink = getId(false);
         int dc = getDc();
         BottomBuilder builder = new BottomBuilder(getParentActivity());
         if (userId != 0) {
-            builder.addTitle(id + "", ProfileDateHelper.getUserTime(id));
+            builder.addTitle(formatMonospaceId(id), ProfileDateHelper.getUserTime(id));
         } else {
-            builder.addTitle(id + "");
+            builder.addTitle(formatMonospaceId(id));
         }
         builder.addItem(getString(R.string.Copy), R.drawable.msg_copy, __ -> {
             AlertUtil.copyAndAlert(id + "", this);

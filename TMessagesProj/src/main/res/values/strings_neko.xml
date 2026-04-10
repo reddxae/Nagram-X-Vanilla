@@ -190,6 +190,7 @@
     <string name="TransInputToLang">Pre-Send Translation Language</string>
     <string name="More">More</string>
     <string name="ShowIdAndDc">Show ID / DC in Profile</string>
+    <string name="CantRetrieveDcInfo">Can\'t retrieve DC info</string>
     <string name="UseDefaultTheme">Use default theme *</string>
     <string name="DialogsSettings">Dialogs</string>
     <string name="SortMenu">Sort Chats</string>
