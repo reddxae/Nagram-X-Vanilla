@@ -14,10 +14,32 @@ import org.telegram.messenger.FileLog;
 import org.telegram.messenger.R;
 import org.telegram.ui.ActionBar.Theme;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 
 @RequiresApi(api = Build.VERSION_CODES.S)
 public class MonetHelper {
+    private static final class MonetThemeSpec {
+        final String assetName;
+        final String templateAssetName;
+        final boolean amoled;
+
+        private MonetThemeSpec(String assetName, String templateAssetName, boolean amoled) {
+            this.assetName = assetName;
+            this.templateAssetName = templateAssetName;
+            this.amoled = amoled;
+        }
+    }
+
     private static final HashMap<String, Integer> ids = new HashMap<>() {{
         put("a1_0", android.R.color.system_accent1_0);
         put("a1_10", android.R.color.system_accent1_10);
@@ -89,8 +111,14 @@ public class MonetHelper {
         put("monetRedCall", R.color.monetRedCall);
         put("monetGreenCall", R.color.monetGreenCall);
     }};
+    private static final HashMap<String, MonetThemeSpec> monetThemeSpecs = new HashMap<>() {{
+        put("monet_light.attheme", new MonetThemeSpec("monet_light.attheme", "monet_light.attheme", false));
+        put("monet_dark.attheme", new MonetThemeSpec("monet_dark.attheme", "monet_dark.attheme", false));
+        put("monet_amoled.attheme", new MonetThemeSpec("monet_amoled.attheme", "monet_amoled.attheme", true));
+    }};
     private static final String ACTION_OVERLAY_CHANGED = "android.intent.action.OVERLAY_CHANGED";
     private static final OverlayChangeReceiver overlayChangeReceiver = new OverlayChangeReceiver();
+    private static final Object themeFileLock = new Object();
 
     public static int getColor(String color) {
         return getColor(color, false);
@@ -98,12 +126,145 @@ public class MonetHelper {
 
     public static int getColor(String color, boolean amoled) {
         try {
-            //noinspection ConstantConditions
-            int id = ids.getOrDefault(amoled && "n1_900".equals(color) ? "n1_1000" : color, 0);
-            return ApplicationLoader.applicationContext.getColor(id);
+            Integer resolvedColor = resolveColorToken(color, amoled);
+            if (resolvedColor != null) {
+                return resolvedColor;
+            }
         } catch (Exception e) {
             FileLog.e("Error loading color " + color, e);
-            return 0;
+        }
+        return 0;
+    }
+
+    public static File getThemeFile(String assetName) {
+        MonetThemeSpec spec = monetThemeSpecs.get(assetName);
+        if (spec == null || ApplicationLoader.applicationContext == null) {
+            return null;
+        }
+        synchronized (themeFileLock) {
+            try {
+                String resolvedTheme = resolveThemeTemplate(spec);
+                if (resolvedTheme == null) {
+                    return null;
+                }
+                File outputFile = new File(ApplicationLoader.getFilesDirFixed(), spec.assetName);
+                String currentTheme = readFile(outputFile);
+                if (!resolvedTheme.equals(currentTheme)) {
+                    writeFile(outputFile, resolvedTheme);
+                }
+                return outputFile;
+            } catch (Exception e) {
+                FileLog.e("Error generating monet theme " + assetName, e);
+            }
+        }
+        return null;
+    }
+
+    private static String resolveThemeTemplate(MonetThemeSpec spec) throws IOException {
+        try (InputStream stream = ApplicationLoader.applicationContext.getAssets().open(spec.templateAssetName);
+             BufferedReader reader = new BufferedReader(new InputStreamReader(stream, StandardCharsets.UTF_8))) {
+            StringBuilder builder = new StringBuilder();
+            String line;
+            while ((line = reader.readLine()) != null) {
+                builder.append(resolveTemplateLine(line, spec.amoled)).append('\n');
+            }
+            return builder.toString();
+        }
+    }
+
+    private static String resolveTemplateLine(String line, boolean amoled) {
+        int separatorIndex = line.indexOf('=');
+        if (separatorIndex <= 0) {
+            return line;
+        }
+
+        String rawValue = line.substring(separatorIndex + 1).trim();
+        if (rawValue.isEmpty() || rawValue.charAt(0) == '#' || Character.isDigit(rawValue.charAt(0)) || rawValue.charAt(0) == '-') {
+            return line;
+        }
+
+        Integer resolvedColor = resolveColorToken(rawValue, amoled);
+        if (resolvedColor == null) {
+            return line;
+        }
+        return line.substring(0, separatorIndex + 1) + resolvedColor;
+    }
+
+    private static Integer resolveColorToken(String token, boolean amoled) {
+        if (token == null) {
+            return null;
+        }
+        String normalizedToken = token.trim();
+        if (normalizedToken.isEmpty()) {
+            return null;
+        }
+
+        int alphaStart = normalizedToken.indexOf('(');
+        int alphaEnd = normalizedToken.indexOf(')');
+        Integer alphaPercent = null;
+        if (alphaStart > 0 && alphaEnd > alphaStart) {
+            try {
+                alphaPercent = Integer.parseInt(normalizedToken.substring(alphaStart + 1, alphaEnd));
+            } catch (NumberFormatException ignore) {
+                alphaPercent = null;
+            }
+        }
+
+        String baseToken = alphaStart > 0 ? normalizedToken.substring(0, alphaStart) : normalizedToken;
+        Integer baseColor;
+        switch (baseToken) {
+            case "mBlack":
+                baseColor = 0xFF000000;
+                break;
+            case "mWhite":
+                baseColor = 0xFFFFFFFF;
+                break;
+            case "mRed200":
+                baseColor = 0xFFEF9A9A;
+                break;
+            case "mRed500":
+                baseColor = 0xFFF44336;
+                break;
+            case "mGreen500":
+                baseColor = 0xFF4CAF50;
+                break;
+            default:
+                Integer id = ids.get(amoled && "n1_900".equals(baseToken) ? "n1_1000" : baseToken);
+                if (id == null || ApplicationLoader.applicationContext == null) {
+                    return null;
+                }
+                baseColor = ApplicationLoader.applicationContext.getColor(id);
+                break;
+        }
+
+        if (alphaPercent == null) {
+            return baseColor;
+        }
+
+        int clampedAlpha = Math.max(0, Math.min(alphaPercent, 100)) * 255 / 100;
+        return (baseColor & 0x00FFFFFF) | (clampedAlpha << 24);
+    }
+
+    private static String readFile(File file) throws IOException {
+        if (file == null || !file.exists()) {
+            return null;
+        }
+        try (FileInputStream input = new FileInputStream(file);
+             InputStreamReader streamReader = new InputStreamReader(input, StandardCharsets.UTF_8);
+             BufferedReader reader = new BufferedReader(streamReader)) {
+            StringBuilder builder = new StringBuilder();
+            String line;
+            while ((line = reader.readLine()) != null) {
+                builder.append(line).append('\n');
+            }
+            return builder.toString();
+        }
+    }
+
+    private static void writeFile(File file, String content) throws IOException {
+        try (FileOutputStream output = new FileOutputStream(file);
+             Writer writer = new OutputStreamWriter(output, StandardCharsets.UTF_8)) {
+            writer.write(content);
         }
     }
 

@@ -4791,8 +4791,8 @@ public class Theme {
             themeInfo = new ThemeInfo();
             themeInfo.name = "Monet Light";
             themeInfo.assetName = "monet_light.attheme";
-            themeInfo.previewBackgroundColor = MonetHelper.getColor("n1_50");
-            themeInfo.previewInColor = MonetHelper.getColor("a2_50");
+            themeInfo.previewBackgroundColor = MonetHelper.getColor("n1_10");
+            themeInfo.previewInColor = MonetHelper.getColor("n1_50");
             themeInfo.previewOutColor = MonetHelper.getColor("a1_600");
             themeInfo.sortIndex = 6;
             themes.add(themeInfo);
@@ -4802,18 +4802,18 @@ public class Theme {
             themeInfo.name = "Monet Dark";
             themeInfo.assetName = "monet_dark.attheme";
             themeInfo.previewBackgroundColor = MonetHelper.getColor("n1_900");
-            themeInfo.previewInColor = MonetHelper.getColor("n2_800");
-            themeInfo.previewOutColor = MonetHelper.getColor("a1_100");
+            themeInfo.previewInColor = MonetHelper.getColor("n1_800");
+            themeInfo.previewOutColor = MonetHelper.getColor("a1_200");
             themeInfo.sortIndex = 7;
             themes.add(themeInfo);
             themesDict.put("Monet Dark", themeInfo);
 
             themeInfo = new ThemeInfo();
             themeInfo.name = "Monet AMOLED";
-            themeInfo.assetName = "monet_dark.attheme";
+            themeInfo.assetName = "monet_amoled.attheme";
             themeInfo.previewBackgroundColor = MonetHelper.getColor("n1_1000");
-            themeInfo.previewInColor = MonetHelper.getColor("n2_800");
-            themeInfo.previewOutColor = MonetHelper.getColor("a1_100");
+            themeInfo.previewInColor = MonetHelper.getColor("n1_800");
+            themeInfo.previewOutColor = MonetHelper.getColor("a1_200");
             themeInfo.sortIndex = 8;
             themes.add(themeInfo);
             themesDict.put("Monet AMOLED", themeInfo);
@@ -7956,6 +7956,12 @@ public class Theme {
     }
 
     public static File getAssetFile(String assetName) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            File monetThemeFile = MonetHelper.getThemeFile(assetName);
+            if (monetThemeFile != null) {
+                return monetThemeFile;
+            }
+        }
         File file = new File(ApplicationLoader.getFilesDirFixed(), assetName);
         long size;
         try {
