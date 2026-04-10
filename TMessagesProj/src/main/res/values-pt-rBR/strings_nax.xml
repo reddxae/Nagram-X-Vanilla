@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="XChannel">Canal Nagram X</string>
+    <string name="XChannel">Telegram Channel</string>
     <string name="EnableSaveDeletedMessages">Salvar Mensagens Excluídas</string>
     <string name="DeletedMessage">excluído</string>
     <string name="EnableSaveEditsHistory">Salvar Histórico de Edições</string>
@@ -39,10 +39,6 @@
     <string name="DisableCrashlyticsCollection">Desativar Crashlytics Firebase</string>
     <string name="ShowStickersRowToplevel">Mostrar Stickers nas Configurações Principais</string>
     <string name="HideShareButtonInChannel">Ocultar o botão \"Compartilhar\"</string>
-    <string name="DeleteCloudBackup">Limpar dados da nuvem</string>
-    <string name="DeleteCloudBackupFailed">Falha ao limpar dados na nuvem</string>
-    <string name="DeleteCloudBackupSuccess">Dados na nuvem limpos</string>
-    <string name="CloudConfigNoBackupToDelete">Não há dados para limpar</string>
     <string name="ClearRegexFilters">Limpar</string>
     <string name="ClearRegexFiltersAlertMessage">Você tem certeza de que deseja limpar todos os filtros regex salvos? Isso removerá tanto os filtros compartilhados quanto os específicos deste chat.</string>
     <string name="PreferredTranslateTargetLang">Lista de idiomas preferidos personalizados</string>
@@ -100,7 +96,7 @@
     <string name="Other">Outros</string>
     <string name="RestartApp">Reiniciar Aplicativo</string>
     <string name="ResetSettings">Redefinir Configurações</string>
-    <string name="ResetSettingsAlert">Tem certeza de que deseja redefinir todas as N-Configurações?</string>
+    <string name="ResetSettingsAlert">Are you sure you want to reset all Modification Settings?</string>
     <string name="DontAutoPlayNextVoice">Não Reproduzir Automaticamente a Próxima Mensagem de Voz</string>
     <string name="SaveToChatSubfolder">Salvar Anexos por Nome do Chat</string>
     <string name="MessageColoredBackground">Fundos Coloridos para Mensagens</string>

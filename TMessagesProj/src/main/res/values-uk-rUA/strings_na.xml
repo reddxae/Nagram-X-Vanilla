@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="N_Config">Налаштування N</string>
+    <string name="N_Config">Налаштування модифікації</string>
     <string name="ForceCopy">Примусове копіювання</string>
     <string name="CombineMessage">Об\'єднати повідомлення</string>
     <string name="TextStyle">Стиль тексту</string>
@@ -10,7 +10,7 @@
     <string name="SendReactions">Надсилати реакції</string>
     <string name="ShowReactions">Показати реакції</string>
     <string name="CustomTitle">Свій заголовок</string>
-    <string name="CustomTitleHint">Залиште порожнім, щоб використовувати Nagram X</string>
+    <string name="CustomTitleHint">Залиште порожнім, щоб використовувати Telegram</string>
     <string name="CreateMono">Створити монопростір</string>
     <string name="CreateMonoLanguage">Мова коду</string>
     <string name="CopyPhoto">Копіювати зображення</string>
@@ -56,7 +56,7 @@
     <string name="CheckAllForum">Додати форум</string>
     <string name="DecorationNone">Не обрано</string>
     <string name="ChatDecoration">Оформлення чатів</string>
-    <string name="NeedChangeNekoSettings">Потрібно змінити N-налаштування</string>
+    <string name="NeedChangeNekoSettings">Потрібно змінити налаштування модифікації</string>
     <string name="DoNotUnarchiveBySwipe">Вимкнути функцію \"Проведення для розархівування\"</string>
     <string name="DoNotShareMyPhoneNumber">Не повідомляти мій номер телефону</string>
     <string name="DefaultDeleteMenu">Меню видалення за замовчуванням</string>

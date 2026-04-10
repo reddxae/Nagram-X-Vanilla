@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="N_Config">N-Configuración</string>
+    <string name="N_Config">Modification Settings</string>
     <string name="ForceCopy">Forzar copia</string>
     <string name="CombineMessage">Combinar mensajes</string>
     <string name="TextStyle">Estilo de texto</string>
@@ -10,7 +10,7 @@
     <string name="SendReactions">Enviar reacción</string>
     <string name="ShowReactions">Mostrar reacciones</string>
     <string name="CustomTitle">Título personalizado</string>
-    <string name="CustomTitleHint">Dejar en blanco para usar Nagram X</string>
+    <string name="CustomTitleHint">Leave blank to use Telegram</string>
     <string name="CreateMono">Crear Monoespacio</string>
     <string name="CreateMonoLanguage">Idioma del código</string>
     <string name="CopyPhoto">Copiar Foto</string>
@@ -56,7 +56,7 @@
     <string name="CheckAllForum">Añadir foro</string>
     <string name="DecorationNone">Ninguno</string>
     <string name="ChatDecoration">Decoración del chat</string>
-    <string name="NeedChangeNekoSettings">Necesitas cambiar N-Ajustes</string>
+    <string name="NeedChangeNekoSettings">You need to change Modification Settings</string>
     <string name="DoNotUnarchiveBySwipe">Deshabilitar Deslizar para Desarchivar</string>
     <string name="DoNotShareMyPhoneNumber">No compartir mi número de teléfono</string>
     <string name="DefaultDeleteMenu">Menú de eliminación predeterminado</string>

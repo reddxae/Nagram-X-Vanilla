@@ -224,12 +224,6 @@ public class NekoGeneralSettingsActivity extends BaseNekoXSettingsActivity {
             getString(R.string.Snowflakes),
             getString(R.string.DecorationNone),
     }, null));
-    private final AbstractConfigCell notificationIconRow = cellGroup.appendCell(new ConfigCellSelectBox(null, NaConfig.INSTANCE.getNotificationIcon(), new String[]{
-            getString(R.string.MapPreviewProviderTelegram),
-            getString(R.string.NagramX),
-            getString(R.string.Nagram),
-            getString(R.string.NekoX)
-    }, null));
     private final AbstractConfigCell tabletModeRow = cellGroup.appendCell(new ConfigCellSelectBox(null, NekoConfig.tabletMode, new String[]{
             getString(R.string.TabletModeDefault),
             getString(R.string.Enable),
@@ -252,7 +246,7 @@ public class NekoGeneralSettingsActivity extends BaseNekoXSettingsActivity {
             add(new ConfigCellTextCheckIcon(NaConfig.INSTANCE.getDrawerItemCalls(), getString(R.string.Calls), R.drawable.msg_calls));
             add(new ConfigCellTextCheckIcon(NaConfig.INSTANCE.getDrawerItemSaved(), getString(R.string.SavedMessages), R.drawable.msg_saved));
             add(new ConfigCellTextCheckIcon(NaConfig.INSTANCE.getDrawerItemSettings(), getString(R.string.Settings), R.drawable.msg_settings_old, true));
-            add(new ConfigCellTextCheckIcon(NaConfig.INSTANCE.getDrawerItemNSettings(), getString(R.string.NekoSettings), R.drawable.nagramx_outline));
+            add(new ConfigCellTextCheckIcon(NaConfig.INSTANCE.getDrawerItemNSettings(), getString(R.string.NekoSettings), R.drawable.msg_settings));
             add(new ConfigCellTextCheckIcon(NaConfig.INSTANCE.getDrawerItemBrowser(), getString(R.string.InappBrowser), R.drawable.web_browser));
             add(new ConfigCellTextCheckIcon(NaConfig.INSTANCE.getDrawerItemQrLogin(), getString(R.string.ImportLogin), R.drawable.msg_qrcode));
             add(new ConfigCellTextCheckIcon(NaConfig.INSTANCE.getDrawerItemSessions(), getString(R.string.Devices), R.drawable.msg2_devices, true));
@@ -428,8 +422,6 @@ public class NekoGeneralSettingsActivity extends BaseNekoXSettingsActivity {
             } else if (key.equals(NekoConfig.transparentStatusBar.getKey())) {
                 restartTooltip.showWithAction(0, UndoView.ACTION_NEED_RESTART, null, null);
             } else if (key.equals(NekoConfig.actionBarDecoration.getKey())) {
-                restartTooltip.showWithAction(0, UndoView.ACTION_NEED_RESTART, null, null);
-            } else if (key.equals(NaConfig.INSTANCE.getNotificationIcon().getKey())) {
                 restartTooltip.showWithAction(0, UndoView.ACTION_NEED_RESTART, null, null);
             } else if (key.equals(NekoConfig.tabletMode.getKey())) {
                 restartTooltip.showWithAction(0, UndoView.ACTION_NEED_RESTART, null, null);

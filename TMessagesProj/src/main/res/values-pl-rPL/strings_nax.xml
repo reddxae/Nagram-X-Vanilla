@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="XChannel">Kanał Nagram X</string>
+    <string name="XChannel">Telegram Channel</string>
     <string name="EnableSaveDeletedMessages">Zapisz usunięte wiadomości</string>
     <string name="DeletedMessage">usunięte</string>
     <string name="EnableSaveEditsHistory">Zapisz historię zmian</string>
@@ -39,10 +39,6 @@
     <string name="DisableCrashlyticsCollection">Wyłącz Firebase rozbita analityka</string>
     <string name="ShowStickersRowToplevel">Pokaż naklejki w ustawieniach głównych</string>
     <string name="HideShareButtonInChannel">Ukryj przycisk „Udostępnij” z boku</string>
-    <string name="DeleteCloudBackup">Wyczyść dane w chmurze</string>
-    <string name="DeleteCloudBackupFailed">Nie udało się wyczyścić danych w chmurze</string>
-    <string name="DeleteCloudBackupSuccess">Dane w chmurze zostały usunięte</string>
-    <string name="CloudConfigNoBackupToDelete">Brak danych do wyczyszczenia</string>
     <string name="ClearRegexFilters">Wyczyść</string>
     <string name="ClearRegexFiltersAlertMessage">Czy na pewno chcesz wyczyścić wszystkie zapisane filtry wyrażeń regularnych? Spowoduje to usunięcie zarówno filtrów współdzielonych, jak i filtrów dotyczących czatów.</string>
     <string name="PreferredTranslateTargetLang">Niestandardowa lista preferowanych języków</string>
@@ -100,7 +96,7 @@
     <string name="Other">Inne</string>
     <string name="RestartApp">Resetuj aplikacje</string>
     <string name="ResetSettings">Resetuj ustawienia</string>
-    <string name="ResetSettingsAlert">Czy na pewno chcesz zresetować wszystkie ustawienia-N?</string>
+    <string name="ResetSettingsAlert">Are you sure you want to reset all Modification Settings?</string>
     <string name="DontAutoPlayNextVoice">Nie odtwarzaj automatycznie następnej wiadomości głosowej</string>
     <string name="SaveToChatSubfolder">Zapisz załączniki według nazwy czatu</string>
     <string name="MessageColoredBackground">Kolorowe tła Wiadomości</string>

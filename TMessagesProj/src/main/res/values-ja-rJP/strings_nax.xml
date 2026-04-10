@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="XChannel">Nagram X チャンネル</string>
+    <string name="XChannel">Telegram Channel</string>
     <string name="EnableSaveDeletedMessages">削除済みメッセージを保存</string>
     <string name="DeletedMessage">削除済み</string>
     <string name="EnableSaveEditsHistory">編集履歴を保存</string>
@@ -39,10 +39,6 @@
     <string name="DisableCrashlyticsCollection">Firebase Crashlytics を無効にする</string>
     <string name="ShowStickersRowToplevel">ステッカーをメイン設定に表示</string>
     <string name="HideShareButtonInChannel">共有ボタンを非表示</string>
-    <string name="DeleteCloudBackup">クラウドデータを消去</string>
-    <string name="DeleteCloudBackupFailed">クラウドデータを消去できませんでした</string>
-    <string name="DeleteCloudBackupSuccess">クラウドデータを消去しました</string>
-    <string name="CloudConfigNoBackupToDelete">消去するデータがありません</string>
     <string name="ClearRegexFilters">クリア</string>
     <string name="ClearRegexFiltersAlertMessage">保存されているィルターをすべてクリアしてもよろしいですか？これにより、共通フィルターとチャット固有のフィルターの両方が削除されます。</string>
     <string name="PreferredTranslateTargetLang">カスタム優先言語リスト</string>
@@ -100,7 +96,7 @@
     <string name="Other">その他</string>
     <string name="RestartApp">アプリを再起動</string>
     <string name="ResetSettings">設定をリセット</string>
-    <string name="ResetSettingsAlert">「N-設定」をリセットしますか？</string>
+    <string name="ResetSettingsAlert">Are you sure you want to reset all Modification Settings?</string>
     <string name="DontAutoPlayNextVoice">次のボイスメッセージを自動再生しない</string>
     <string name="SaveToChatSubfolder">チャット別にファイルを保存</string>
     <string name="MessageColoredBackground">カラフルなメッセージ</string>

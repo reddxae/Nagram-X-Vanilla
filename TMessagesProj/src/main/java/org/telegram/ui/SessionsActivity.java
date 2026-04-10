@@ -554,7 +554,7 @@ public class SessionsActivity extends BaseFragment implements NotificationCenter
                     if (!authorization.official_app) {
                         title += "Unofficial application ";
                         if (authorization.api_id == BuildConfig.APP_ID) {
-                            title += "Nekogram X";
+                            title += "Telegram";
                         } else {
                             title += authorization.api_id;
                         }

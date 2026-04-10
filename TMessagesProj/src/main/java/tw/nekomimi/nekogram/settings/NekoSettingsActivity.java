@@ -46,7 +46,6 @@ import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.R;
 import org.telegram.messenger.SendMessagesHelper;
-import org.telegram.messenger.browser.Browser;
 import org.telegram.ui.ActionBar.ActionBar;
 import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.BaseFragment;
@@ -85,7 +84,6 @@ import tw.nekomimi.nekogram.NekoConfig;
 import xyz.nextalone.nagram.NaConfig;
 import tw.nekomimi.nekogram.helpers.AppRestartHelper;
 import tw.nekomimi.nekogram.helpers.ChatNameHelper;
-import tw.nekomimi.nekogram.helpers.CloudSettingsHelper;
 import tw.nekomimi.nekogram.helpers.PasscodeHelper;
 import tw.nekomimi.nekogram.helpers.SettingsHelper;
 import tw.nekomimi.nekogram.helpers.SettingsSearchResult;
@@ -108,7 +106,6 @@ public class NekoSettingsActivity extends BaseFragment {
     private ViewPagerFixed viewPager;
 
     private ImageView backButton;
-    private ImageView syncButton;
     private ImageView searchButton;
 
     private FrameLayout actionBarContainer;
@@ -148,10 +145,6 @@ public class NekoSettingsActivity extends BaseFragment {
                     if (backButton != null) {
                         lastBtnColor = btnColor;
                         backButton.setColorFilter(new PorterDuffColorFilter(btnColor, PorterDuff.Mode.SRC_IN));
-                    }
-                    if (syncButton != null) {
-                        lastBtnColor = btnColor;
-                        syncButton.setColorFilter(new PorterDuffColorFilter(btnColor, PorterDuff.Mode.SRC_IN));
                     }
                     if (searchButton != null) {
                         lastBtnColor = btnColor;
@@ -224,21 +217,13 @@ public class NekoSettingsActivity extends BaseFragment {
         });
         actionBarContainer.addView(backButton, LayoutHelper.createFrame(54, 54, Gravity.LEFT | Gravity.CENTER_VERTICAL));
 
-        syncButton = new ImageView(context);
-        syncButton.setScaleType(ImageView.ScaleType.CENTER);
-        syncButton.setBackground(Theme.createSelectorDrawable(getThemedColor(Theme.key_listSelector), Theme.RIPPLE_MASK_CIRCLE_20DP));
-        syncButton.setImageResource(R.drawable.cloud_sync);
-        syncButton.setColorFilter(new PorterDuffColorFilter(Color.WHITE, PorterDuff.Mode.SRC_IN));
-        syncButton.setOnClickListener(v -> CloudSettingsHelper.getInstance().showDialog(NekoSettingsActivity.this));
-        actionBarContainer.addView(syncButton, LayoutHelper.createFrame(54, 54, Gravity.RIGHT | Gravity.CENTER_VERTICAL));
-
         searchButton = new ImageView(context);
         searchButton.setScaleType(ImageView.ScaleType.CENTER);
         searchButton.setBackground(Theme.createSelectorDrawable(getThemedColor(Theme.key_listSelector), Theme.RIPPLE_MASK_CIRCLE_20DP));
         searchButton.setImageResource(R.drawable.ic_ab_search);
         searchButton.setColorFilter(new PorterDuffColorFilter(Color.WHITE, PorterDuff.Mode.SRC_IN));
         searchButton.setOnClickListener(v -> showSettingsSearchDialog());
-        actionBarContainer.addView(searchButton, LayoutHelper.createFrame(54, 54, Gravity.RIGHT | Gravity.CENTER_VERTICAL, 0, 0, 42, 0));
+        actionBarContainer.addView(searchButton, LayoutHelper.createFrame(54, 54, Gravity.RIGHT | Gravity.CENTER_VERTICAL));
 
         fragmentView = contentView = frameLayout;
 
@@ -571,17 +556,7 @@ public class NekoSettingsActivity extends BaseFragment {
                         }
                         case VIEW_TYPE_TEXT_LINK: {
                             TextSettingsCell textCell = (TextSettingsCell) holder.itemView;
-                            if (position == xChannelRow) {
-                                textCell.setTextAndValue(getString(R.string.XChannel), "@NagramX", true);
-                            } else if (position == channelRow) {
-                                textCell.setTextAndValue(getString(R.string.OfficialChannel), "@nagram_channel", true);
-                            } else if (position == channelTipsRow) {
-                                textCell.setTextAndValue(getString(R.string.TipsChannel), "@" + "NagramTips", true);
-                            } else if (position == sourceCodeRow) {
-                                textCell.setTextAndValue(getString(R.string.SourceCode), "Github", true);
-                            } else if (position == translationRow) {
-                                textCell.setTextAndValue(getString(R.string.TransSite), "Crowdin", true);
-                            } else if (position == datacenterStatusRow) {
+                            if (position == datacenterStatusRow) {
                                 textCell.setText(getString(R.string.DatacenterStatus), true);
                             }
                             break;
@@ -613,16 +588,6 @@ public class NekoSettingsActivity extends BaseFragment {
                     presentFragment(new NekoExperimentalSettingsActivity());
                 } else if (position == translatorRow) {
                     presentFragment(new NekoTranslatorSettingsActivity());
-                } else if (position == xChannelRow) {
-                    MessagesController.getInstance(currentAccount).openByUserName("NagramX", NekoSettingsActivity.this, 1);
-                } else if (position == channelRow) {
-                    MessagesController.getInstance(currentAccount).openByUserName("nagram_channel", NekoSettingsActivity.this, 1);
-                } else if (position == channelTipsRow) {
-                    MessagesController.getInstance(currentAccount).openByUserName("NagramTips", NekoSettingsActivity.this, 1);
-                } else if (position == translationRow) {
-                    Browser.openUrl(getParentActivity(), "https://crowdin.com/project/NagramX");
-                } else if (position == sourceCodeRow) {
-                    Browser.openUrl(getParentActivity(), "https://github.com/risin42/NagramX");
                 } else if (position == datacenterStatusRow) {
                     presentFragment(new DatacenterActivity(0));
                 } else if (position == importSettingsRow) {
@@ -641,7 +606,6 @@ public class NekoSettingsActivity extends BaseFragment {
                             getString(R.string.Reset),
                             true,
                             () -> {
-                                ApplicationLoader.applicationContext.getSharedPreferences("nekocloud", Activity.MODE_PRIVATE).edit().clear().commit();
                                 ApplicationLoader.applicationContext.getSharedPreferences("nekox_config", Activity.MODE_PRIVATE).edit().clear().commit();
                                 ApplicationLoader.applicationContext.getSharedPreferences("nkmrcfg", Activity.MODE_PRIVATE).edit().clear().commit();
                                 AppRestartHelper.triggerRebirth(context, new Intent(context, LaunchActivity.class));
@@ -678,11 +642,6 @@ public class NekoSettingsActivity extends BaseFragment {
                 otherRow = rowCount++;
                 appRestartRow = rowCount++;
             } else {
-                xChannelRow = rowCount++;
-                channelRow = rowCount++;
-                channelTipsRow = rowCount++;
-                sourceCodeRow = rowCount++;
-                translationRow = rowCount++;
                 datacenterStatusRow = rowCount++;
             }
         }
@@ -893,7 +852,7 @@ public class NekoSettingsActivity extends BaseFragment {
             importSettings(configJson);
 
             AlertDialog restart = new AlertDialog(context, 0);
-            restart.setTitle(getString(R.string.NagramX));
+            restart.setTitle(getString(R.string.AppName));
             restart.setMessage(getString(R.string.RestartAppToTakeEffect));
             restart.setPositiveButton(getString(R.string.OK), (__, ___) -> AppRestartHelper.triggerRebirth(context, new Intent(context, LaunchActivity.class)));
             restart.show();

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="NekoSettings">N-Configurações</string>
+    <string name="NekoSettings">Modification Settings</string>
     <string name="IPv6">Preferir IPv6</string>
     <string name="MessageMenu">Menu de Mensagem</string>
     <string name="HidePhone">Ocultar Número de Telefone</string>
@@ -74,7 +74,7 @@
     <string name="CallTo">Ligação para **%1$s**?</string>
     <string name="DisableNumberRounding">Desativar Arredondamento de Números</string>
     <string name="Categories">Categorias</string>
-    <string name="OfficialChannel">Canal Nagram</string>
+    <string name="OfficialChannel">Official Channel</string>
     <string name="About">Sobre</string>
     <string name="IgnoreBlockedAbout">Você não verá mais mensagens de usuários bloqueados em grupos.</string>
     <string name="SourceCode">Código Fonte</string>
@@ -122,10 +122,10 @@
     <string name="enhancedFileLoader">Aumentar Velocidade de Download</string>
     <string name="mapDriftingFixForGoogleMaps">Corrigir Google Maps Drifting na China</string>
     <string name="useOSMDroidMap">Usar Mapa OSMDroid</string>
-    <string name="UnknownNekoSettingsOption">Não existe essa opção em N-Configurações.</string>
+    <string name="UnknownNekoSettingsOption">There is no such Modification Settings option.</string>
     <string name="PasscodeNeeded">Você precisa ativar o passcode primeiro</string>
     <string name="PasscodeNeko">Passcode</string>
-    <string name="PasscodeShowInSettings">Mostrar em N-Configurações</string>
+    <string name="PasscodeShowInSettings">Show in Modification Settings</string>
     <string name="PasscodeShowInSettingsAbout">Após ocultar, você pode **APENAS** abrir esta página por link:</string>
     <string name="PasscodeSet">Definir passcode</string>
     <string name="PasscodeEdit">Alterar passcode</string>
@@ -162,19 +162,6 @@
     <string name="RecentChats">Chats recentes</string>
     <string name="ClearRecentChats">Limpar chats recentes</string>
     <string name="ClearRecentChatAlert">Você deseja limpar suas conversas recentes?</string>
-    <string name="CloudConfig">Configurações da Nuvem</string>
-    <string name="CloudConfigDesc">Salve suas N-Configurações na nuvem do Telegram.</string>
-    <string name="CloudConfigSyncDate">Última sincronização: %s, nuvem: %s</string>
-    <string name="CloudConfigSyncDateNever">nunca</string>
-    <string name="CloudConfigSync">Sincronizar com a nuvem</string>
-    <string name="CloudConfigSyncShort">Sincronizar</string>
-    <string name="CloudConfigRestore">Restaurar da nuvem</string>
-    <string name="CloudConfigRestoreShort">Restaurar</string>
-    <string name="CloudConfigSyncing">Sincronizando...</string>
-    <string name="CloudConfigAutoSync">Sincronização automática</string>
-    <string name="CloudConfigAutoSyncDesc">Sincronizar automaticamente com a nuvem após fazer alterações nas N-Configurações.</string>
-    <string name="CloudConfigSyncFailed">Falha ao sincronizar as configurações com a nuvem</string>
-    <string name="CloudConfigRestoreFailed">Falha ao restaurar as configurações da nuvem</string>
     <string name="CopyCallback">Copiar Dados de Callback</string>
     <string name="CopyInlineQuery">Copiar Consulta Inline</string>
     <string name="CopyID">Copiar ID</string>
@@ -237,7 +224,7 @@
     <string name="ScanQRCode">Escanear QR Code</string>
     <string name="NoQrFound">Nenhum QR Code encontrado</string>
     <string name="DeveloperSettings">Configurações do desenvolvedor</string>
-    <string name="TransSite">Traduzir Nagram X</string>
+    <string name="TransSite">Help with Translation</string>
     <string name="ShareMessages">Compartilhar</string>
     <string name="DisableVibration">Desativar Vibração</string>
     <string name="SendCommentAfterForward">Enviar Comentário Depois de Encaminhamento</string>

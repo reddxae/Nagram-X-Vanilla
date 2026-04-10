@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="NagramX" translatable="false">Nagram X</string>
-    <string name="XChannel">Nagram X Channel</string>
+    <string name="NagramX" translatable="false">Telegram</string>
+    <string name="XChannel">Telegram Channel</string>
     <string name="EnableSaveDeletedMessages">Save Deleted Messages</string>
     <string name="DeletedMessage">deleted</string>
     <string name="EnableSaveEditsHistory">Save Edits History</string>
@@ -47,10 +47,6 @@
     <string name="DisableCrashlyticsCollection">Disable Firebase Crashlytics</string>
     <string name="ShowStickersRowToplevel">Show Stickers in Main Settings</string>
     <string name="HideShareButtonInChannel">Hide Side \"Share\" Button</string>
-    <string name="DeleteCloudBackup">Clear cloud data</string>
-    <string name="DeleteCloudBackupFailed">Failed to clear cloud data</string>
-    <string name="DeleteCloudBackupSuccess">Cloud data cleared</string>
-    <string name="CloudConfigNoBackupToDelete">No data to clear</string>
     <string name="ClearRegexFilters">Clear</string>
     <string name="ClearRegexFiltersAlertMessage">Are you sure you want to clear all saved regex filters? This will remove both shared and chat-specific filters.</string>
     <string name="PreferredTranslateTargetLang">Custom preferred language list</string>
@@ -108,7 +104,7 @@
     <string name="Other">Other</string>
     <string name="RestartApp">Restart App</string>
     <string name="ResetSettings">Reset Settings</string>
-    <string name="ResetSettingsAlert">Are you sure you want to reset all N-Settings?</string>
+    <string name="ResetSettingsAlert">Are you sure you want to reset all Modification Settings?</string>
     <string name="DontAutoPlayNextVoice">Don\'t Auto Play Next Voice Message</string>
     <string name="SaveToChatSubfolder">Save Attachments by Chat Name</string>
     <string name="MessageColoredBackground">Colorful Message Backgrounds</string>

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="XChannel">Канал Nagram X</string>
+    <string name="XChannel">Канал Telegram</string>
     <string name="EnableSaveDeletedMessages">Зберігати видаленні повідомлення</string>
     <string name="DeletedMessage">видалено</string>
     <string name="EnableSaveEditsHistory">Зберегти історію змін</string>
@@ -39,10 +39,6 @@
     <string name="DisableCrashlyticsCollection">Вимкнути Firebase Crashlytics</string>
     <string name="ShowStickersRowToplevel">Показувати наліпки у Головних Налаштуваннях</string>
     <string name="HideShareButtonInChannel">Сховати бокову кнопку «Поділитися»</string>
-    <string name="DeleteCloudBackup">Видалити дані з хмари</string>
-    <string name="DeleteCloudBackupFailed">Не вдалося очистити дані із хмари</string>
-    <string name="DeleteCloudBackupSuccess">Дані в хмарі очищено</string>
-    <string name="CloudConfigNoBackupToDelete">Немає даних для очищення</string>
     <string name="ClearRegexFilters">Очистити</string>
     <string name="ClearRegexFiltersAlertMessage">Ви впевнені, що хочете очистити всі збережені фільтри? Це призведе до видалення як спільних, так і специфічних для чату фільтрів.</string>
     <string name="PreferredTranslateTargetLang">Користувацький список мов</string>
@@ -100,7 +96,7 @@
     <string name="Other">Інше</string>
     <string name="RestartApp">Перезапустити застосунок</string>
     <string name="ResetSettings">Скидання налаштувань</string>
-    <string name="ResetSettingsAlert">Ви дійсно бажаєте скинути всі N-Налаштування?</string>
+    <string name="ResetSettingsAlert">Ви дійсно бажаєте скинути всі налаштування модифікації?</string>
     <string name="DontAutoPlayNextVoice">Не відтворювати наступне голосове повідомлення</string>
     <string name="SaveToChatSubfolder">Зберегти вкладення від назви чату</string>
     <string name="MessageColoredBackground">Кольорове тло повідомлень</string>

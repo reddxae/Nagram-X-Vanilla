@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="NekoSettings">Настройки N</string>
+    <string name="NekoSettings">Настройки модификации</string>
     <string name="IPv6">Предпочитать IPv6</string>
     <string name="MessageMenu">Меню сообщений</string>
     <string name="HidePhone">Скрыть номер телефона</string>
@@ -74,7 +74,7 @@
     <string name="CallTo">Позвонить **%1$s**?</string>
     <string name="DisableNumberRounding">Не округлять числа</string>
     <string name="Categories">Настройки</string>
-    <string name="OfficialChannel">Канал Nagram</string>
+    <string name="OfficialChannel">Официальный канал</string>
     <string name="About">О проекте</string>
     <string name="IgnoreBlockedAbout">Вы больше не будете видеть сообщения от заблокированных пользователей в группах.</string>
     <string name="SourceCode">Исходный код</string>
@@ -122,10 +122,10 @@
     <string name="enhancedFileLoader">Увеличить скорость загрузки</string>
     <string name="mapDriftingFixForGoogleMaps">Исправить дрейф Google Карт в Китае</string>
     <string name="useOSMDroidMap">Использовать карту OSMDroid</string>
-    <string name="UnknownNekoSettingsOption">В «Настройках N» нет такой опции.</string>
+    <string name="UnknownNekoSettingsOption">В «Настройках модификации» нет такой опции.</string>
     <string name="PasscodeNeeded">Сначала необходимо включить блокировку паролем</string>
     <string name="PasscodeNeko">Пароль</string>
-    <string name="PasscodeShowInSettings">Показывать в «Настройках N»</string>
+    <string name="PasscodeShowInSettings">Показывать в «Настройках модификации»</string>
     <string name="PasscodeShowInSettingsAbout">После скрытия вы сможете **ТОЛЬКО** открыть эту страницу по ссылке:</string>
     <string name="PasscodeSet">Установить пароль</string>
     <string name="PasscodeEdit">Изменить пароль</string>
@@ -162,19 +162,6 @@
     <string name="RecentChats">Недавние чаты</string>
     <string name="ClearRecentChats">Очистить недавние чаты</string>
     <string name="ClearRecentChatAlert">Вы хотите очистить недавние чаты?</string>
-    <string name="CloudConfig">Облачные настройки</string>
-    <string name="CloudConfigDesc">Сохраните ваши «Настройки N» в облаке Telegram.</string>
-    <string name="CloudConfigSyncDate">Последняя синхронизация: %s, облако: %s</string>
-    <string name="CloudConfigSyncDateNever">никогда</string>
-    <string name="CloudConfigSync">Синхронизировать с облаком</string>
-    <string name="CloudConfigSyncShort">Синхронизировать</string>
-    <string name="CloudConfigRestore">Восстановить из облака</string>
-    <string name="CloudConfigRestoreShort">Восстановить</string>
-    <string name="CloudConfigSyncing">Синхронизация...</string>
-    <string name="CloudConfigAutoSync">Автосинхронизация</string>
-    <string name="CloudConfigAutoSyncDesc">Автоматическая синхронизация с облаком после изменений в «Настройках N».</string>
-    <string name="CloudConfigSyncFailed">Не удалось синхронизировать настройки с облаком</string>
-    <string name="CloudConfigRestoreFailed">Не удалось восстановить настройки из облака</string>
     <string name="CopyCallback">Копировать данные обратного вызова</string>
     <string name="CopyInlineQuery">Копировать встроенный запрос</string>
     <string name="CopyID">Копировать ID</string>

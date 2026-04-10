@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="NekoSettings">N-Ayarları</string>
+    <string name="NekoSettings">Modification Settings</string>
     <string name="IPv6">IPv6\'yı Tercih Et</string>
     <string name="MessageMenu">Mesaj Menüsü</string>
     <string name="HidePhone">Telefon Numarasını Gizle</string>
@@ -74,7 +74,7 @@
     <string name="CallTo">**%1$s** aransın mı?</string>
     <string name="DisableNumberRounding">Sayı Yuvarlamayı Devre Dışı Bırak</string>
     <string name="Categories">Kategoriler</string>
-    <string name="OfficialChannel">Nagram Kanalı</string>
+    <string name="OfficialChannel">Official Channel</string>
     <string name="About">Hakkında</string>
     <string name="IgnoreBlockedAbout">Artık gruplarda engellenen kullanıcılardan gelen mesajları görmeyeceksiniz.</string>
     <string name="SourceCode">Kaynak Kodu</string>
@@ -122,10 +122,10 @@
     <string name="enhancedFileLoader">İndirme Hızı Artışı</string>
     <string name="mapDriftingFixForGoogleMaps">Çin\'de Google Haritalar Kaymasını Düzelt</string>
     <string name="useOSMDroidMap">OSMDroid Haritası Kullan</string>
-    <string name="UnknownNekoSettingsOption">Böyle bir N-Ayarları seçeneği yok.</string>
+    <string name="UnknownNekoSettingsOption">There is no such Modification Settings option.</string>
     <string name="PasscodeNeeded">Önce parola kilidini etkinleştirmeniz gerekir</string>
     <string name="PasscodeNeko">Parola</string>
-    <string name="PasscodeShowInSettings">N-Ayarları\'nda Göster</string>
+    <string name="PasscodeShowInSettings">Show in Modification Settings</string>
     <string name="PasscodeShowInSettingsAbout">Gizledikten sonra, bu sayfayı **SADECE** şu bağlantıyla açabilirsiniz:</string>
     <string name="PasscodeSet">Parola ayarla</string>
     <string name="PasscodeEdit">Parolayı değiştir</string>
@@ -162,19 +162,6 @@
     <string name="RecentChats">Son sohbetler</string>
     <string name="ClearRecentChats">Son sohbetleri temizle</string>
     <string name="ClearRecentChatAlert">Son sohbetlerinizi temizlemek istiyor musunuz?</string>
-    <string name="CloudConfig">Bulut Ayarları</string>
-    <string name="CloudConfigDesc">N-Ayarlarınızı Telegram bulutuna kaydedin.</string>
-    <string name="CloudConfigSyncDate">Son eşitleme: %s, bulut: %s</string>
-    <string name="CloudConfigSyncDateNever">hiçbir zaman</string>
-    <string name="CloudConfigSync">Buluta eşitle</string>
-    <string name="CloudConfigSyncShort">Eşitle</string>
-    <string name="CloudConfigRestore">Buluttan geri yükle</string>
-    <string name="CloudConfigRestoreShort">Geri Yükle</string>
-    <string name="CloudConfigSyncing">Eşitleniyor...</string>
-    <string name="CloudConfigAutoSync">Otomatik eşitleme</string>
-    <string name="CloudConfigAutoSyncDesc">N-Ayarları\'nda değişiklik yaptıktan sonra otomatik olarak buluta eşitleyin.</string>
-    <string name="CloudConfigSyncFailed">Ayarlar buluta eşitlenemedi</string>
-    <string name="CloudConfigRestoreFailed">Ayarlar buluttan geri yüklenemedi</string>
     <string name="CopyCallback">Geri Çağırma Verisini Kopyala</string>
     <string name="CopyInlineQuery">Satır İçi Sorguyu Kopyala</string>
     <string name="CopyID">ID\'yi Kopyala</string>

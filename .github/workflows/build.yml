@@ -1,0 +1,66 @@
+name: Build APK
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Gradle Build
+    runs-on: ubuntu-latest
+    outputs:
+      build_timestamp: ${{ steps.release_build_step.outputs.build_timestamp }}
+    env:
+      NATIVE_TARGET: "arm64-v8a"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+      - name: Set up Android SDK Tools
+        uses: android-actions/setup-android@v3
+        with:
+          packages: "build-tools;36.0.0 ndk;27.2.12479018 platforms;android-36"
+      - name: Decode local.properties
+        run: echo "${{ secrets.LOCAL_PROPERTIES }}" > local.properties
+      - name: Configure Android SDK Path
+        run: |
+          echo "sdk.dir=${ANDROID_HOME}" >> local.properties
+      - name: Decode google-services.json
+        run: echo "${{ secrets.GOOGLE_SERVICES_JSON }}" | base64 -d > TMessagesProj/google-services.json
+      - name: Decode keystore
+        run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > TMessagesProj/release.keystore
+      - name: Modify Gradle JVM Args
+        run: |
+          MEMORY_KB=$(awk '/MemTotal/ {print $2}' /proc/meminfo)
+          MEMORY_GB=$((MEMORY_KB / 1024 / 1024))
+          echo "Detected memory size: ${MEMORY_GB}GB"
+          if [ $MEMORY_GB -ge 12 ]; then
+            sed -i '/^org\.gradle\.jvmargs=/d' gradle.properties
+            echo "org.gradle.jvmargs=-Xmx8G -XX:MaxMetaspaceSize=2G -XX:+UseParallelGC -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8" >> gradle.properties
+          fi
+          cat gradle.properties
+      - name: Enable Optimization
+        run: |
+          sed -i 's/^-dontoptimize$/#-dontoptimize/' TMessagesProj/proguard-rules.pro
+          echo "ProGuard optimization enabled for CI build"
+          echo "Modified proguard-rules.pro:"
+          grep -n "dontoptimize" TMessagesProj/proguard-rules.pro || echo "No dontoptimize rules found"
+      - name: Release Build
+        id: release_build_step
+        run: |
+          export BUILD_TIMESTAMP=$(date +%s)
+          echo "build_timestamp=$BUILD_TIMESTAMP" >> "$GITHUB_OUTPUT"
+          ./gradlew TMessagesProj:assembleRelease
+
+          APK=$(find TMessagesProj/build/outputs/apk -name '*arm64-v8a*.apk')
+          APK=$(dirname $APK)
+          echo "APK=$APK" >> $GITHUB_ENV
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Release
+          path: ${{ env.APK }}

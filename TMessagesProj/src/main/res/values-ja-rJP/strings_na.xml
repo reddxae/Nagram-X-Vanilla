@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="N_Config">N-設定</string>
+    <string name="N_Config">Modification Settings</string>
     <string name="ForceCopy">強制コピー</string>
     <string name="CombineMessage">メッセージを結合</string>
     <string name="TextStyle">テキストスタイル</string>
@@ -10,7 +10,7 @@
     <string name="SendReactions">リアクションを送信</string>
     <string name="ShowReactions">リアクションメニューを表示</string>
     <string name="CustomTitle">カスタムタイトル</string>
-    <string name="CustomTitleHint">空白のままにすると、Nagram X が使用されます</string>
+    <string name="CustomTitleHint">Leave blank to use Telegram</string>
     <string name="CreateMono">等幅フォントを作成</string>
     <string name="CreateMonoLanguage">等幅フォントの言語</string>
     <string name="CopyPhoto">画像をコピー</string>
@@ -56,7 +56,7 @@
     <string name="CheckAllForum">すべてのトピックモードグループを追加</string>
     <string name="DecorationNone">なし</string>
     <string name="ChatDecoration">チャットデコレーション</string>
-    <string name="NeedChangeNekoSettings">この設定はN-設定によって上書きされているため、変更できません</string>
+    <string name="NeedChangeNekoSettings">You need to change Modification Settings</string>
     <string name="DoNotUnarchiveBySwipe">スワイプによるアーカイブ解除を無効にする</string>
     <string name="DoNotShareMyPhoneNumber">電話番号の共有を無効にする</string>
     <string name="DefaultDeleteMenu">デフォルトの削除メニュー</string>

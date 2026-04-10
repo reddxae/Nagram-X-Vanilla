@@ -28,8 +28,6 @@ import java.util.List;
 import java.util.Set;
 
 import tw.nekomimi.nekogram.config.ConfigItem;
-import tw.nekomimi.nekogram.helpers.CloudSettingsHelper;
-
 @SuppressLint("ApplySharedPref")
 @SuppressWarnings("unused")
 public class NekoConfig {
@@ -125,7 +123,7 @@ public class NekoConfig {
     public static ConfigItem showIdAndDc = addConfig("ShowIdAndDc", configTypeBool, true);
 
     public static ConfigItem cachePath = addConfig("cache_path", configTypeString, "");
-    public static ConfigItem customSavePath = addConfig("customSavePath", configTypeString, "Nagram");
+    public static ConfigItem customSavePath = addConfig("customSavePath", configTypeString, "Telegram");
 
     public static ConfigItem translationProvider = addConfig("translationProvider", configTypeInt, 1);
     public static ConfigItem translateToLang = addConfig("TransToLang", configTypeString, ""); // "" -> translate to current language (MessageTrans.kt & Translator.kt)
@@ -268,8 +266,6 @@ public class NekoConfig {
                     }
                 }
             }
-            if (!configLoaded)
-                preferences.registerOnSharedPreferenceChangeListener(CloudSettingsHelper.listener);
             for (int a = 1; a <= 5; a++) {
                 datacenterInfos.add(new DatacenterInfo(a));
             }

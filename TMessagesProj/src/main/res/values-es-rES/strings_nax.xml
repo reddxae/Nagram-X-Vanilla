@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="XChannel">Canal de Nagram X</string>
+    <string name="XChannel">Telegram Channel</string>
     <string name="EnableSaveDeletedMessages">Guardar Mensajes Borrados</string>
     <string name="DeletedMessage">eliminado</string>
     <string name="EnableSaveEditsHistory">Guardar Historial de Edición</string>
@@ -39,10 +39,6 @@
     <string name="DisableCrashlyticsCollection">Deshabilitar Firebase Crashlytics</string>
     <string name="ShowStickersRowToplevel">Mostrar Stickers en la configuración principal</string>
     <string name="HideShareButtonInChannel">Ocultar botón \"Compartir\"</string>
-    <string name="DeleteCloudBackup">Borrar datos de la nube</string>
-    <string name="DeleteCloudBackupFailed">Error al borrar los datos de la nube</string>
-    <string name="DeleteCloudBackupSuccess">Datos de la nube eliminados</string>
-    <string name="CloudConfigNoBackupToDelete">No hay datos para borrar</string>
     <string name="PreferredTranslateTargetLang">Lista de idiomas personalizada preferida</string>
     <string name="PreferredTranslateTargetLangExample">e.j. ja, zh_cn, zh_tw</string>
     <string name="PreferredTranslateTargetLangName">Idiomas preferidos</string>
@@ -93,7 +89,7 @@
     <string name="Other">Otros</string>
     <string name="RestartApp">Reiniciar aplicación</string>
     <string name="ResetSettings">Restablecer Ajustes</string>
-    <string name="ResetSettingsAlert">¿Está seguro de que desea restablecer todos los N-Ajustes?</string>
+    <string name="ResetSettingsAlert">Are you sure you want to reset all Modification Settings?</string>
     <string name="DontAutoPlayNextVoice">No reproducir automáticamente el siguiente mensaje de voz</string>
     <string name="SaveToChatSubfolder">Guardar archivos adjuntos por nombre de chat</string>
     <string name="MessageColoredBackground">Fondos de mensajes de colores</string>

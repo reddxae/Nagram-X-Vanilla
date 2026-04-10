@@ -838,7 +838,7 @@ object NaConfig {
         addConfig(
             "DrawerItemNSettings",
             ConfigItem.configTypeBool,
-            true
+            false
         )
     val drawerItemQrLogin =
         addConfig(

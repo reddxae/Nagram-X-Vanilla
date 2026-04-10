@@ -137,7 +137,7 @@ public class NekoChatSettingsActivity extends BaseNekoXSettingsActivity implemen
     }, null));
     private final AbstractConfigCell markdownParserRow = cellGroup.appendCell(new ConfigCellSelectBox(null, NaConfig.INSTANCE.getMarkdownParser(), new String[]{
             getString(R.string.Official),
-            "Nekogram",
+            "Alternative",
     }, null));
     private final AbstractConfigCell dividerChats = cellGroup.appendCell(new ConfigCellDivider());
 
