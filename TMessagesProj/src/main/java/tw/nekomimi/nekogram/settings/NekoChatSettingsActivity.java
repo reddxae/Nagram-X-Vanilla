@@ -84,7 +84,6 @@ import xyz.nextalone.nagram.helper.DoubleTap;
 @SuppressLint("RtlHardcoded")
 @SuppressWarnings("unused")
 public class NekoChatSettingsActivity extends BaseNekoXSettingsActivity implements NotificationCenter.NotificationCenterDelegate, EmojiHelper.EmojiPacksLoadedListener {
-
     private final CellGroup cellGroup = new CellGroup(this);
 
     // Sticker Size

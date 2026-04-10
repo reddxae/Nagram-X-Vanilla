@@ -117,6 +117,7 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
 
     public static final int MEDIA_TYPE_DICE = 11;
     public static final int MEDIA_TYPE_STORY = 12;
+    private static final long MAX_VIDEO_NOTE_SIZE = 10L * 1024 * 1024;
     private final HashMap<String, ArrayList<DelayedMessage>> delayedMessages = new HashMap<>();
     private final SparseArray<MessageObject> unsentMessages = new SparseArray<>();
     private final SparseArray<TLRPC.Message> sendingMessages = new SparseArray<>();
@@ -10317,6 +10318,12 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
         }
         new Thread(() -> {
             final VideoEditedInfo videoEditedInfo = info != null ? info : createCompressionSettings(videoPath);
+            if (videoEditedInfo != null && videoEditedInfo.roundVideo) {
+                long fileSize = new File(videoPath).length();
+                if (fileSize > MAX_VIDEO_NOTE_SIZE) {
+                    videoEditedInfo.roundVideo = false;
+                }
+            }
 
             boolean isEncrypted = DialogObject.isEncryptedDialog(dialogId);
 

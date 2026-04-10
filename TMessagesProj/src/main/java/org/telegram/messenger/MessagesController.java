@@ -1626,6 +1626,7 @@ public class MessagesController extends BaseController implements NotificationCe
         suggestStickersApiOnly = mainPreferences.getBoolean("suggestStickersApiOnly", false);
         roundVideoSize = mainPreferences.getInt("roundVideoSize", 384);
         roundVideoBitrate = mainPreferences.getInt("roundVideoBitrate", 1000);
+        applyCustomRoundVideoEncodingSettings();
         roundAudioBitrate = mainPreferences.getInt("roundAudioBitrate", 64);
         pendingSuggestions = mainPreferences.getStringSet("pendingSuggestions", null);
         dismissedSuggestions = mainPreferences.getStringSet("dismissedSuggestions", null);
@@ -4983,6 +4984,8 @@ public class MessagesController extends BaseController implements NotificationCe
             scheduleTranscriptionUpdate();
         }
 
+        changed |= applyCustomRoundVideoEncodingSettings(editor);
+
         if (changed) {
             editor.apply();
             AndroidUtilities.runOnUIThread(() -> {
@@ -5003,6 +5006,32 @@ public class MessagesController extends BaseController implements NotificationCe
             });
         }
         logDeviceStats();
+    }
+
+    public boolean applyCustomRoundVideoEncodingSettings() {
+        SharedPreferences.Editor editor = mainPreferences.edit();
+        boolean changed = applyCustomRoundVideoEncodingSettings(editor);
+        if (changed) {
+            editor.apply();
+        }
+        return changed;
+    }
+
+    private boolean applyCustomRoundVideoEncodingSettings(SharedPreferences.Editor editor) {
+        boolean changed = false;
+        int customRoundVideoSize = NaConfig.INSTANCE.getCameraVideoNoteResolution().Int();
+        int customRoundVideoBitrate = NaConfig.INSTANCE.getCameraVideoNoteBitrate().Int();
+        if (roundVideoSize != customRoundVideoSize) {
+            roundVideoSize = customRoundVideoSize;
+            editor.putInt("roundVideoSize", roundVideoSize);
+            changed = true;
+        }
+        if (roundVideoBitrate != customRoundVideoBitrate) {
+            roundVideoBitrate = customRoundVideoBitrate;
+            editor.putInt("roundVideoBitrate", roundVideoBitrate);
+            changed = true;
+        }
+        return changed;
     }
 
     public void updateTranscribeAudioTrialCurrentNumber(int num) {

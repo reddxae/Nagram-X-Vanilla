@@ -1344,6 +1344,18 @@ object NaConfig {
             ConfigItem.configTypeBool,
             false
         )
+    val cameraVideoNoteBitrate =
+        addConfig(
+            "CameraVideoNoteBitrate",
+            ConfigItem.configTypeInt,
+            1200
+        )
+    val cameraVideoNoteResolution =
+        addConfig(
+            "CameraVideoNoteResolution",
+            ConfigItem.configTypeInt,
+            512
+        )
     val disableGooeyAvatarAnimation =
         addConfig(
             "DisableGooeyAvatarAnimation",

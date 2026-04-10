@@ -447,6 +447,7 @@ public class NekoSettingsActivity extends BaseFragment {
         private int generalRow = -1;
         private int translatorRow = -1;
         private int chatRow = -1;
+        private int cameraRow = -1;
         private int passcodeRow = -1;
         private int experimentRow = -1;
         private int categories2Row = -1;
@@ -535,6 +536,8 @@ public class NekoSettingsActivity extends BaseFragment {
                             TextCell textCell = (TextCell) holder.itemView;
                             if (position == chatRow) {
                                 textCell.setTextAndIcon(getString(R.string.Chat), R.drawable.msg_discussion, true);
+                            } else if (position == cameraRow) {
+                                textCell.setTextAndIcon(getString(R.string.Camera), R.drawable.msg_camera, true);
                             } else if (position == generalRow) {
                                 textCell.setTextAndIcon(getString(R.string.General), R.drawable.msg_theme, true);
                             } else if (position == translatorRow) {
@@ -570,7 +573,7 @@ public class NekoSettingsActivity extends BaseFragment {
                         return VIEW_TYPE_BOTTOM;
                     } else if (position == nSettingsHeaderRow || position == otherRow) {
                         return VIEW_TYPE_HEADER;
-                    } else if (position == chatRow || position == generalRow || position == passcodeRow || position == experimentRow || position == translatorRow ||
+                    } else if (position == chatRow || position == cameraRow || position == generalRow || position == passcodeRow || position == experimentRow || position == translatorRow ||
                                 position == importSettingsRow || position == exportSettingsRow || position == resetSettingsRow || position == appRestartRow) {
                         return VIEW_TYPE_TEXT;
                     }
@@ -580,6 +583,8 @@ public class NekoSettingsActivity extends BaseFragment {
             listView.setOnItemClickListener((view, position, x, y) -> {
                 if (position == chatRow) {
                     presentFragment(new NekoChatSettingsActivity());
+                } else if (position == cameraRow) {
+                    presentFragment(new NekoCameraSettingsActivity());
                 } else if (position == generalRow) {
                     presentFragment(new NekoGeneralSettingsActivity());
                 } else if (position == passcodeRow) {
@@ -628,6 +633,7 @@ public class NekoSettingsActivity extends BaseFragment {
                 generalRow = rowCount++;
                 translatorRow = rowCount++;
                 chatRow = rowCount++;
+                cameraRow = rowCount++;
                 if (!PasscodeHelper.isSettingsHidden()) {
                     passcodeRow = rowCount++;
                 } else {
