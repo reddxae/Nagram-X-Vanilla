@@ -14586,6 +14586,15 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
     private void setIsAboutToSwitchToIndex(int index, boolean init, boolean animated) {
         setIsAboutToSwitchToIndex(index, init, animated, false);
     }
+
+    private CharSequence formatMediaViewerSubtitle(long date, int dcId) {
+        String subtitle = LocaleController.formatDateTime(date, true);
+        if (dcId > 0) {
+            subtitle = String.format(Locale.US, "%s, DC%d", subtitle, dcId);
+        }
+        return subtitle;
+    }
+
     private void setIsAboutToSwitchToIndex(int index, boolean init, boolean animated, boolean force) {
         if (!init && switchingToIndex == index && !force) {
             return;
@@ -14626,13 +14635,15 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
             title = FilteredSearchView.createFromInfoString(newMessageObject, opennedFromMedia && !openedFromProfile, 0);
             CharSequence subtitle = null;
             if (!newMessageObject.isQuickReply() && !newMessageObject.isSponsored() && newMessageObject.messageOwner != null) {
-                subtitle = LocaleController.formatDateAudio(newMessageObject.messageOwner.date, false);
                 if (newMessageObject.messageOwner.media != null) {
                     if (newMessageObject.messageOwner.media.document != null) {
-                        subtitle = String.format(Locale.US, "%s, DC%d", subtitle, newMessageObject.messageOwner.media.document.dc_id);
+                        subtitle = formatMediaViewerSubtitle(newMessageObject.messageOwner.date, newMessageObject.messageOwner.media.document.dc_id);
                     } else if (newMessageObject.messageOwner.media.photo != null) {
-                        subtitle = String.format(Locale.US, "%s, DC%d", subtitle, newMessageObject.messageOwner.media.photo.dc_id);
+                        subtitle = formatMediaViewerSubtitle(newMessageObject.messageOwner.date, newMessageObject.messageOwner.media.photo.dc_id);
                     }
+                }
+                if (subtitle == null) {
+                    subtitle = formatMediaViewerSubtitle(newMessageObject.messageOwner.date, 0);
                 }
             }
             actionBarContainer.setSubtitle(subtitle, animated);
@@ -15003,8 +15014,7 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
             CharSequence subtitle = null;
             TLRPC.Photo avatar = avatarsArr.get(switchingToIndex);
             if (avatar != null && avatar.date != 0) {
-                subtitle = LocaleController.formatDateAudio(avatar.date, false);
-                subtitle = String.format(Locale.US, "%s, DC%d", subtitle, avatar.dc_id);
+                subtitle = formatMediaViewerSubtitle(avatar.date, avatar.dc_id);
             }
             actionBarContainer.setSubtitle(subtitle, animated);
             boolean noforwardsOverrided = avatarsDialogId != 0 && MessagesController.getInstance(currentAccount).isChatNoForwardsWithOverride(-avatarsDialogId);
