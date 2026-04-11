@@ -1476,6 +1476,9 @@ public class LocaleController {
         if (key == null || key.length() == 0 || getInstance().currentPluralRules == null) {
             return "LOC_ERR:" + key;
         }
+        if (shouldUseGroupedPluralNumbers(key)) {
+            return formatPluralStringComma(key, plural, args);
+        }
         String param = getInstance().stringForQuantity(getInstance().currentPluralRules.quantityForNumber(plural));
         param = key + "_" + param;
         int resourceId = ApplicationLoader.applicationContext.getResources().getIdentifier(param, "string", ApplicationLoader.applicationContext.getPackageName());
@@ -1484,6 +1487,22 @@ public class LocaleController {
         argsWithPlural[0] = plural;
         System.arraycopy(args, 0, argsWithPlural, 1, args.length);
         return formatString(param, key + "_other", resourceId, fallbackResourceId, argsWithPlural);
+    }
+
+    private static boolean shouldUseGroupedPluralNumbers(String key) {
+        if (!NekoConfig.disableNumberRounding.Bool()) {
+            return false;
+        }
+        switch (key) {
+            case "Answer":
+            case "Members":
+            case "OnlineCount":
+            case "Subscribers":
+            case "Vote":
+                return true;
+            default:
+                return false;
+        }
     }
 
     public static CharSequence formatPluralSpannable(String key, int plural, CharSequence... args) {
@@ -2852,7 +2871,7 @@ public class LocaleController {
             if (rounded != null) {
                 rounded[0] = number;
             }
-            return String.valueOf(number);
+            return formatNumber(number, ',');
         }
         StringBuilder K = new StringBuilder();
         int lastDec = 0;
