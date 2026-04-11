@@ -71,6 +71,8 @@ public class ScrollSlidingTextTabStrip extends HorizontalScrollView {
     private final Theme.ResourcesProvider resourcesProvider;
 
     private boolean useSameWidth;
+    private int tabHorizontalPaddingDp = 16;
+    private int tabsContainerHorizontalPaddingDp = 7;
 
     private int tabCount;
     private int currentPosition;
@@ -329,9 +331,28 @@ public class ScrollSlidingTextTabStrip extends HorizontalScrollView {
             }
         };
         tabsContainer.setOrientation(LinearLayout.HORIZONTAL);
-        tabsContainer.setPadding(dp(7), 0, dp(7), 0);
+        tabsContainer.setPadding(dp(tabsContainerHorizontalPaddingDp), 0, dp(tabsContainerHorizontalPaddingDp), 0);
         tabsContainer.setLayoutParams(new LayoutParams(LayoutParams.MATCH_PARENT, LayoutHelper.MATCH_PARENT));
         addView(tabsContainer);
+    }
+
+    public void setTabHorizontalPaddingDp(int value) {
+        if (tabHorizontalPaddingDp == value) {
+            return;
+        }
+        tabHorizontalPaddingDp = value;
+        for (int i = 0; i < tabsContainer.getChildCount(); i++) {
+            View child = tabsContainer.getChildAt(i);
+            child.setPadding(dp(tabHorizontalPaddingDp), child.getPaddingTop(), dp(tabHorizontalPaddingDp), child.getPaddingBottom());
+        }
+    }
+
+    public void setTabsContainerHorizontalPaddingDp(int value) {
+        if (tabsContainerHorizontalPaddingDp == value) {
+            return;
+        }
+        tabsContainerHorizontalPaddingDp = value;
+        tabsContainer.setPadding(dp(tabsContainerHorizontalPaddingDp), tabsContainer.getPaddingTop(), dp(tabsContainerHorizontalPaddingDp), tabsContainer.getPaddingBottom());
     }
 
     public void setDelegate(ScrollSlidingTabStripDelegate scrollSlidingTabStripDelegate) {
@@ -441,12 +462,15 @@ public class ScrollSlidingTextTabStrip extends HorizontalScrollView {
     }
 
     public void addTextTab(final int id, CharSequence text) {
-        addTextTab(id, text, null, null);
+        addTextTab(id, text, null, null, text);
     }
     public void addTextTab(final int id, CharSequence text, SparseArray<View> viewsCache) {
-        addTextTab(id, text, viewsCache, null);
+        addTextTab(id, text, viewsCache, null, text);
     }
     public void addTextTab(final int id, CharSequence text, SparseArray<View> viewsCache, OnLongClickListener listener) {
+        addTextTab(id, text, viewsCache, listener, text);
+    }
+    public void addTextTab(final int id, CharSequence text, SparseArray<View> viewsCache, OnLongClickListener listener, CharSequence contentDescription) {
         int position = tabCount++;
         if (position == 0 && selectedTabId == -1) {
             selectedTabId = id;
@@ -508,7 +532,6 @@ public class ScrollSlidingTextTabStrip extends HorizontalScrollView {
 //            tab.setSingleLine(true);
             tab.setMaxLines(2);
             tab.setTypeface(AndroidUtilities.bold());
-            tab.setPadding(dp(16), 0, dp(16), 0);
             tab.setOnClickListener(v -> {
                 scrollTo(id, tabsContainer.indexOfChild(v), v);
             });
@@ -518,9 +541,11 @@ public class ScrollSlidingTextTabStrip extends HorizontalScrollView {
             });
             NotificationCenter.listenEmojiLoading(tab);
         }
+        tab.setPadding(dp(tabHorizontalPaddingDp), 0, dp(tabHorizontalPaddingDp), 0);
         text = Emoji.replaceEmoji(text, tab.getPaint().getFontMetricsInt(), false);
         tab.setText(text);
-        int tabWidth = (int) Math.ceil(tab.getPaint().measureText(text, 0, text.length())) + tab.getPaddingLeft() + tab.getPaddingRight();
+        tab.setContentDescription(contentDescription);
+        int tabWidth = (int) Math.ceil(Layout.getDesiredWidth(text, tab.getPaint())) + tab.getPaddingLeft() + tab.getPaddingRight();
         tabsContainer.addView(tab, LayoutHelper.createLinear(0, LayoutHelper.MATCH_PARENT));
         allTextWidth += tabWidth;
         positionToWidth.put(position, tabWidth);

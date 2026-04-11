@@ -157,6 +157,8 @@ import java.util.HashSet;
 import java.util.Objects;
 
 import kotlin.Unit;
+import tw.nekomimi.nekogram.NekoConfig;
+import tw.nekomimi.nekogram.NekoXConfig;
 import tw.nekomimi.nekogram.ui.BottomBuilder;
 import tw.nekomimi.nekogram.utils.AlertUtil;
 import tw.nekomimi.nekogram.utils.ProxyUtil;
@@ -6607,39 +6609,41 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
             if (changed > 3) {
                 idToView = null;
             }
+            applyAttachmentTabSpacing();
             final ArrayList<Pair<Integer, CharSequence>> tabs = new ArrayList<>();
+            final SparseArray<CharSequence> tabContentDescriptions = new SparseArray<>();
 
             if (isSearchingStories()) {
-                tabs.add(new Pair(TAB_STORIES, getString(R.string.ProfileStories)));
+                addAttachmentTab(tabs, tabContentDescriptions, TAB_STORIES, getString(R.string.ProfileStories));
 //                if (!scrollSlidingTextTabStrip.hasTab(TAB_STORIES)) {
 //                    scrollSlidingTextTabStrip.addTextTab(TAB_STORIES, getString(R.string.ProfileStories), idToView);
 //                }
                 scrollSlidingTextTabStrip.animationDuration = 420;
             }
             if (hasBotPreviews) {
-                tabs.add(new Pair(TAB_STORIES, getString(R.string.ProfileBotPreviewTab)));
+                addAttachmentTab(tabs, tabContentDescriptions, TAB_STORIES, getString(R.string.ProfileBotPreviewTab));
 //                if (!scrollSlidingTextTabStrip.hasTab(TAB_STORIES)) {
 //                    scrollSlidingTextTabStrip.addTextTab(TAB_STORIES, getString(R.string.ProfileBotPreviewTab), idToView);
 //                }
             } else if (!NaConfig.INSTANCE.getDisableStories().Bool() && ((DialogObject.isUserDialog(dialog_id) || DialogObject.isChatDialog(dialog_id)) && !DialogObject.isEncryptedDialog(dialog_id) && (userInfo != null && userInfo.stories_pinned_available || info != null && info.stories_pinned_available || isStoriesView()) && includeStories())) {
                 if (isArchivedOnlyStoriesView()) {
-                    tabs.add(new Pair(TAB_ARCHIVED_STORIES, getString(R.string.ProfileArchivedStories)));
+                    addAttachmentTab(tabs, tabContentDescriptions, TAB_ARCHIVED_STORIES, getString(R.string.ProfileArchivedStories));
 //                    if (!scrollSlidingTextTabStrip.hasTab(TAB_ARCHIVED_STORIES)) {
 //                        scrollSlidingTextTabStrip.addTextTab(TAB_ARCHIVED_STORIES, getString(R.string.ProfileArchivedStories), idToView);
 //                    }
                     scrollSlidingTextTabStrip.animationDuration = 420;
                 } else {
-                    tabs.add(new Pair(TAB_STORIES, getString(R.string.ProfileStories)));
+                    addAttachmentTab(tabs, tabContentDescriptions, TAB_STORIES, getString(R.string.ProfileStories));
 //                    if (!scrollSlidingTextTabStrip.hasTab(TAB_STORIES)) {
 //                        scrollSlidingTextTabStrip.addTextTab(TAB_STORIES, getString(R.string.ProfileStories), idToView);
 //                    }
                     if (isStoriesView()) {
-                        tabs.add(new Pair(TAB_ARCHIVED_STORIES, getString(R.string.ProfileArchivedStories)));
+                        addAttachmentTab(tabs, tabContentDescriptions, TAB_ARCHIVED_STORIES, getString(R.string.ProfileArchivedStories));
                     }
                 }
             }
             if (hasGifts) {
-                tabs.add(new Pair(TAB_GIFTS, TextUtils.concat(getString(R.string.ProfileGifts), giftsContainer.getLastEmojis(null))));
+                addAttachmentTab(tabs, tabContentDescriptions, TAB_GIFTS, TextUtils.concat(getString(R.string.ProfileGifts), giftsContainer.getLastEmojis(null)));
                 giftsLastHash = giftsContainer.getLastEmojisHash();
 //                if (!scrollSlidingTextTabStrip.hasTab(TAB_GIFTS)) {
 //                    scrollSlidingTextTabStrip.addTextTab(TAB_GIFTS, TextUtils.concat(getString(R.string.ProfileGifts), giftsContainer.getLastEmojis(null)), idToView);
@@ -6647,20 +6651,20 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
 //                }
             }
             if (hasEditBotPreviews) {
-                tabs.add(new Pair(TAB_BOT_PREVIEWS, getString(R.string.ProfileBotPreviewTab)));
+                addAttachmentTab(tabs, tabContentDescriptions, TAB_BOT_PREVIEWS, getString(R.string.ProfileBotPreviewTab));
 //                if (!scrollSlidingTextTabStrip.hasTab(TAB_BOT_PREVIEWS)) {
 //                    scrollSlidingTextTabStrip.addTextTab(TAB_BOT_PREVIEWS, getString(R.string.ProfileBotPreviewTab), idToView);
 //                }
             }
             if (!isStoriesView()) {
                 if (hasSavedDialogs) {
-                    tabs.add(new Pair(TAB_SAVED_DIALOGS, getString(R.string.SavedDialogsTab)));
+                    addAttachmentTab(tabs, tabContentDescriptions, TAB_SAVED_DIALOGS, getString(R.string.SavedDialogsTab));
 //                    if (!scrollSlidingTextTabStrip.hasTab(TAB_SAVED_DIALOGS)) {
 //                        scrollSlidingTextTabStrip.addTextTab(TAB_SAVED_DIALOGS, getString(R.string.SavedDialogsTab), idToView);
 //                    }
                 }
                 if (chatUsersAdapter.chatInfo != null) {
-                    tabs.add(new Pair(TAB_GROUPUSERS, getString(R.string.GroupMembers)));
+                    addAttachmentTab(tabs, tabContentDescriptions, TAB_GROUPUSERS, getString(R.string.GroupMembers));
 //                    if (!scrollSlidingTextTabStrip.hasTab(TAB_GROUPUSERS)) {
 //                        scrollSlidingTextTabStrip.addTextTab(TAB_GROUPUSERS, getString(R.string.GroupMembers), idToView);
 //                    }
@@ -6668,68 +6672,68 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
                 if (hasMedia[0] > 0) {
 //                    if (!scrollSlidingTextTabStrip.hasTab(TAB_PHOTOVIDEO)) {
                         if (hasMedia[1] == 0 && hasMedia[2] == 0 && hasMedia[3] == 0 && hasMedia[4] == 0 && hasMedia[5] == 0 && hasMedia[6] == 0 && chatUsersAdapter.chatInfo == null) {
-                            tabs.add(new Pair(TAB_PHOTOVIDEO, getString(R.string.SharedMediaTabFull2)));
+                            addAttachmentTab(tabs, tabContentDescriptions, TAB_PHOTOVIDEO, getString(R.string.SharedMediaTabFull2));
 //                            scrollSlidingTextTabStrip.addTextTab(TAB_PHOTOVIDEO, getString(R.string.SharedMediaTabFull2), idToView);
                         } else {
-                            tabs.add(new Pair(TAB_PHOTOVIDEO, getString(R.string.SharedMediaTab2)));
+                            addAttachmentTab(tabs, tabContentDescriptions, TAB_PHOTOVIDEO, getString(R.string.SharedMediaTab2));
 //                            scrollSlidingTextTabStrip.addTextTab(TAB_PHOTOVIDEO, getString(R.string.SharedMediaTab2), idToView);
                         }
 //                    }
                 }
                 if (hasSavedMessages) {
-                    tabs.add(new Pair(TAB_SAVED_MESSAGES, getString(R.string.SavedMessagesTab2)));
+                    addAttachmentTab(tabs, tabContentDescriptions, TAB_SAVED_MESSAGES, getString(R.string.SavedMessagesTab2));
 //                    if (!scrollSlidingTextTabStrip.hasTab(TAB_SAVED_MESSAGES)) {
 //                        scrollSlidingTextTabStrip.addTextTab(TAB_SAVED_MESSAGES, getString(R.string.SavedMessagesTab2), idToView);
 //                    }
                     MessagesController.getGlobalMainSettings().edit().putInt("savedhint", 3).apply();
                 }
                 if (hasMedia[1] > 0) {
-                    tabs.add(new Pair(TAB_FILES, getString(R.string.SharedFilesTab2)));
+                    addAttachmentTab(tabs, tabContentDescriptions, TAB_FILES, getString(R.string.SharedFilesTab2));
 //                    if (!scrollSlidingTextTabStrip.hasTab(TAB_FILES)) {
 //                        scrollSlidingTextTabStrip.addTextTab(TAB_FILES, getString(R.string.SharedFilesTab2), idToView);
 //                    }
                 }
                 if (!DialogObject.isEncryptedDialog(dialog_id)) {
                     if (hasMedia[3] > 0) {
-                        tabs.add(new Pair(TAB_LINKS, getString(R.string.SharedLinksTab2)));
+                        addAttachmentTab(tabs, tabContentDescriptions, TAB_LINKS, getString(R.string.SharedLinksTab2));
 //                        if (!scrollSlidingTextTabStrip.hasTab(TAB_LINKS)) {
 //                            scrollSlidingTextTabStrip.addTextTab(TAB_LINKS, getString(R.string.SharedLinksTab2), idToView);
 //                        }
                     }
                     if (hasMedia[4] > 0) {
-                        tabs.add(new Pair(TAB_AUDIO, getString(R.string.SharedMusicTab2)));
+                        addAttachmentTab(tabs, tabContentDescriptions, TAB_AUDIO, getString(R.string.SharedMusicTab2));
 //                        if (!scrollSlidingTextTabStrip.hasTab(TAB_AUDIO)) {
 //                            scrollSlidingTextTabStrip.addTextTab(TAB_AUDIO, getString(R.string.SharedMusicTab2), idToView);
 //                        }
                     }
                 } else {
                     if (hasMedia[4] > 0) {
-                        tabs.add(new Pair(TAB_AUDIO, getString(R.string.SharedMusicTab2)));
+                        addAttachmentTab(tabs, tabContentDescriptions, TAB_AUDIO, getString(R.string.SharedMusicTab2));
 //                        if (!scrollSlidingTextTabStrip.hasTab(TAB_AUDIO)) {
 //                            scrollSlidingTextTabStrip.addTextTab(TAB_AUDIO, getString(R.string.SharedMusicTab2), idToView);
 //                        }
                     }
                 }
                 if (hasMedia[2] > 0) {
-                    tabs.add(new Pair(TAB_VOICE, getString(R.string.SharedVoiceTab2)));
+                    addAttachmentTab(tabs, tabContentDescriptions, TAB_VOICE, getString(R.string.SharedVoiceTab2));
 //                    if (!scrollSlidingTextTabStrip.hasTab(TAB_VOICE)) {
 //                        scrollSlidingTextTabStrip.addTextTab(TAB_VOICE, getString(R.string.SharedVoiceTab2), idToView);
 //                    }
                 }
                 if (hasMedia[5] > 0) {
-                    tabs.add(new Pair(TAB_GIF, getString(R.string.SharedGIFsTab2)));
+                    addAttachmentTab(tabs, tabContentDescriptions, TAB_GIF, getString(R.string.SharedGIFsTab2));
 //                    if (!scrollSlidingTextTabStrip.hasTab(TAB_GIF)) {
 //                        scrollSlidingTextTabStrip.addTextTab(TAB_GIF, getString(R.string.SharedGIFsTab2), idToView);
 //                    }
                 }
                 if (hasMedia[6] > 0) {
-                    tabs.add(new Pair(TAB_COMMON_GROUPS, getString(R.string.SharedGroupsTab2)));
+                    addAttachmentTab(tabs, tabContentDescriptions, TAB_COMMON_GROUPS, getString(R.string.SharedGroupsTab2));
 //                    if (!scrollSlidingTextTabStrip.hasTab(TAB_COMMON_GROUPS)) {
 //                        scrollSlidingTextTabStrip.addTextTab(TAB_COMMON_GROUPS, getString(R.string.SharedGroupsTab2), idToView);
 //                    }
                 }
                 if (hasRecommendations) {
-                    tabs.add(new Pair(TAB_RECOMMENDED_CHANNELS, getString(dialog_id > 0 ? R.string.SimilarBotsTab : R.string.SimilarChannelsTab)));
+                    addAttachmentTab(tabs, tabContentDescriptions, TAB_RECOMMENDED_CHANNELS, getString(dialog_id > 0 ? R.string.SimilarBotsTab : R.string.SimilarChannelsTab));
 //                    if (!scrollSlidingTextTabStrip.hasTab(TAB_RECOMMENDED_CHANNELS)) {
 //                        scrollSlidingTextTabStrip.addTextTab(TAB_RECOMMENDED_CHANNELS, getString(dialog_id > 0 ? R.string.SimilarBotsTab : R.string.SimilarChannelsTab), idToView);
 //                    }
@@ -6746,7 +6750,7 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
                 final boolean isChannel = info instanceof TLRPC.TL_channelFull;
                 for (int i = 0; i < 15; ++i) {
                     if (getTab(i, isChannel) != null && !has.run(i)) {
-                        tabs.add(new Pair<>(i, getTabName(i)));
+                        addAttachmentTab(tabs, tabContentDescriptions, i, getTabName(i));
                     }
                 }
             }
@@ -6769,7 +6773,7 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
             }
             for (Pair<Integer, CharSequence> tab : tabs) {
                 if (!scrollSlidingTextTabStrip.hasTab(tab.first)) {
-                    scrollSlidingTextTabStrip.addTextTab(tab.first, tab.second, idToView);
+                    scrollSlidingTextTabStrip.addTextTab(tab.first, tab.second, idToView, null, tabContentDescriptions.get(tab.first, getTabName(tab.first)));
                 }
             }
         }
@@ -10734,6 +10738,165 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
             backgroundColor = color;
             invalidate();
         }
+    }
+
+    private static final class AttachmentTabIconMetrics {
+        final int canvasSize;
+        final float contentWidth;
+        final float contentHeight;
+        final float centerOffsetX;
+        final float centerOffsetY;
+        final float mixedScaleBias;
+        final float iconOnlyScaleBias;
+        final float mixedScaleYBias;
+        final float iconOnlyScaleYBias;
+
+        private AttachmentTabIconMetrics(int canvasSize, float contentWidth, float contentHeight) {
+            this(canvasSize, contentWidth, contentHeight, 0f, 0f, 1f, 1f, 1f, 1f);
+        }
+
+        private AttachmentTabIconMetrics(int canvasSize, float contentWidth, float contentHeight, float mixedScaleBias, float iconOnlyScaleBias) {
+            this(canvasSize, contentWidth, contentHeight, 0f, 0f, mixedScaleBias, iconOnlyScaleBias, 1f, 1f);
+        }
+
+        private AttachmentTabIconMetrics(int canvasSize, float contentWidth, float contentHeight, float centerOffsetX, float centerOffsetY, float mixedScaleBias, float iconOnlyScaleBias, float mixedScaleYBias, float iconOnlyScaleYBias) {
+            this.canvasSize = canvasSize;
+            this.contentWidth = contentWidth;
+            this.contentHeight = contentHeight;
+            this.centerOffsetX = centerOffsetX;
+            this.centerOffsetY = centerOffsetY;
+            this.mixedScaleBias = mixedScaleBias;
+            this.iconOnlyScaleBias = iconOnlyScaleBias;
+            this.mixedScaleYBias = mixedScaleYBias;
+            this.iconOnlyScaleYBias = iconOnlyScaleYBias;
+        }
+
+        private AttachmentTabIconMetrics(int canvasSize, float contentWidth, float contentHeight, float centerOffsetX, float centerOffsetY, float mixedScaleBias, float iconOnlyScaleBias) {
+            this(canvasSize, contentWidth, contentHeight, centerOffsetX, centerOffsetY, mixedScaleBias, iconOnlyScaleBias, 1f, 1f);
+        }
+    }
+
+    private static final class AttachmentTabIconStyle {
+        final int spanSizeDp;
+        final float scaleX;
+        final float scaleY;
+        final float translateXDp;
+        final float translateYDp;
+
+        private AttachmentTabIconStyle(int spanSizeDp, float scaleX, float scaleY, float translateXDp, float translateYDp) {
+            this.spanSizeDp = spanSizeDp;
+            this.scaleX = scaleX;
+            this.scaleY = scaleY;
+            this.translateXDp = translateXDp;
+            this.translateYDp = translateYDp;
+        }
+    }
+
+    private AttachmentTabIconMetrics getAttachmentTabIconMetrics(int iconResId) {
+        if (iconResId == R.drawable.filled_gift_simple) {
+            return new AttachmentTabIconMetrics(72, 46, 49, 1.02f, 1.08f);
+        } else if (iconResId == R.drawable.msg_filled_stories) {
+            return new AttachmentTabIconMetrics(24, 22, 22);
+        } else if (iconResId == R.drawable.msg_filled_menu_groups) {
+            return new AttachmentTabIconMetrics(24, 20, 13, 0f, -0.5f, 1.10f, 1.22f);
+        } else if (iconResId == R.drawable.msg_filled_data_photos) {
+            return new AttachmentTabIconMetrics(24, 16, 16);
+        } else if (iconResId == R.drawable.baseline_bookmark_24) {
+            return new AttachmentTabIconMetrics(24, 14, 18, 1.03f, 1.08f);
+        } else if (iconResId == R.drawable.msg_filled_data_files) {
+            return new AttachmentTabIconMetrics(24, 13, 15, 0.5f, -0.5f, 1.04f, 1.08f);
+        } else if (iconResId == R.drawable.msg_limit_links) {
+            return new AttachmentTabIconMetrics(24, 20, 20);
+        } else if (iconResId == R.drawable.baseline_music_note_16) {
+            return new AttachmentTabIconMetrics(24, 12, 18, 1.04f, 1.08f);
+        } else if (iconResId == R.drawable.msg_filled_data_voice) {
+            return new AttachmentTabIconMetrics(24, 17, 19, -0.5f, 0.5f, 1.02f, 1.06f, 1.08f, 1.10f);
+        } else if (iconResId == R.drawable.msg_round_gif_m) {
+            return new AttachmentTabIconMetrics(32, 23, 11, 0.5f, 0.5f, 1.10f, 1.18f);
+        } else if (iconResId == R.drawable.msg_filled_menu_channels) {
+            return new AttachmentTabIconMetrics(24, 16, 16, 0f, 1f, 1.02f, 1.06f);
+        } else if (iconResId == R.drawable.msg_folders_bots) {
+            return new AttachmentTabIconMetrics(24, 22, 18, 1.02f, 1.06f);
+        }
+        return null;
+    }
+
+    private AttachmentTabIconStyle getAttachmentTabIconStyle(int iconResId, boolean iconOnly) {
+        AttachmentTabIconMetrics metrics = getAttachmentTabIconMetrics(iconResId);
+        if (metrics == null) {
+            return new AttachmentTabIconStyle(iconOnly ? 20 : 18, 1f, 1f, 0f, 0f);
+        }
+        float spanSizeDp = iconOnly ? 20f : 18f;
+        float targetContentSizeDp = iconOnly ? 15.5f : 14.5f;
+        float scaleX = Math.min(
+            targetContentSizeDp * metrics.canvasSize / (spanSizeDp * metrics.contentWidth),
+            targetContentSizeDp * metrics.canvasSize / (spanSizeDp * metrics.contentHeight)
+        );
+        scaleX *= iconOnly ? metrics.iconOnlyScaleBias : metrics.mixedScaleBias;
+        scaleX = Utilities.clamp(scaleX, iconOnly ? 1.6f : 1.35f, 0.82f);
+        float scaleY = scaleX * (iconOnly ? metrics.iconOnlyScaleYBias : metrics.mixedScaleYBias);
+
+        float unitDp = spanSizeDp / metrics.canvasSize;
+        float translateXDp = -metrics.centerOffsetX * unitDp * scaleX;
+        float translateYDp = -metrics.centerOffsetY * unitDp * scaleY;
+        return new AttachmentTabIconStyle(Math.round(spanSizeDp), scaleX, scaleY, translateXDp, translateYDp);
+    }
+
+    private CharSequence getAttachmentTabDisplayTitle(int tabId, CharSequence title) {
+        int titleType = NekoConfig.attachmentTabsTitleType.Int();
+        if (titleType == NekoXConfig.TITLE_TYPE_TEXT) {
+            return title;
+        }
+        int iconResId = getAttachmentTabIconResId(tabId);
+        if (iconResId == 0) {
+            return title;
+        }
+
+        boolean iconOnly = titleType == NekoXConfig.TITLE_TYPE_ICON;
+        AttachmentTabIconStyle style = getAttachmentTabIconStyle(iconResId, iconOnly);
+        SpannableStringBuilder builder = new SpannableStringBuilder(iconOnly ? "d\u200B" : "d");
+        ColoredImageSpan span = new ColoredImageSpan(iconResId, ColoredImageSpan.ALIGN_CENTER);
+        span.setSize(dp(style.spanSizeDp));
+        span.setScale(style.scaleX, style.scaleY);
+        span.setTranslateX(AndroidUtilities.dpf2(style.translateXDp));
+        span.setTranslateY(AndroidUtilities.dpf2(style.translateYDp));
+        builder.setSpan(span, 0, 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        if (titleType == NekoXConfig.TITLE_TYPE_MIX) {
+            builder.append(' ');
+            builder.append(title);
+        }
+        return builder;
+    }
+
+    private int getAttachmentTabIconResId(int tabId) {
+        return switch (tabId) {
+            case TAB_STORIES, TAB_ARCHIVED_STORIES, TAB_BOT_PREVIEWS -> R.drawable.msg_filled_stories;
+            case TAB_GIFTS -> R.drawable.filled_gift_simple;
+            case TAB_COMMON_GROUPS, TAB_GROUPUSERS -> R.drawable.msg_filled_menu_groups;
+            case TAB_PHOTOVIDEO -> R.drawable.msg_filled_data_photos;
+            case TAB_RECOMMENDED_CHANNELS -> dialog_id > 0 ? R.drawable.msg_folders_bots : R.drawable.msg_filled_menu_channels;
+            case TAB_SAVED_DIALOGS, TAB_SAVED_MESSAGES -> R.drawable.baseline_bookmark_24;
+            case TAB_FILES -> R.drawable.msg_filled_data_files;
+            case TAB_LINKS -> R.drawable.msg_limit_links;
+            case TAB_AUDIO -> R.drawable.baseline_music_note_16;
+            case TAB_VOICE -> R.drawable.msg_filled_data_voice;
+            case TAB_GIF -> R.drawable.msg_round_gif_m;
+            default -> 0;
+        };
+    }
+
+    private void addAttachmentTab(ArrayList<Pair<Integer, CharSequence>> tabs, SparseArray<CharSequence> contentDescriptions, int tabId, CharSequence title) {
+        contentDescriptions.put(tabId, title);
+        tabs.add(new Pair<>(tabId, getAttachmentTabDisplayTitle(tabId, title)));
+    }
+
+    private void applyAttachmentTabSpacing() {
+        if (scrollSlidingTextTabStrip == null) {
+            return;
+        }
+        boolean iconOnly = NekoConfig.attachmentTabsTitleType.Int() == NekoXConfig.TITLE_TYPE_ICON;
+        scrollSlidingTextTabStrip.setTabHorizontalPaddingDp(iconOnly ? 13 : 16);
+        scrollSlidingTextTabStrip.setTabsContainerHorizontalPaddingDp(iconOnly ? 6 : 7);
     }
 
     private int getThemedColor(int key) {

@@ -172,6 +172,11 @@ public class NekoGeneralSettingsActivity extends BaseNekoXSettingsActivity {
         }}));
     }));
     private final AbstractConfigCell mediaPreviewRow = cellGroup.appendCell(new ConfigCellTextCheck(NekoConfig.mediaPreview));
+    private final AbstractConfigCell attachmentTabsTitleTypeRow = cellGroup.appendCell(new ConfigCellSelectBox(null, NekoConfig.attachmentTabsTitleType, new String[]{
+            getString(R.string.TabTitleTypeText),
+            getString(R.string.TabTitleTypeIcon),
+            getString(R.string.TabTitleTypeMix)
+    }, null));
     private final AbstractConfigCell userAvatarsInMessagePreviewRow = cellGroup.appendCell(new ConfigCellTextCheck(NaConfig.INSTANCE.getUserAvatarsInMessagePreview()));
     private final AbstractConfigCell disableDialogsFloatingButtonRow = cellGroup.appendCell(new ConfigCellTextCheck(NaConfig.INSTANCE.getDisableDialogsFloatingButton()));
     private final AbstractConfigCell disableBotOpenButtonRow = cellGroup.appendCell(new ConfigCellTextCheck(NaConfig.INSTANCE.getDisableBotOpenButton()));

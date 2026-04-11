@@ -431,7 +431,7 @@ public class NekoSettingsActivity extends BaseFragment {
             }
         };
         frameLayout.setFitsSystemWindows(true);
-        frameLayout.setBackgroundColor(getThemedColor(Theme.key_windowBackgroundGray));
+        frameLayout.setBackgroundColor(Theme.isCurrentThemeDark() ? Color.BLACK : getThemedColor(Theme.key_windowBackgroundGray));
         return frameLayout;
     }
 
