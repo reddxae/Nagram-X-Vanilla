@@ -4662,7 +4662,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
 
                 builder.addItem(getString(R.string.CheckUpdate), R.drawable.msg_search_solar,
                         (it) -> {
-                            Browser.openUrl(context, "tg://update");
+                            AlertUtil.showToast(getString(R.string.NotYetAvailableNax));
                             return Unit.INSTANCE;
                         });
 
@@ -4692,21 +4692,11 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                         return Unit.INSTANCE;
                     });
                     switchBuilder.addRadioItem(getString(R.string.AutoCheckUpdateRelease), NaConfig.INSTANCE.getAutoUpdateChannel().Int() == UpdateHelper.UPDATE_CHANNEL_RELEASE, (radioButtonCell) -> {
-                        NaConfig.INSTANCE.getAutoUpdateChannel().setConfigInt(UpdateHelper.UPDATE_CHANNEL_RELEASE);
-                        switchBuilder.doRadioCheck(radioButtonCell);
-                        AndroidUtilities.runOnUIThread(() -> {
-                            switchBuilder.dismiss();
-                            Browser.openUrl(context, "tg://update");
-                        }, 500);
+                        AlertUtil.showToast(getString(R.string.NotYetAvailableNax));
                         return Unit.INSTANCE;
                     });
                     switchBuilder.addRadioItem(getString(R.string.AutoCheckUpdateBeta), NaConfig.INSTANCE.getAutoUpdateChannel().Int() == UpdateHelper.UPDATE_CHANNEL_BETA, (radioButtonCell) -> {
-                        NaConfig.INSTANCE.getAutoUpdateChannel().setConfigInt(UpdateHelper.UPDATE_CHANNEL_BETA);
-                        switchBuilder.doRadioCheck(radioButtonCell);
-                        AndroidUtilities.runOnUIThread(() -> {
-                            switchBuilder.dismiss();
-                            Browser.openUrl(context, "tg://update");
-                        }, 500);
+                        AlertUtil.showToast(getString(R.string.NotYetAvailableNax));
                         return Unit.INSTANCE;
                     });
                     showDialog(switchBuilder.create());

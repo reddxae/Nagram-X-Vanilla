@@ -200,6 +200,7 @@
     <string name="AutoCheckUpdateSwitch">Канал оновлення</string>
     <string name="AutoCheckUpdateRelease">Стабільна версія</string>
     <string name="AutoCheckUpdateBeta">Бета</string>
+    <string name="NotYetAvailableNax">Ще недоступно</string>
     <string name="AutoInsertGIFCaption">Автоматично підписувати GIF</string>
     <string name="AutoInsertGIFCaptionNotice">Автоматично використовує текст з поля вводу як підпис до GIF.</string>
     <string name="UserAvatarsInMessagePreview">Аватари користувачів у попередньому перегляді</string>

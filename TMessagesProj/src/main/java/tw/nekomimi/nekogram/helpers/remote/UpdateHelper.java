@@ -6,7 +6,9 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.telegram.messenger.BuildConfig;
 import org.telegram.messenger.FileLoader;
+import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.NotificationCenter;
+import org.telegram.messenger.R;
 import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.Utilities;
@@ -56,7 +58,7 @@ public class UpdateHelper extends BaseRemoteHelper {
 
     @Override
     protected String getTag() {
-        return NaConfig.INSTANCE.getAutoUpdateChannel().Int() == UPDATE_CHANNEL_RELEASE ? "updateRelease" : "updateBeta";
+        return "updateDisabled";
     }
 
     @SuppressWarnings("ConstantConditions")
@@ -200,7 +202,12 @@ public class UpdateHelper extends BaseRemoteHelper {
 
     public void checkNewVersionAvailable(Delegate delegate, boolean updateAlways) {
         this.updateAlways = updateAlways;
-        load(delegate);
+        if (SharedConfig.pendingAppUpdate != null) {
+            cleanAppUpdate();
+        }
+        if (delegate != null) {
+            delegate.onTLResponse(null, LocaleController.getString(R.string.NotYetAvailableNax));
+        }
     }
 
     private static final class InstanceHolder {
