@@ -1664,6 +1664,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
     private int lastSendState;
     private int lastDeleteDate;
     private int lastViewsCount;
+    private int lastForwardsCount;
     private int lastRepliesCount;
     private float selectedBackgroundProgress;
     private boolean lastTranslated;
@@ -5471,10 +5472,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
     }
 
     private boolean isUserDataChanged() {
-        if (currentMessageObject != null && (!hasLinkPreview && MessageObject.getMedia(currentMessageObject.messageOwner) != null && MessageObject.getMedia(currentMessageObject.messageOwner).webpage instanceof TLRPC.TL_webPage)) {
-            return true;
-        }
-        if (currentMessageObject == null || currentUser == null && currentChat == null) {
+        if (currentMessageObject == null) {
             return false;
         }
         if (lastSendState != currentMessageObject.messageOwner.send_state) {
@@ -5486,11 +5484,20 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
         if (lastViewsCount != currentMessageObject.messageOwner.views) {
             return true;
         }
+        if (lastForwardsCount != currentMessageObject.messageOwner.forwards) {
+            return true;
+        }
         if (lastRepliesCount != getRepliesCount()) {
             return true;
         }
         if (lastReactions != currentMessageObject.messageOwner.reactions) {
             return true;
+        }
+        if (currentMessageObject != null && (!hasLinkPreview && MessageObject.getMedia(currentMessageObject.messageOwner) != null && MessageObject.getMedia(currentMessageObject.messageOwner).webpage instanceof TLRPC.TL_webPage)) {
+            return true;
+        }
+        if (currentUser == null && currentChat == null) {
+            return false;
         }
 
         updateCurrentUserAndChat();
@@ -6108,6 +6115,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
             lastSendState = messageObject.messageOwner.send_state;
             lastDeleteDate = messageObject.messageOwner.destroyTime;
             lastViewsCount = messageObject.messageOwner.views;
+            lastForwardsCount = messageObject.messageOwner.forwards;
             lastRepliesCount = getRepliesCount();
             if (messageIdChanged) {
                 isPressed = false;
@@ -8808,13 +8816,9 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                         }
                     }
                 }
-                if (!todo && !drawInstantView && animatedInfoLayout != null && timeLayout != null && messageObject.messageOwner != null && messageObject.messageOwner.fwd_from != null && (viewsLayout != null || forwardsLayout != null)) {
-                    float pollInfoBottom = namesOffset + height + dp((lastPoll != null && (lastPoll.public_voters || lastPoll.multiple_choice)) ? 60 : 54) + animatedInfoLayout.getHeight() / 2f;
-                    float timeRowTop = totalHeight - dp(pinnedBottom || pinnedTop ? 7.5f : 6.5f) - timeLayout.getHeight();
-                    int extraBottomPadding = (int) Math.ceil(pollInfoBottom + dp(4) - timeRowTop);
-                    if (extraBottomPadding > 0) {
-                        totalHeight += extraBottomPadding;
-                    }
+                int extraBottomPadding = getForwardedPollExtraBottomPadding(height, todo);
+                if (extraBottomPadding > 0) {
+                    totalHeight += extraBottomPadding;
                 }
             } else if (messageObject.type == MessageObject.TYPE_PAID_MEDIA) {
                 drawName = isSavedChat && !messageObject.isOutOwner() && (messageObject.getSavedDialogId() < 0 || messageObject.getSavedDialogId() == UserObject.ANONYMOUS) || (messageObject.isFromGroup() && messageObject.isSupergroup() || messageObject.isImportedForward() && messageObject.messageOwner.fwd_from.from_id == null) && (currentPosition == null || (currentPosition.flags & MessageObject.POSITION_FLAG_TOP) != 0);
@@ -12582,6 +12586,28 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
 
     public boolean isUpdating() {
         return isUpdating;
+    }
+
+    private int getCurrentTimeLayoutHeight() {
+        if (timeLayout != null) {
+            return timeLayout.getHeight();
+        }
+        if (currentTimeString == null) {
+            return 0;
+        }
+        return new StaticLayout(currentTimeString, Theme.chat_timePaint, Math.max(1, timeTextWidth + dp(100)), Layout.Alignment.ALIGN_NORMAL, 1.0f, 0.0f, false).getHeight();
+    }
+
+    private int getForwardedPollExtraBottomPadding(int pollContentHeight, boolean todo) {
+        if (todo || drawInstantView || animatedInfoLayout == null || currentMessageObject == null || currentMessageObject.messageOwner == null || currentMessageObject.messageOwner.fwd_from == null) {
+            return 0;
+        }
+        if (currentViewsString == null && currentForwardsString == null && currentRepliesString == null) {
+            return 0;
+        }
+        float pollInfoBottom = namesOffset + pollContentHeight + dp((lastPoll != null && (lastPoll.public_voters || lastPoll.multiple_choice)) ? 60 : 54) + animatedInfoLayout.getHeight() / 2f;
+        float timeRowTop = totalHeight - dp(pinnedBottom || pinnedTop ? 7.5f : 6.5f) - getCurrentTimeLayoutHeight();
+        return Math.max(0, (int) Math.ceil(pollInfoBottom + dp(4) - timeRowTop));
     }
 
     int getExtraTextX() {

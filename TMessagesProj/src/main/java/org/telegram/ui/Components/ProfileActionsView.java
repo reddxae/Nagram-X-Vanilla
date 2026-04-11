@@ -27,7 +27,6 @@ import android.view.MotionEvent;
 import android.view.View;
 
 import androidx.annotation.NonNull;
-
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.R;
@@ -110,6 +109,9 @@ public class ProfileActionsView extends View {
     private boolean hasColorById;
     private RadialGradient radialGradient;
     private final Matrix matrix = new Matrix();
+    private boolean useExpandedAvatarOverrideStyle;
+    private int expandedAvatarOverrideBackgroundColor;
+    private int expandedAvatarOverrideContentColor = Color.WHITE;
 
     public boolean myProfile;
 
@@ -159,6 +161,17 @@ public class ProfileActionsView extends View {
             this.color = color;
             this.hasColorById = hasColorById;
             createColorShader();
+        }
+    }
+
+    public void setExpandedAvatarOverrideStyle(boolean enabled, int backgroundColor, int contentColor) {
+        if (useExpandedAvatarOverrideStyle != enabled
+                || expandedAvatarOverrideBackgroundColor != backgroundColor
+                || expandedAvatarOverrideContentColor != contentColor) {
+            useExpandedAvatarOverrideStyle = enabled;
+            expandedAvatarOverrideBackgroundColor = backgroundColor;
+            expandedAvatarOverrideContentColor = contentColor;
+            invalidate();
         }
     }
 
@@ -275,11 +288,18 @@ public class ProfileActionsView extends View {
                         action.rect.width() / 2.0f * (1.0f - action.getScale()),
                         action.rect.height() / 2.0f * (1.0f - action.getScale())
                     );
-                    int wasAlpha = paint.getAlpha();
-                    int newAlpha = (int) (action.getAlpha() * alphaFraction1 * wasAlpha);
-                    paint.setAlpha((int) (newAlpha * (radialGradient != null ? 0.1f : 1f)));
-                    canvas.drawRoundRect(AndroidUtilities.rectTmp, r, r, paint);
-                    if (radialGradient != null) {
+                    if (useExpandedAvatarOverrideStyle) {
+                        paint.setColor(expandedAvatarOverrideBackgroundColor);
+                        paint.setAlpha((int) (Color.alpha(expandedAvatarOverrideBackgroundColor) * action.getAlpha() * alphaFraction1));
+                        canvas.drawRoundRect(AndroidUtilities.rectTmp, r, r, paint);
+                    } else {
+                        int wasAlpha = paint.getAlpha();
+                        int newAlpha = (int) (action.getAlpha() * alphaFraction1 * wasAlpha);
+                        paint.setAlpha((int) (newAlpha * (radialGradient != null ? 0.1f : 1f)));
+                        canvas.drawRoundRect(AndroidUtilities.rectTmp, r, r, paint);
+                        paint.setAlpha(wasAlpha);
+                    }
+                    if (!useExpandedAvatarOverrideStyle && radialGradient != null) {
                         int wasAlpha2 = shaderPaint.getAlpha();
                         shaderPaint.setAlpha((int) (action.getAlpha() * alphaFraction1 * wasAlpha2));
                         matrix.setTranslate(AndroidUtilities.rectTmp.left, AndroidUtilities.rectTmp.top);
@@ -287,7 +307,6 @@ public class ProfileActionsView extends View {
                         canvas.drawRoundRect(AndroidUtilities.rectTmp, r, r, shaderPaint);
                         shaderPaint.setAlpha(wasAlpha2);
                     }
-                    paint.setAlpha(wasAlpha);
                 }
             }
         }
@@ -381,10 +400,11 @@ public class ProfileActionsView extends View {
         updateBounds(action);
 
         final float textY = action.drawable.getBounds().bottom + action.drawable.getBounds().top - action.text.getHeight() * action.textScale / 2.0f - dp(2);
+        final int contentColor = useExpandedAvatarOverrideStyle ? expandedAvatarOverrideContentColor : Color.WHITE;
 
         canvas.save();
         canvas.scale(action.textScale, action.textScale, cx, textY + action.text.getHeight() * action.textScale / 2.0f);
-        action.text.draw(canvas, cx - action.text.getWidth() / 2f, textY, 0xFFFFFFFF, alpha);
+        action.text.draw(canvas, cx - action.text.getWidth() / 2f, textY, contentColor, alpha);
         canvas.restore();
 
         if (action.iconTranslationY != 0) {
@@ -400,6 +420,7 @@ public class ProfileActionsView extends View {
             );
         }
         if (!isAnimatingCallAction || action.key != KEY_CALL) {
+            action.drawable.setColorFilter(new PorterDuffColorFilter(contentColor, PorterDuff.Mode.SRC_IN));
             action.drawable.setAlpha((int) (0xFF * alpha));
             action.drawable.draw(canvas);
         }
@@ -418,16 +439,24 @@ public class ProfileActionsView extends View {
                 action.loadingDrawable = new LoadingDrawable();
                 action.loadingDrawable.setCallback(this);
                 action.loadingDrawable.setColors(
-                        Theme.multAlpha(Color.WHITE, .1f),
-                        Theme.multAlpha(Color.WHITE, .3f),
-                        Theme.multAlpha(Color.WHITE, .35f),
-                        Theme.multAlpha(Color.WHITE, .8f)
+                        Theme.multAlpha(useExpandedAvatarOverrideStyle ? expandedAvatarOverrideContentColor : Color.WHITE, .1f),
+                        Theme.multAlpha(useExpandedAvatarOverrideStyle ? expandedAvatarOverrideContentColor : Color.WHITE, .3f),
+                        Theme.multAlpha(useExpandedAvatarOverrideStyle ? expandedAvatarOverrideContentColor : Color.WHITE, .35f),
+                        Theme.multAlpha(useExpandedAvatarOverrideStyle ? expandedAvatarOverrideContentColor : Color.WHITE, .8f)
                 );
                 action.loadingDrawable.setAppearByGradient(true);
                 action.loadingDrawable.strokePaint.setStrokeWidth(dpf2(1.25f));
             } else if (action.loadingDrawable.isDisappeared() || action.loadingDrawable.isDisappearing()) {
                 action.loadingDrawable.reset();
                 action.loadingDrawable.resetDisappear();
+            } else {
+                int loadingColor = useExpandedAvatarOverrideStyle ? expandedAvatarOverrideContentColor : Color.WHITE;
+                action.loadingDrawable.setColors(
+                        Theme.multAlpha(loadingColor, .1f),
+                        Theme.multAlpha(loadingColor, .3f),
+                        Theme.multAlpha(loadingColor, .35f),
+                        Theme.multAlpha(loadingColor, .8f)
+                );
             }
         } else if (action.loadingDrawable != null && !action.loadingDrawable.isDisappearing() && !action.loadingDrawable.isDisappeared()) {
             action.loadingDrawable.disappear();

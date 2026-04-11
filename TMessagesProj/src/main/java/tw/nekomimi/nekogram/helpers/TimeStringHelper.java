@@ -28,12 +28,15 @@ import org.telegram.messenger.R;
 import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.TranslateController;
 import org.telegram.messenger.UserConfig;
+import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.ChatActivity;
 import org.telegram.ui.Components.AnimatedTextView;
 import org.telegram.ui.Components.ColoredImageSpan;
 
 import java.util.Locale;
 import java.util.Objects;
+
+import xyz.nextalone.nagram.NaConfig;
 
 public class TimeStringHelper {
     public static SpannableStringBuilder deletedSpan;
@@ -128,7 +131,9 @@ public class TimeStringHelper {
 
     private static void createSpan() {
         if (editedDrawable == null) {
-            editedDrawable = Objects.requireNonNull(ContextCompat.getDrawable(ApplicationLoader.applicationContext, R.drawable.msg_edit)).mutate();
+            editedDrawable = Theme.chat_editDrawable != null
+                    ? Theme.chat_editDrawable
+                    : Objects.requireNonNull(ContextCompat.getDrawable(ApplicationLoader.applicationContext, R.drawable.edit_pencil)).mutate();
         }
         if (editedSpan == null) {
             editedSpan = new SpannableStringBuilder("\u200B");

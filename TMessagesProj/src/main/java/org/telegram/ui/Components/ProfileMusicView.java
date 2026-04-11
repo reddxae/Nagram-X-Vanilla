@@ -46,6 +46,9 @@ public class ProfileMusicView extends View {
     private int textColor;
     private boolean usedCustomColorHandling = false;
     private boolean _lastBlurState = false;
+    private MessagesController.PeerColor peerColor;
+    private int currentBackgroundColor;
+    private boolean useNeutralBackgroundForExpandedAvatar;
 
     public ProfileMusicView(Context context, Theme.ResourcesProvider resourcesProvider) {
         super(context);
@@ -83,30 +86,52 @@ public class ProfileMusicView extends View {
     }
 
     public void setColor(MessagesController.PeerColor peerColor) {
-        int color1, color2;
-        if (peerColor == null) {
-            /*if (!Theme.isCurrentThemeDark()) {
-                setBackgroundColor(Theme.getColor(Theme.key_actionBarDefault, resourcesProvider));
-                return;
-            }*/
+        this.peerColor = peerColor;
+        updateBackgroundColor();
+    }
+
+    public int getCurrentBackgroundColor() {
+        return currentBackgroundColor;
+    }
+
+    public int getDefaultBackgroundColor() {
+        return computeBackgroundColor(null);
+    }
+
+    public void setUseNeutralBackgroundForExpandedAvatar(boolean value) {
+        if (useNeutralBackgroundForExpandedAvatar != value) {
+            useNeutralBackgroundForExpandedAvatar = value;
+            updateBackgroundColor();
+        }
+    }
+
+    private void updateBackgroundColor() {
+        MessagesController.PeerColor appliedPeerColor = useNeutralBackgroundForExpandedAvatar ? null : peerColor;
+        if (appliedPeerColor == null) {
             int originalColor = Theme.getColor(Theme.key_avatar_backgroundActionBarBlue, resourcesProvider);
             if (Theme.getActiveTheme().isMonetLight() || ColorUtils.calculateLuminance(originalColor) > 0.75f) {
                 usedCustomColorHandling = true;
-                handleCustomColor(false, true);
+                handleCustomColor(_lastBlurState, true);
             }
+        } else if (usedCustomColorHandling) {
+            applyStateByMainColor(0xFFFFFFFF);
+            usedCustomColorHandling = false;
+        }
+        currentBackgroundColor = computeBackgroundColor(appliedPeerColor);
+        setBackgroundColor(currentBackgroundColor);
+    }
+
+    private int computeBackgroundColor(MessagesController.PeerColor peerColor) {
+        int color1;
+        int color2;
+        if (peerColor == null) {
             color1 = Theme.getColor(Theme.key_actionBarDefault, resourcesProvider);
             color2 = Theme.getColor(Theme.key_actionBarDefault, resourcesProvider);
         } else {
             color1 = peerColor.getBgColor1(Theme.isCurrentThemeDark());
             color2 = peerColor.getBgColor2(Theme.isCurrentThemeDark());
-            if (usedCustomColorHandling) {
-                applyStateByMainColor(0xFFFFFFFF);
-                usedCustomColorHandling = false;
-            }
         }
-        setBackgroundColor(
-            Theme.adaptHSV(ColorUtils.blendARGB(color1, color2, .25f), +.02f, -.08f)
-        );
+        return Theme.adaptHSV(ColorUtils.blendARGB(color1, color2, .25f), +.02f, -.08f);
     }
 
     public void setMusicDocument(TLRPC.Document document) {

@@ -5530,7 +5530,15 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
 
             @Override
             protected void handleCustomColor(boolean blur) {
+                if (actionsView != null) {
+                    actionsView.setExpandedAvatarOverrideStyle(
+                            blur && NaConfig.INSTANCE.getDisableAvatarBlur().Bool(),
+                            getExpandedAvatarActionsBackgroundColor(),
+                            getExpandedAvatarActionsContentColor()
+                    );
+                }
                 if (musicView != null) {
+                    musicView.setUseNeutralBackgroundForExpandedAvatar(blur && shouldUseNeutralExpandedAvatarColors());
                     musicView.handleCustomColor(blur);
                 }
             }
@@ -5642,6 +5650,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
 //        }
         overlaysView = new OverlaysView(context);
         avatarsBlurView = new ProfileGalleryBlurView(context);
+        avatarsBlurView.setProfileActivity(this);
         avatarsBlurView.setSize(getActionsExtraHeight());
         avatarsViewPager = new ProfileGalleryView(context, userId != 0 ? userId : -chatId, actionBar, listView, avatarImage, getClassGuid(), overlaysView, avatarsBlurView) {
             @Override
@@ -6203,6 +6212,52 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
         contentView.addView(bottomButton2Container, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.BOTTOM | Gravity.FILL_HORIZONTAL));
 
         return fragmentView;
+    }
+
+    public int getExpandedAvatarActionsBackgroundColor() {
+        if (hasExpandedAvatarPlayerBackground()) {
+            if (musicView != null) {
+                return shouldUseNeutralExpandedAvatarColors()
+                        ? musicView.getDefaultBackgroundColor()
+                        : musicView.getCurrentBackgroundColor();
+            }
+            return shouldUseNeutralExpandedAvatarColors()
+                    ? getExpandedAvatarPlayerBackgroundColor(null)
+                    : getExpandedAvatarPlayerBackgroundColor(peerColor);
+        }
+        return getThemedColor(Theme.key_windowBackgroundWhite);
+    }
+
+    public int getExpandedAvatarActionsContentColor() {
+        int backgroundColor = getExpandedAvatarActionsBackgroundColor();
+        if (ColorUtils.calculateLuminance(backgroundColor) > 0.7f) {
+            return getThemedColor(Theme.key_windowBackgroundWhiteBlackText);
+        }
+        return Color.WHITE;
+    }
+
+    private boolean shouldUseNeutralExpandedAvatarColors() {
+        return NaConfig.INSTANCE.getDisableAvatarBlur().Bool() && peerColor != null;
+    }
+
+    private boolean hasExpandedAvatarPlayerBackground() {
+        return userId != 0
+                && userInfo != null
+                && userInfo.saved_music != null
+                && (imageUpdater == null || myProfile);
+    }
+
+    private int getExpandedAvatarPlayerBackgroundColor(MessagesController.PeerColor peerColor) {
+        int color1;
+        int color2;
+        if (peerColor == null) {
+            color1 = getThemedColor(Theme.key_actionBarDefault);
+            color2 = color1;
+        } else {
+            color1 = peerColor.getBgColor1(Theme.isCurrentThemeDark());
+            color2 = peerColor.getBgColor2(Theme.isCurrentThemeDark());
+        }
+        return Theme.adaptHSV(ColorUtils.blendARGB(color1, color2, .25f), +.02f, -.08f);
     }
 
     public void startTabsReorder() {

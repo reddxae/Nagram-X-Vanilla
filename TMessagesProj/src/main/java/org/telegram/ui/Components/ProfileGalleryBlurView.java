@@ -51,6 +51,7 @@ public class ProfileGalleryBlurView extends View {
     private final Paint fallbackSolidPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
 
     private ProfileGalleryView view;
+    private ProfileActivity profileActivity;
     public int actionSize;
     public int size;
 
@@ -148,6 +149,10 @@ public class ProfileGalleryBlurView extends View {
         this.musicView = musicView;
     }
 
+    public void setProfileActivity(ProfileActivity profileActivity) {
+        this.profileActivity = profileActivity;
+    }
+
     private void drawFallbackOverlay(Canvas canvas, float width, boolean translate, float fraction, float alpha) {
         if (view == null || size <= 0) {
             return;
@@ -161,7 +166,10 @@ public class ProfileGalleryBlurView extends View {
 
         float openingScale = view.getMeasuredWidth() > 0 ? width / view.getMeasuredWidth() : 1f;
         float scaledSize = size * openingScale;
-        fallbackSolidPaint.setColor(Theme.getColor(Theme.key_windowBackgroundWhite));
+        int fallbackColor = profileActivity != null
+                ? profileActivity.getExpandedAvatarActionsBackgroundColor()
+                : Theme.getColor(Theme.key_windowBackgroundWhite);
+        fallbackSolidPaint.setColor(fallbackColor);
 
         canvas.save();
         if (translate) {
