@@ -750,9 +750,9 @@ object NaConfig {
             ConfigItem.configTypeBool,
             true
         )
-    val hideShareButtonInChannel =
+    val hideShareButton =
         addConfig(
-            "HideShareButtonInChannel",
+            "HideShareButton",
             ConfigItem.configTypeBool,
             false
         )
@@ -1430,6 +1430,10 @@ object NaConfig {
     }
 
     private fun fixConfig() {
+        if (!preferences.contains(hideShareButton.key) && preferences.contains("HideShareButtonInChannel")) {
+            hideShareButton.setConfigBool(preferences.getBoolean("HideShareButtonInChannel", false))
+            preferences.edit().remove("HideShareButtonInChannel").apply()
+        }
         if (translatorMode.Int() > 1) {
             translatorMode.setConfigInt(1)
         }

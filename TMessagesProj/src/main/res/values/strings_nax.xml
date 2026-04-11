@@ -46,7 +46,7 @@
     <string name="EnableSeparateArticleTranslator">Use a Different Provider for Article</string>
     <string name="DisableCrashlyticsCollection">Disable Firebase Crashlytics</string>
     <string name="ShowStickersRowToplevel">Show Stickers in Main Settings</string>
-    <string name="HideShareButtonInChannel">Hide Side \"Share\" Button</string>
+    <string name="HideShareButton">Hide Share Button Next to Post</string>
     <string name="ClearRegexFilters">Clear</string>
     <string name="ClearRegexFiltersAlertMessage">Are you sure you want to clear all saved regex filters? This will remove both shared and chat-specific filters.</string>
     <string name="PreferredTranslateTargetLang">Custom preferred language list</string>

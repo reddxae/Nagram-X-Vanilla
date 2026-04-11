@@ -38,7 +38,7 @@
     <string name="EnableSeparateArticleTranslator">Використовувати інший сервіс для статей</string>
     <string name="DisableCrashlyticsCollection">Вимкнути Firebase Crashlytics</string>
     <string name="ShowStickersRowToplevel">Показувати наліпки у Головних Налаштуваннях</string>
-    <string name="HideShareButtonInChannel">Сховати бокову кнопку «Поділитися»</string>
+    <string name="HideShareButton">Сховати кнопку Share поруч із постом</string>
     <string name="ClearRegexFilters">Очистити</string>
     <string name="ClearRegexFiltersAlertMessage">Ви впевнені, що хочете очистити всі збережені фільтри? Це призведе до видалення як спільних, так і специфічних для чату фільтрів.</string>
     <string name="PreferredTranslateTargetLang">Користувацький список мов</string>

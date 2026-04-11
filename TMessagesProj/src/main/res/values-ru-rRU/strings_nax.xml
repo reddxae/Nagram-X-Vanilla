@@ -38,7 +38,7 @@
     <string name="EnableSeparateArticleTranslator">Использовать другой сервис для статей</string>
     <string name="DisableCrashlyticsCollection">Отключить Firebase Crashlytics</string>
     <string name="ShowStickersRowToplevel">Показывать «Стикеры и эмодзи» в основных настройках</string>
-    <string name="HideShareButtonInChannel">Скрыть боковую кнопку «Поделиться»</string>
+    <string name="HideShareButton">Скрыть кнопку Share рядом с постом</string>
     <string name="ClearRegexFilters">Очистить</string>
     <string name="ClearRegexFiltersAlertMessage">Вы уверены, что хотите удалить все сохранённые фильтры? Это удалит как общие фильтры, так и фильтры чатов.</string>
     <string name="PreferredTranslateTargetLang">Пользовательский список языков</string>

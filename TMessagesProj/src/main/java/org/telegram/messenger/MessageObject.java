@@ -7557,6 +7557,9 @@ public class MessageObject {
     }
 
     public boolean needDrawShareButton() {
+        if (NaConfig.INSTANCE.getHideShareButton().Bool()) {
+            return false;
+        }
         if (isRepostPreview) {
             return false;
         }
