@@ -3,6 +3,7 @@ package tw.nekomimi.nekogram.settings;
 import static org.telegram.messenger.LocaleController.getString;
 
 import android.content.Context;
+import android.text.TextUtils;
 import android.widget.LinearLayout;
 
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -42,6 +43,7 @@ public class BaseNekoXSettingsActivity extends BaseFragment {
     protected HashMap<String, Integer> rowMap = new HashMap<>(20);
     protected HashMap<Integer, String> rowMapReverse = new HashMap<>(20);
     protected HashMap<Integer, ConfigItem> rowConfigMapReverse = new HashMap<>(20);
+    protected HashMap<Integer, AbstractConfigCell> rowCellMapReverse = new HashMap<>(20);
 
     protected void updateRows() {
     }
@@ -62,15 +64,18 @@ public class BaseNekoXSettingsActivity extends BaseFragment {
         rowMap.clear();
         rowMapReverse.clear();
         rowConfigMapReverse.clear();
+        rowCellMapReverse.clear();
         String key;
         ConfigItem config;
         for (int i = 0; i < cellGroup.rows.size(); i++) {
-            config = getBindConfig(cellGroup.rows.get(i));
-            key = getRowKey(cellGroup.rows.get(i));
+            AbstractConfigCell row = cellGroup.rows.get(i);
+            config = getBindConfig(row);
+            key = getRowKey(row);
             if (key == null) key = String.valueOf(i);
             rowMap.put(key, i);
             rowMapReverse.put(i, key);
             rowConfigMapReverse.put(i, config);
+            rowCellMapReverse.put(i, row);
         }
     }
 
@@ -205,6 +210,34 @@ public class BaseNekoXSettingsActivity extends BaseFragment {
 
     public HashMap<Integer, String> getRowMapReverse() {
         return rowMapReverse;
+    }
+
+    public String getSearchTitle(int position) {
+        AbstractConfigCell row = rowCellMapReverse.get(position);
+        if (row instanceof ConfigCellTextCheck) {
+            CharSequence title = ((ConfigCellTextCheck) row).getTitle();
+            if (!TextUtils.isEmpty(title)) {
+                return title.toString();
+            }
+        } else if (row instanceof ConfigCellTextCheck2) {
+            String title = ((ConfigCellTextCheck2) row).getTitle();
+            if (!TextUtils.isEmpty(title)) {
+                return title;
+            }
+        } else if (row instanceof ConfigCellTextCheckIcon) {
+            String title = ((ConfigCellTextCheckIcon) row).getTitle();
+            if (!TextUtils.isEmpty(title)) {
+                return title;
+            }
+        } else if (row instanceof ConfigCellCheckBox) {
+            String title = ((ConfigCellCheckBox) row).getTitle();
+            if (!TextUtils.isEmpty(title)) {
+                return title;
+            }
+        }
+
+        String key = getRowKey(position);
+        return key != null ? getString(key) : null;
     }
 
     public static AlertDialog showConfigMenuAlert(Context context, String titleKey, ArrayList<ConfigCellTextCheck> configItems) {

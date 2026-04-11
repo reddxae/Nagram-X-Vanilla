@@ -127,7 +127,7 @@ public class SettingsHelper {
                     continue;
                 }
                 int guid = uid + i;
-                String title = getString(key);
+                String title = fragment.getSearchTitle(i);
                 if (title == null || title.isEmpty()) {
                     continue;
                 }
