@@ -1,24 +1,18 @@
-# Nagram X
-[![Crowdin](https://badges.crowdin.net/NagramX/localized.svg)](https://crowdin.com/project/NagramX)  
-A variant of [Nagram](https://github.com/NextAlone/Nagram) with additional features.
+# Nagram X Vanilla
+Yet another Nagram fork with Telegram official branding.
 
-## Download
+## How to compile
 
-Latest versions are available through:
-* [Telegram Channel](https://t.me/NagramX) (Latest Beta)
-* [GitHub Actions](https://github.com/risin42/NagramX/actions/workflows/staging.yml) (CI Artifacts)
-* [GitHub Releases](https://github.com/risin42/NagramX/releases) (Latest Stable)
-
-## Compilation Guide
+### Locally
 
 1. Obtain API credentials (`TELEGRAM_APP_ID` and `TELEGRAM_APP_HASH`) from [Telegram Developer Portal](https://my.telegram.org/auth). Create `local.properties` in the project root with:
 
    ```properties
    TELEGRAM_APP_ID=<your_telegram_app_id>
-   TELEGRAM_APP_HASH=<your_telegram_app_hash>
+   TELEGRAM_APP_HASH=<your_telegram_api_hash>
    ```
 
-2. For APK signing: Replace `release.keystore` with your keystore and add signing configuration to `local.properties`:
+2. Place `release.keystore` with your keystore in TMessagesProj and add signing configuration to `local.properties`:
 
    ```properties
    KEYSTORE_PASS=<your_keystore_password>
@@ -26,33 +20,40 @@ Latest versions are available through:
    ALIAS_PASS=<your_alias_password>
    ```
 
-3. For FCM support: Replace `TMessagesProj/google-services.json` with your own configuration file.
+3. Place `TMessagesProj/google-services.json` with your own configuration file to obtain FCM support.
 
 4. Open the project in Android Studio to start building.
 
-## GitHub Actions Build
+### On GitHub runner
 
-1. Replace `TMessagesProj/release.keystore` with your keystore file.
+1. Encode your google-services.json in base64:
 
-2. Configure `local.properties` with the following:
+   ```bash
+   base64 -w 0 google-services.json
+   ```
+
+   Create new [repository secret](https://github.com/reddxae/Nagram-X-Vanilla/settings/secrets/actions) named `GOOGLE_SERVICES_JSON` and fill it with your `base64` output.
+
+2. Encode your keystore in base64:
+
+   ```bash
+   base64 -w 0 release.keystore
+   ```
+
+   Create new [repository secret](https://github.com/reddxae/Nagram-X-Vanilla/settings/secrets/actions) named `KEYSTORE_BASE64` and fill it with your `base64` output.
+
+
+3. Create new [repository secret](https://github.com/reddxae/Nagram-X-Vanilla/settings/secrets/actions) named `LOCAL_PROPERTIES` and fill it with these contents:
 
    ```properties
    KEYSTORE_PASS=<your_keystore_password>
    ALIAS_NAME=<your_alias_name>
    ALIAS_PASS=<your_alias_password>
    TELEGRAM_APP_ID=<your_telegram_app_id>
-   TELEGRAM_APP_HASH=<your_telegram_app_hash>
+   TELEGRAM_APP_HASH=<your_telegram_api_hash>
    ```
 
-   Base64 encode the contents of this file.
-
-3. Configure GitHub Action secrets:
-   - `LOCAL_PROPERTIES`: Base64-encoded content from step 2
-   - `HELPER_BOT_TOKEN`: Telegram bot token from [@Botfather](https://t.me/Botfather) (e.g., `1111:abcd`)
-   - `HELPER_BOT_TARGET`: Primary Telegram chat ID (e.g., `777000`)
-   - `HELPER_BOT_CANARY_TARGET`: Chat ID for test builds and metadata (can match `HELPER_BOT_TARGET`)
-
-4. Trigger the Release Build workflow.
+4. Trigger the Build APK workflow.
 
 ## Acknowledgments
 
@@ -61,5 +62,6 @@ Latest versions are available through:
 - [Dr4iv3rNope](https://github.com/Dr4iv3rNope/NotSoAndroidAyuGram)
 - [exteraGram](https://github.com/exteraSquad/exteraGram)
 - [Nagram](https://github.com/NextAlone/Nagram)
+- [Nagram X](https://github.com/risin42/NagramX)
 - [Nekogram](https://github.com/Nekogram/Nekogram)
 - [OctoGram](https://github.com/OctoGramApp/OctoGram)
