@@ -5574,9 +5574,6 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                 }
                 return;
             }
-            if (expandAvatar()) {
-                return;
-            }
             openAvatar();
         });
         avatarImage.setHasStories(needInsetForStories());
@@ -5916,7 +5913,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                 } else if (chatInfo != null && chatInfo.stories != null && !chatInfo.stories.stories.isEmpty()) {
                     getOrCreateStoryViewer().open(context, chatInfo.stories, provider);
                 } else {
-                    expandAvatar();
+                    openAvatar(false);
                 }
             }
 
