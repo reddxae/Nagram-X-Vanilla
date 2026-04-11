@@ -8808,8 +8808,13 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                         }
                     }
                 }
-                if (messageObject.messageOwner != null && messageObject.messageOwner.fwd_from != null && (viewsLayout != null || forwardsLayout != null)) {
-                    totalHeight += dp(10);
+                if (!todo && !drawInstantView && animatedInfoLayout != null && timeLayout != null && messageObject.messageOwner != null && messageObject.messageOwner.fwd_from != null && (viewsLayout != null || forwardsLayout != null)) {
+                    float pollInfoBottom = namesOffset + height + dp((lastPoll != null && (lastPoll.public_voters || lastPoll.multiple_choice)) ? 60 : 54) + animatedInfoLayout.getHeight() / 2f;
+                    float timeRowTop = totalHeight - dp(pinnedBottom || pinnedTop ? 7.5f : 6.5f) - timeLayout.getHeight();
+                    int extraBottomPadding = (int) Math.ceil(pollInfoBottom + dp(4) - timeRowTop);
+                    if (extraBottomPadding > 0) {
+                        totalHeight += extraBottomPadding;
+                    }
                 }
             } else if (messageObject.type == MessageObject.TYPE_PAID_MEDIA) {
                 drawName = isSavedChat && !messageObject.isOutOwner() && (messageObject.getSavedDialogId() < 0 || messageObject.getSavedDialogId() == UserObject.ANONYMOUS) || (messageObject.isFromGroup() && messageObject.isSupergroup() || messageObject.isImportedForward() && messageObject.messageOwner.fwd_from.from_id == null) && (currentPosition == null || (currentPosition.flags & MessageObject.POSITION_FLAG_TOP) != 0);
@@ -22919,7 +22924,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
             Drawable forwardsDrawable = TimeStringHelper.forwardsDrawable;
             if (forwardsDrawable == null) {
                 try {
-                    TimeStringHelper.forwardsDrawable = ContextCompat.getDrawable(ApplicationLoader.applicationContext, R.drawable.forwards_solar).mutate();
+                    TimeStringHelper.forwardsDrawable = ContextCompat.getDrawable(ApplicationLoader.applicationContext, R.drawable.mini_forwarded).mutate();
                     forwardsDrawable = TimeStringHelper.forwardsDrawable;
                 } catch (Exception ignore) {}
             }

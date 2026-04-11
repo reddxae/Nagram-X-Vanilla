@@ -1142,12 +1142,12 @@ public class PhotoPickerActivity extends BaseFragment implements NotificationCen
                         } else if (num == 2) {
                             String languageText = Translator.getInputTranslateLangForChat(ChatsHelper.getChatId()).toUpperCase();
                             String text = getString(R.string.TranslateMessageLLM) + ' ' + "(" + languageText + ")";
-                            itemCells[a].setTextAndIcon(text, R.drawable.magic_stick_solar);
+                            itemCells[a].setTextAndIcon(text, R.drawable.ic_translate);
                             itemCells[a].setVisibility(NaConfig.INSTANCE.isLLMTranslatorAvailable() && !NaConfig.INSTANCE.llmIsDefaultProvider());
                         } else if (num == 3) {
                             String languageText = Translator.getInputTranslateLangForChat(ChatsHelper.getChatId()).toUpperCase();
                             String text = getString(R.string.TranslateMessage) + ' ' + "(" + languageText + ")";
-                            itemCells[a].setTextAndIcon(text, NaConfig.INSTANCE.llmIsDefaultProvider() ? R.drawable.magic_stick_solar : R.drawable.ic_translate);
+                            itemCells[a].setTextAndIcon(text, R.drawable.ic_translate);
                         }
                         itemCells[a].setMinimumWidth(AndroidUtilities.dp(196));
 

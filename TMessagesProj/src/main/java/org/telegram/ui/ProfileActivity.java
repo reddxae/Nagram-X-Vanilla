@@ -4660,18 +4660,18 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                 String message = cell.getTextView().getText().toString();
                 builder.addTitle(message);
                 String finalMessage = message;
-                builder.addItem(getString(R.string.Copy), R.drawable.msg_copy_solar, (it) -> {
+                builder.addItem(getString(R.string.Copy), R.drawable.msg_copy, (it) -> {
                     AndroidUtilities.addToClipboard(finalMessage);
                     AlertUtil.showToast(getString(R.string.TextCopied));
                     return Unit.INSTANCE;
                 });
-                builder.addItem(BuildVars.LOGS_ENABLED ? getString(R.string.DebugMenuDisableLogs) : getString(R.string.DebugMenuEnableLogs), R.drawable.bug_solar, (it) -> {
+                builder.addItem(BuildVars.LOGS_ENABLED ? getString(R.string.DebugMenuDisableLogs) : getString(R.string.DebugMenuEnableLogs), R.drawable.baseline_bug_report_24, (it) -> {
                     AndroidUtil.toggleLogs();
                     updateListAnimated(false);
                     return Unit.INSTANCE;
                 });
 
-                builder.addItem(getString(R.string.CheckUpdate), R.drawable.msg_search_solar,
+                builder.addItem(getString(R.string.CheckUpdate), R.drawable.msg_search,
                         (it) -> {
                             AlertUtil.showToast(getString(R.string.NotYetAvailableNax));
                             return Unit.INSTANCE;
@@ -8004,7 +8004,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                 }
                 return Unit.INSTANCE;
             });
-            builder.addItem(getString(R.string.Translate), NaConfig.INSTANCE.llmIsDefaultProvider() ? R.drawable.magic_stick_solar : R.drawable.ic_translate, __ -> {
+            builder.addItem(getString(R.string.Translate), R.drawable.ic_translate, __ -> {
                 try {
                     if (!TextUtils.isEmpty(about)) {
                         DialogTransKt.startTrans(getParentActivity(), about);
@@ -8015,7 +8015,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                 return Unit.INSTANCE;
             });
             if (NaConfig.INSTANCE.isLLMTranslatorAvailable() && !NaConfig.INSTANCE.llmIsDefaultProvider()) {
-                builder.addItem(getString(R.string.TranslateMessageLLM), R.drawable.magic_stick_solar, __ -> {
+                builder.addItem(getString(R.string.TranslateMessageLLM), R.drawable.ic_translate, __ -> {
                     try {
                         if (!TextUtils.isEmpty(about)) {
                             DialogTransKt.startTrans(getParentActivity(), about, NekoConfig.translateToLang.String(), Translator.providerLLMTranslator);
@@ -14405,11 +14405,11 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                     } else if (position == policyRow) {
                         textCell.setTextAndIcon(LocaleController.getString(R.string.PrivacyPolicy), R.drawable.msg2_policy, false);
                     } else if (position == sendLogsRow) {
-                        textCell.setTextAndIcon(getString(R.string.DebugSendLogs), R.drawable.ic_upward_solar, true);
+                        textCell.setTextAndIcon(getString(R.string.DebugSendLogs), R.drawable.ic_upward, true);
                     } else if (position == sendLastLogsRow) {
-                        textCell.setTextAndIcon(getString(R.string.DebugSendLastLogs), R.drawable.bug_solar ,true);
+                        textCell.setTextAndIcon(getString(R.string.DebugSendLastLogs), R.drawable.baseline_bug_report_24 ,true);
                     } else if (position == clearLogsRow) {
-                        textCell.setTextAndIcon(getString(R.string.DebugClearLogs), R.drawable.msg_clear_solar, switchBackendRow != -1);
+                        textCell.setTextAndIcon(getString(R.string.DebugClearLogs), R.drawable.msg_clear, switchBackendRow != -1);
                     } else if (position == switchBackendRow) {
                         textCell.setText("Switch Backend", false);
                     } else if (position == devicesRow) {
@@ -17201,7 +17201,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
     private void createSaveExclusionItem(long chatId) {
         if (!NaConfig.INSTANCE.getEnableSaveDeletedMessages().Bool()) return;
         var autoTranslatePopupWrapper = new SaveExclusionPopupWrapper(ProfileActivity.this, otherItem.getPopupLayout().getSwipeBack(), chatId, getResourceProvider());
-        otherItem.addSwipeBackItem(R.drawable.msg_delete_24_solar, null, getString(R.string.SaveDeletedExclusionMenu), autoTranslatePopupWrapper.windowLayout);
+        otherItem.addSwipeBackItem(R.drawable.baseline_delete_24, null, getString(R.string.SaveDeletedExclusionMenu), autoTranslatePopupWrapper.windowLayout);
         if (!NaConfig.INSTANCE.getRegexFiltersEnabled().Bool() && !ChatObject.isForum(currentChat)) otherItem.addColoredGap();
     }
 

@@ -198,20 +198,6 @@ public class NekoGeneralSettingsActivity extends BaseNekoXSettingsActivity {
     private final AbstractConfigCell forceBlurInChatRow = cellGroup.appendCell(new ConfigCellTextCheck(NekoConfig.forceBlurInChat));
     private final AbstractConfigCell headerChatBlur = cellGroup.appendCell(new ConfigCellHeader(getString(R.string.ChatBlurAlphaValue)));
     private final AbstractConfigCell chatBlurAlphaValueRow = cellGroup.appendCell(new ConfigCellCustom("ChatBlurAlphaValue", ConfigCellCustom.CUSTOM_ITEM_CharBlurAlpha, NekoConfig.forceBlurInChat.Bool()));
-    private final AbstractConfigCell iconReplacements = cellGroup.appendCell(new ConfigCellSelectBox("IconReplacements", NaConfig.INSTANCE.getIconReplacements(), new String[]{
-            getString(R.string.Default),
-            getString(R.string.IconReplacementSolar),
-    }, null));
-    private final AbstractConfigCell switchStyleRow = cellGroup.appendCell(new ConfigCellSelectBox("SwitchStyle", NaConfig.INSTANCE.getSwitchStyle(), new String[]{
-            getString(R.string.Default),
-            getString(R.string.StyleModern),
-            getString(R.string.StyleMaterialDesign3)
-    }, null));
-    private final AbstractConfigCell sliderStyleRow = cellGroup.appendCell(new ConfigCellSelectBox("SliderStyle", NaConfig.INSTANCE.getSliderStyle(), new String[]{
-            getString(R.string.Default),
-            getString(R.string.StyleModern),
-            getString(R.string.StyleMaterialDesign3)
-    }, null));
     private final AbstractConfigCell actionBarDecorationRow = cellGroup.appendCell(new ConfigCellSelectBox(null, NekoConfig.actionBarDecoration, new String[]{
             getString(R.string.DependsOnDate),
             getString(R.string.Snowflakes),
@@ -507,14 +493,6 @@ public class NekoGeneralSettingsActivity extends BaseNekoXSettingsActivity {
                 restartTooltip.showWithAction(0, UndoView.ACTION_NEED_RESTART, null, null);
             } else if (key.equals(NaConfig.INSTANCE.getHideDividers().getKey())) {
                 restartTooltip.showWithAction(0, UndoView.ACTION_NEED_RESTART, null, null);
-            } else if (key.equals(NaConfig.INSTANCE.getIconReplacements().getKey())) {
-                restartTooltip.showWithAction(0, UndoView.ACTION_NEED_RESTART, null, null);
-            } else if (key.equals(NaConfig.INSTANCE.getSwitchStyle().getKey()) || key.equals(NaConfig.INSTANCE.getSliderStyle().getKey())) {
-                if (listView.getLayoutManager() != null) {
-                    recyclerViewState = listView.getLayoutManager().onSaveInstanceState();
-                    parentLayout.rebuildFragments(INavigationLayout.REBUILD_FLAG_REBUILD_LAST);
-                    listView.getLayoutManager().onRestoreInstanceState(recyclerViewState);
-                }
             } else if (key.equals(NekoConfig.usePersianCalendar.getKey())) {
                 restartTooltip.showWithAction(0, UndoView.ACTION_NEED_RESTART, null, null);
             } else if (key.equals(NekoConfig.dnsType.getKey())) {

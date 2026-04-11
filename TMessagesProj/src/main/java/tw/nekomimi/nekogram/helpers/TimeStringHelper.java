@@ -35,9 +35,6 @@ import org.telegram.ui.Components.ColoredImageSpan;
 import java.util.Locale;
 import java.util.Objects;
 
-import tw.nekomimi.nekogram.ui.icons.IconsResources;
-import xyz.nextalone.nagram.NaConfig;
-
 public class TimeStringHelper {
     public static SpannableStringBuilder deletedSpan;
     public static Drawable deletedDrawable;
@@ -131,7 +128,7 @@ public class TimeStringHelper {
 
     private static void createSpan() {
         if (editedDrawable == null) {
-            editedDrawable = Objects.requireNonNull(ContextCompat.getDrawable(ApplicationLoader.applicationContext, R.drawable.msg_edit_solar)).mutate();
+            editedDrawable = Objects.requireNonNull(ContextCompat.getDrawable(ApplicationLoader.applicationContext, R.drawable.msg_edit)).mutate();
         }
         if (editedSpan == null) {
             editedSpan = new SpannableStringBuilder("\u200B");
@@ -139,7 +136,7 @@ public class TimeStringHelper {
         }
 
         if (deletedDrawable == null) {
-            deletedDrawable = Objects.requireNonNull(ContextCompat.getDrawable(ApplicationLoader.applicationContext, R.drawable.msg_delete_solar)).mutate();
+            deletedDrawable = Objects.requireNonNull(ContextCompat.getDrawable(ApplicationLoader.applicationContext, R.drawable.msg_delete)).mutate();
         }
         if (deletedSpan == null) {
             deletedSpan = new SpannableStringBuilder("\u200B");
@@ -147,11 +144,7 @@ public class TimeStringHelper {
         }
 
         if (translatedDrawable == null) {
-            if (NaConfig.INSTANCE.getIconReplacements().Int() == IconsResources.ICON_REPLACE_SOLAR) {
-                translatedDrawable = Objects.requireNonNull(ContextCompat.getDrawable(ApplicationLoader.applicationContext, R.drawable.msg_translate_solar_12)).mutate();
-            } else {
-                translatedDrawable = Objects.requireNonNull(ContextCompat.getDrawable(ApplicationLoader.applicationContext, R.drawable.msg_translate_12)).mutate();
-            }
+            translatedDrawable = Objects.requireNonNull(ContextCompat.getDrawable(ApplicationLoader.applicationContext, R.drawable.msg_translate_12)).mutate();
         }
         if (translatedSpan == null) {
             translatedSpan = new SpannableStringBuilder("\u200B");
@@ -167,7 +160,7 @@ public class TimeStringHelper {
         }
 
         if (forwardsDrawable == null) {
-            forwardsDrawable = Objects.requireNonNull(ContextCompat.getDrawable(ApplicationLoader.applicationContext, R.drawable.forwards_solar)).mutate();
+            forwardsDrawable = Objects.requireNonNull(ContextCompat.getDrawable(ApplicationLoader.applicationContext, R.drawable.mini_forwarded)).mutate();
         }
         if (forwardsSpan == null) {
             forwardsSpan = new SpannableStringBuilder("\u200B");
@@ -177,7 +170,7 @@ public class TimeStringHelper {
 
     public static SpannableStringBuilder getChannelLabelSpan() {
         if (channelLabelDrawable == null) {
-            channelLabelDrawable = Objects.requireNonNull(ContextCompat.getDrawable(ApplicationLoader.applicationContext, R.drawable.channel_label_solar)).mutate();
+            channelLabelDrawable = Objects.requireNonNull(ContextCompat.getDrawable(ApplicationLoader.applicationContext, R.drawable.msg_channel)).mutate();
         }
         if (channelLabelSpan == null) {
             channelLabelSpan = new SpannableStringBuilder("\u200B");

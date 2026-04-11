@@ -152,8 +152,6 @@
     <string name="TranscribeProviderGeminiPrompt">Промпт (необязательно)</string>
     <string name="uploadBoost">Увеличить скорость скачивания</string>
     <string name="HideDividers">Скрыть разделители</string>
-    <string name="IconReplacements">Замена значков</string>
-    <string name="IconReplacementSolar">Solar от @Design480</string>
     <string name="DebugMenuEnableInvoicePayment">Включить оплату счетов</string>
     <string name="DebugMenuDisableInvoicePayment">Отключить оплату счетов</string>
     <string name="DebugMenuUseCamera2Api">Использовать API Camera 2</string>
@@ -217,9 +215,6 @@
     <string name="PremiumItemRatingInProfiles">Рейтинг в профилях</string>
     <string name="TranslationTargetApp">Как в приложении</string>
     <string name="DisableAvatarTapToSwitch">Не листать аватары по нажатию</string>
-    <string name="SwitchStyle">Стиль переключателей</string>
-    <string name="SliderStyle">Стиль ползунков</string>
-    <string name="StyleModern">Современный</string>
     <string name="SaveDeletedExclusionMenu">Сохранять удалённые</string>
     <string name="SaveDeletedExcluded">Исключить</string>
     <string name="MarkdownParser">Парсер разметки</string>
@@ -269,7 +264,6 @@
     <string name="LlmProviderGroqModel">meta-llama/llama-4-maverick-17b-128e-instruct</string>
     <string name="LlmProviderDeepSeekModel">deepseek-chat</string>
     <string name="LlmProviderXAIModel">grok-4-fast-non-reasoning</string>
-    <string name="StyleMaterialDesign3">Material Design 3</string>
     <string name="Camera">Камера</string>
     <string name="Resolution">Разрешение</string>
     <string name="Bitrate">Битрейт</string>

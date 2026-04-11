@@ -3612,7 +3612,7 @@ public class ChatAttachAlert extends BottomSheet implements NotificationCenter.N
                     sb = new StringBuilder();
                     sb.append(getString(R.string.TranslateMessageLLM));
                     sb.append(' ').append("(").append(languageText).append(")");
-                    options.add(R.drawable.magic_stick_solar, sb,
+                    options.add(R.drawable.ic_translate, sb,
                         () -> {
                             if (messageSendPreview != null) {
                                 messageSendPreview.dismiss(false);
@@ -3639,7 +3639,7 @@ public class ChatAttachAlert extends BottomSheet implements NotificationCenter.N
                 sb = new StringBuilder();
                 sb.append(getString(R.string.TranslateMessage));
                 sb.append(' ').append("(").append(languageText).append(")");
-                options.add(NaConfig.INSTANCE.llmIsDefaultProvider() ? R.drawable.magic_stick_solar : R.drawable.ic_translate, sb,
+                options.add(R.drawable.ic_translate, sb,
                         () -> {
                             if (messageSendPreview != null) {
                                 messageSendPreview.dismiss(false);

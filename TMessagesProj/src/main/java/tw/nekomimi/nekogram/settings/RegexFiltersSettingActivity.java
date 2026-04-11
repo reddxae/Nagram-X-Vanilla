@@ -119,8 +119,8 @@ public class RegexFiltersSettingActivity extends BaseNekoSettingsActivity {
         ActionBarMenu menu = actionBar.createMenu();
         ActionBarMenuItem menuItem = menu.addItem(0, R.drawable.ic_ab_other);
         menuItem.setContentDescription(getString(R.string.AccDescrMoreOptions));
-        menuItem.addSubItem(1, R.drawable.msg_photo_settings_solar, getString(R.string.RegexFiltersImport));
-        menuItem.addSubItem(2, R.drawable.msg_instant_link_solar, getString(R.string.RegexFiltersExport));
+        menuItem.addSubItem(1, R.drawable.msg_customize, getString(R.string.RegexFiltersImport));
+        menuItem.addSubItem(2, R.drawable.msg_instant_link, getString(R.string.RegexFiltersExport));
         menuItem.addColoredGap();
         ActionBarMenuSubItem clearSub = menuItem.addSubItem(3, R.drawable.msg_clear, getString(R.string.ClearRegexFilters));
         int red = Theme.getColor(Theme.key_text_RedRegular);

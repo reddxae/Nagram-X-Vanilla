@@ -29,7 +29,6 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.content.res.AssetManager;
 import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.database.Cursor;
@@ -264,7 +263,6 @@ import tw.nekomimi.nekogram.utils.AndroidUtil;
 import tw.nekomimi.nekogram.utils.BrowserUtils;
 import tw.nekomimi.nekogram.utils.ProxyUtil;
 import xyz.nextalone.nagram.NaConfig;
-import tw.nekomimi.nekogram.ui.icons.IconsResources;
 
 public class LaunchActivity extends BasePermissionsActivity implements INavigationLayout.INavigationLayoutDelegate, NotificationCenter.NotificationCenterDelegate, DialogsActivity.DialogsActivityDelegate, IPipActivity {
     public final static String EXTRA_FORCE_NOT_INTERNAL_APPS = "force_not_internal_apps";
@@ -396,18 +394,6 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
     private final LiteMode.BatteryReceiver batteryReceiver = new LiteMode.BatteryReceiver();
 
     public static LaunchActivity instance;
-
-    private AssetManager iconsAsset;
-    private IconsResources customResources;
-
-    @Override
-    public Resources getResources() {
-        if (iconsAsset != super.getResources().getAssets()) {
-            customResources = new IconsResources(super.getResources());
-            iconsAsset = super.getResources().getAssets();
-        }
-        return customResources;
-    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

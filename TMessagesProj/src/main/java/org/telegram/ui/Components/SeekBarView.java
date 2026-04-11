@@ -50,13 +50,7 @@ import org.telegram.ui.DialogsActivity;
 import java.util.ArrayList;
 import java.util.Collections;
 
-import xyz.nextalone.nagram.NaConfig;
-
 public class SeekBarView extends FrameLayout {
-
-    public static final int SLIDER_STYLE_DEFAULT = 0;
-    public static final int SLIDER_STYLE_MODERN = 1;
-    public static final int SLIDER_STYLE_MD3 = 2;
 
     private final SeekBarAccessibilityDelegate seekBarAccessibilityDelegate;
 
@@ -81,7 +75,6 @@ public class SeekBarView extends FrameLayout {
     private int transitionThumbX;
     private int separatorsCount;
     private boolean isModern = false;
-    private int previewingState = -1;
     private int lineWidthDp = 3;
     private boolean hasCustomLineWidthValue = false;
 
@@ -451,27 +444,15 @@ public class SeekBarView extends FrameLayout {
     }
 
     private void updateModernState() {
-        int style = (previewingState == -1 ? NaConfig.INSTANCE.getSliderStyle().Int() : previewingState);
-        isModern = style == SLIDER_STYLE_MODERN || style == SLIDER_STYLE_MD3;
-        isModern &= (timestamps == null || timestamps.isEmpty());
+        isModern = false;
 
-        if (!hasCustomLineWidthValue || style != SLIDER_STYLE_DEFAULT) {
-            lineWidthDp = style == SLIDER_STYLE_MODERN ? 17 : (style == SLIDER_STYLE_MD3 ? 13 : 3);
-        }
-
-        if (isModern && style == SLIDER_STYLE_MD3) {
-            thumbSize = AndroidUtilities.dp(4);
+        if (!hasCustomLineWidthValue) {
+            lineWidthDp = 3;
         }
     }
 
     private int needCustomDraw() {
         updateModernState();
-
-        int style = (previewingState == -1 ? NaConfig.INSTANCE.getSliderStyle().Int() : previewingState);
-        if (isModern && style == SLIDER_STYLE_MD3) {
-            return style;
-        }
-
         return -1;
     }
 
@@ -571,7 +552,7 @@ public class SeekBarView extends FrameLayout {
             } else {
                 canvas.drawCircle(thumbX + selectorWidth / 2, y + thumbSize / 2, currentRadius, outerPaint1);
             }
-        } else if (needCustomDraw() == SLIDER_STYLE_MD3) {
+        } else {
             float radius = AndroidUtilities.dp(8);
             float radius2 = AndroidUtilities.dp(3);
             float indicatorRadius = AndroidUtilities.dp(10);

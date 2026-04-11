@@ -36,18 +36,11 @@ import android.view.accessibility.AccessibilityNodeInfo;
 import androidx.annotation.Keep;
 
 import org.telegram.messenger.AndroidUtilities;
-import org.telegram.messenger.R;
 import org.telegram.messenger.Utilities;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Cells.BaseCell;
 
-import xyz.nextalone.nagram.NaConfig;
-
 public class Switch extends View {
-
-    public static final int SWITCH_STYLE_DEFAULT = 0;
-    public static final int SWITCH_STYLE_MODERN = 1;
-    public static final int SWITCH_STYLE_MD3 = 2;
 
     private RectF rectF;
 
@@ -98,9 +91,6 @@ public class Switch extends View {
         void onCheckedChanged(Switch view, boolean isChecked);
     }
 
-    private final Paint googleBorderPaint;
-    private final Drawable checkDrawable;
-
     public Switch(Context context) {
         this(context, null);
     }
@@ -116,16 +106,6 @@ public class Switch extends View {
         paint2.setStyle(Paint.Style.STROKE);
         paint2.setStrokeCap(Paint.Cap.ROUND);
         paint2.setStrokeWidth(AndroidUtilities.dp(2));
-
-        googleBorderPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        googleBorderPaint.setStyle(Paint.Style.STROKE);
-        googleBorderPaint.setStrokeCap(Paint.Cap.ROUND);
-        googleBorderPaint.setStrokeWidth(AndroidUtilities.dp(1));
-
-        checkDrawable = getResources().getDrawable(R.drawable.floating_check).mutate();
-        if (checkDrawable != null) {
-            checkDrawable.setColorFilter(new PorterDuffColorFilter(Theme.getColor(trackCheckedColorKey, resourcesProvider), PorterDuff.Mode.MULTIPLY));
-        }
 
         setHapticFeedbackEnabled(true);
     }
@@ -399,10 +379,7 @@ public class Switch extends View {
         int width = AndroidUtilities.dp(31);
         int thumb = AndroidUtilities.dp(20);
 
-        boolean isUsingSeparateView = NaConfig.INSTANCE.getSwitchStyle().Int() != SWITCH_STYLE_DEFAULT;
-        if (isUsingSeparateView) {
-            width = AndroidUtilities.dp(36);
-        }
+        boolean isUsingSeparateView = false;
         int x = (getMeasuredWidth() - width) / 2;
         float y = (getMeasuredHeight() - AndroidUtilities.dpf2(14)) / 2;
         int tx = x + AndroidUtilities.dp(7) + (int) (AndroidUtilities.dp(isUsingSeparateView ? 18 : 17) * progress);
@@ -475,32 +452,9 @@ public class Switch extends View {
             paint.setColor(color);
             paint2.setColor(color);
 
-            if (isUsingSeparateView) {
-                rectF.set(x, y - AndroidUtilities.dpf2(3), x + width, y + AndroidUtilities.dpf2(17));
-                canvasToDraw.drawRoundRect(rectF, AndroidUtilities.dpf2(15), AndroidUtilities.dpf2(15), paint);
-
-                color1 = originalColor1;
-                r1 = Color.red(color1);
-                r2 = Color.red(color2);
-                g1 = Color.green(color1);
-                g2 = Color.green(color2);
-                b1 = Color.blue(color1);
-                b2 = Color.blue(color2);
-                a1 = Color.alpha(color1);
-                a2 = Color.alpha(color2);
-
-                red = (int) (r1 + (r2 - r1) * colorProgress);
-                green = (int) (g1 + (g2 - g1) * colorProgress);
-                blue = (int) (b1 + (b2 - b1) * colorProgress);
-                alpha = (int) (a1 + (a2 - a1) * colorProgress);
-                googleBorderPaint.setColor(((alpha & 0xff) << 24) | ((red & 0xff) << 16) | ((green & 0xff) << 8) | (blue & 0xff));
-
-                canvasToDraw.drawRoundRect(rectF, AndroidUtilities.dpf2(15), AndroidUtilities.dpf2(15), googleBorderPaint);
-            } else {
-                rectF.set(x, y, x + width, y + AndroidUtilities.dpf2(14));
-                canvasToDraw.drawRoundRect(rectF, AndroidUtilities.dpf2(7), AndroidUtilities.dpf2(7), paint);
-                canvasToDraw.drawCircle(tx, ty, AndroidUtilities.dpf2(10), paint);
-            }
+            rectF.set(x, y, x + width, y + AndroidUtilities.dpf2(14));
+            canvasToDraw.drawRoundRect(rectF, AndroidUtilities.dpf2(7), AndroidUtilities.dpf2(7), paint);
+            canvasToDraw.drawCircle(tx, ty, AndroidUtilities.dpf2(10), paint);
 
             if (a == 0 && rippleDrawable != null) {
                 rippleDrawable.setBounds(tx - AndroidUtilities.dp(18), ty - AndroidUtilities.dp(18), tx + AndroidUtilities.dp(18), ty + AndroidUtilities.dp(18));
@@ -553,14 +507,8 @@ public class Switch extends View {
                 canvasToDraw.drawCircle(tx, ty, AndroidUtilities.dp(8), paint);
             }
 
-            if (a == 0 && NaConfig.INSTANCE.getSwitchStyle().Int() == SWITCH_STYLE_DEFAULT || NaConfig.INSTANCE.getSwitchStyle().Int() == SWITCH_STYLE_MD3) {
-                if (NaConfig.INSTANCE.getSwitchStyle().Int() == SWITCH_STYLE_MD3) {
-                    int iconWidth = checkDrawable.getIntrinsicWidth() / 2;
-                    int iconHeight = checkDrawable.getIntrinsicHeight() / 2;
-                    checkDrawable.setBounds(tx - iconWidth / 2, ty - iconHeight / 2, tx + iconWidth / 2, ty + iconHeight / 2);
-                    checkDrawable.setAlpha((int) (255 * progress));
-                    checkDrawable.draw(canvasToDraw);
-                } else if (iconDrawable != null) {
+            if (a == 0) {
+                if (iconDrawable != null) {
                     iconDrawable.setBounds(tx - iconDrawable.getIntrinsicWidth() / 2, ty - iconDrawable.getIntrinsicHeight() / 2, tx + iconDrawable.getIntrinsicWidth() / 2, ty + iconDrawable.getIntrinsicHeight() / 2);
                     iconDrawable.draw(canvasToDraw);
                 } else if (drawIconType == 1) {

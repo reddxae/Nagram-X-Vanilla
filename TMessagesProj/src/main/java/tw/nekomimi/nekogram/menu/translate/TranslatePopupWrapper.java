@@ -31,7 +31,7 @@ public class TranslatePopupWrapper {
 
         for (var id : TranslateItem.ITEM_IDS) {
             if (id == TranslateItem.ID_TRANSLATE_LLM) {
-                var item = ActionBarMenuItem.addItem(false, false, windowLayout, R.drawable.magic_stick_solar, TranslateItem.ITEM_TITLES.get(id), false, resourcesProvider);
+                var item = ActionBarMenuItem.addItem(false, false, windowLayout, R.drawable.ic_translate, TranslateItem.ITEM_TITLES.get(id), false, resourcesProvider);
                 item.setOnClickListener(view -> delegate.onItemClick(id));
                 item.setOnLongClickListener(view -> {
                     Translator.showTargetLangSelect(view, (locale) -> {
