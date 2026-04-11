@@ -222,6 +222,7 @@
     <string name="PremiumItemStarInReactions">Star in Reactions</string>
     <string name="PremiumItemVideoAvatar">Animated Avatars</string>
     <string name="PremiumItemCustomWallpaper">Custom Wallpapers</string>
+    <string name="PremiumItemRatingInProfiles">Star Rating in Profiles</string>
     <string name="TranslationTargetApp">Follow App</string>
     <string name="DisableAvatarTapToSwitch">Disable Cycling Avatars by Tapping</string>
     <string name="SwitchStyle">Switch Style</string>
@@ -272,5 +273,5 @@
     <string name="UnblockAllChannelsWarn">Are you sure you want to unblock **all channels**?</string>
     <string name="BlockChannelsUnavailable">Some channels are temporarily unavailable.</string>
     <string name="FixLinkPreview">Fix Link Preview</string>
-    <string name="FixLinkPreviewDetails">X/Twitter domain will be replaced with fixupx.com</string>
+    <string name="FixLinkPreviewDetails">X/Twitter domain will be replaced with fixupx.com.</string>
 </resources>

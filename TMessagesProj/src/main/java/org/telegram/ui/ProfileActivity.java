@@ -5835,7 +5835,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
         });
         ratingView.setOnClickListener(this::showStarRatingBottomSheet);
         if (userInfo != null) {
-            ratingView.set(userInfo.stars_rating);
+            ratingView.set(getVisibleStarRating());
         }
 
         avatarContainer2.addView(ratingView);
@@ -8600,9 +8600,22 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
     }
     private boolean isStarRatingVisible1;
 
+    private boolean isProfileRatingVisible() {
+        return NaConfig.INSTANCE.getPremiumItemRatingInProfiles().Bool();
+    }
+
+    private TL_stars.Tl_starsRating getVisibleStarRating() {
+        return isProfileRatingVisible() && userInfo != null ? userInfo.stars_rating : null;
+    }
+
+    private boolean hasVisibleNegativeStarRating() {
+        TL_stars.Tl_starsRating starsRating = getVisibleStarRating();
+        return starsRating != null && starsRating.stars < 0;
+    }
+
     private void checkStarRatingVisible() {
         if (ratingView != null) {
-            ratingView.setVisibility(!mediaHeaderVisible && isStarRatingVisible1);
+            ratingView.setVisibility(isProfileRatingVisible() && !mediaHeaderVisible && isStarRatingVisible1);
         }
     }
 
@@ -9756,7 +9769,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
             if (uid == userId) {
                 userInfo = (TLRPC.UserFull) args[1];
                 if (ratingView != null) {
-                    ratingView.set(userInfo.stars_rating);
+                    ratingView.set(getVisibleStarRating());
                 }
                 if (storyView != null) {
                     storyView.setStories(userInfo.stories);
@@ -10804,7 +10817,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
     ) {
         userInfo = value;
         if (ratingView != null) {
-            ratingView.set(userInfo.stars_rating);
+            ratingView.set(getVisibleStarRating());
         }
         if (storyView != null) {
             storyView.setStories(userInfo.stories);
@@ -11770,6 +11783,8 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
             }
             if (ratingView != null) {
                 ratingView.updateColors(peerColor);
+                ratingView.set(getVisibleStarRating());
+                checkStarRatingVisible();
             }
             setCollectibleGiftStatus(user.emoji_status instanceof TLRPC.TL_emojiStatusCollectible ? (TLRPC.TL_emojiStatusCollectible) user.emoji_status : null);
 
@@ -11821,7 +11836,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                         fallbackImage.setImage(ImageLocation.getForPhoto(smallSize, getUserInfo().fallback_photo), "50_50", (Drawable) null, 0, null, UserConfig.getInstance(currentAccount).getCurrentUser(), 0);
                     }
                 } else {
-                    if (userInfo != null && userInfo.stars_rating != null && userInfo.stars_rating.stars < 0) {
+                    if (hasVisibleNegativeStarRating()) {
                         newString2 = getString(R.string.StarRatingLevelNegative).toLowerCase(Locale.ROOT);
                     } else {
                         if (!NekoConfig.sendOnlinePackets.Bool() || NekoConfig.sendOfflinePacketAfterOnline.Bool()) {
@@ -12048,7 +12063,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
 
             if (userId == UserConfig.getInstance(currentAccount).clientUserId) {
                 onlineTextView[2].setText(LocaleController.getString(R.string.FallbackTooltip));
-                if (userInfo != null && userInfo.stars_rating != null && userInfo.stars_rating.stars < 0) {
+                if (hasVisibleNegativeStarRating()) {
                     onlineTextView[3].setText(newString2 = getString(R.string.StarRatingLevelNegative).toLowerCase(Locale.ROOT));
                 } else {
                     onlineTextView[3].setText(LocaleController.getString(R.string.Online));
@@ -17165,7 +17180,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
     private void showStarRatingBottomSheet(View ignoreView) {
         final Context context = getContext();
         final TLRPC.UserFull userFull = getUserInfo();
-        if (userFull == null || userFull.stars_rating == null) {
+        if (!isProfileRatingVisible() || userFull == null || userFull.stars_rating == null) {
             return;
         }
 

@@ -1278,6 +1278,12 @@ object NaConfig {
             ConfigItem.configTypeBool,
             true
         )
+    val premiumItemRatingInProfiles =
+        addConfig(
+            "PremiumItemRatingInProfiles",
+            ConfigItem.configTypeBool,
+            true
+        )
     val switchStyle =
         addConfig(
             "SwitchStyle",

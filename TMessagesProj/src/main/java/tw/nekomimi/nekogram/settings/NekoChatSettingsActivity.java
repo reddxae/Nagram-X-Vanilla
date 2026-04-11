@@ -106,6 +106,7 @@ public class NekoChatSettingsActivity extends BaseNekoXSettingsActivity implemen
             add(new ConfigCellCheckBox(NaConfig.INSTANCE.getPremiumItemStarInReactions()));
             add(new ConfigCellCheckBox(NaConfig.INSTANCE.getPremiumItemStickerEffects()));
             add(new ConfigCellCheckBox(NaConfig.INSTANCE.getPremiumItemBoosts()));
+            add(new ConfigCellCheckBox(NaConfig.INSTANCE.getPremiumItemRatingInProfiles()));
     }}, null));
     ArrayList<ConfigCellCheckBox> premiumElementsRows = ((ConfigCellTextCheck2) premiumElementsToggleRow).getCheckBox();
     private final AbstractConfigCell unreadBadgeOnBackButton = cellGroup.appendCell(new ConfigCellTextCheck(NekoConfig.unreadBadgeOnBackButton));
@@ -682,6 +683,8 @@ public class NekoChatSettingsActivity extends BaseNekoXSettingsActivity implemen
                 stickerSizeCell.invalidate();
             } else if (key.equals(NaConfig.INSTANCE.getPremiumItemCustomColorInReplies().getKey())) {
                 stickerSizeCell.invalidate();
+            } else if (key.equals(NaConfig.INSTANCE.getPremiumItemRatingInProfiles().getKey())) {
+                NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.reloadInterface);
             } else if (key.equals(NekoConfig.hideGiftButtonInProfiles.getKey())) {
                 NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.reloadInterface);
             } else if (key.equals(NaConfig.INSTANCE.getTranscribeProvider().getKey())) {

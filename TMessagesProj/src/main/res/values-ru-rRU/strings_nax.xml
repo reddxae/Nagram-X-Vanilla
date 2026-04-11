@@ -214,6 +214,7 @@
     <string name="PremiumItemStarInReactions">Звезда в реакциях</string>
     <string name="PremiumItemVideoAvatar">Анимированные аватары</string>
     <string name="PremiumItemCustomWallpaper">Пользовательские обои</string>
+    <string name="PremiumItemRatingInProfiles">Рейтинг в профилях</string>
     <string name="TranslationTargetApp">Как в приложении</string>
     <string name="DisableAvatarTapToSwitch">Не листать аватары по нажатию</string>
     <string name="SwitchStyle">Стиль переключателей</string>

@@ -214,6 +214,7 @@
     <string name="PremiumItemStarInReactions">Зірка у реакціях</string>
     <string name="PremiumItemVideoAvatar">Анімовані аватари</string>
     <string name="PremiumItemCustomWallpaper">Користувацькі шпалери</string>
+    <string name="PremiumItemRatingInProfiles">Рейтинг у профілях</string>
     <string name="TranslationTargetApp">Слідкувати за додатком</string>
     <string name="DisableAvatarTapToSwitch">Не гортати аватари після натискання</string>
     <string name="SwitchStyle">Стиль перемикача</string>
