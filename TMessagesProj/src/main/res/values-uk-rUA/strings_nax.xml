@@ -260,6 +260,7 @@
     <string name="Camera">Камера</string>
     <string name="Resolution">Роздільна здатність</string>
     <string name="Bitrate">Бітрейт</string>
+    <string name="CameraVideoMessagesNotice">Відеоповідомлення розміром понад 10 МБ автоматично надсилатимуться як звичайні відео, щоб обійти серверне обмеження.</string>
     <string name="DisableGooeyAvatarAnimation">Вимкнути анімацію аватара «Gooey»</string>
     <string name="BlockChannel">Заблокувати канал</string>
     <string name="UnblockChannel">Розблокувати канал</string>

@@ -257,6 +257,7 @@
     <string name="Camera">Camera</string>
     <string name="Resolution">Resolution</string>
     <string name="Bitrate">Bitrate</string>
+    <string name="CameraVideoMessagesNotice">Video messages larger than 10 MB will be sent as regular videos automatically to bypass the server-side limit.</string>
     <string name="DisableGooeyAvatarAnimation">Disable &quot;Gooey&quot; Avatar Animation</string>
     <string name="ExportSettingsIncludeApiKeys">Include API Keys</string>
     <string name="DisableInAppBrowserGestures">Disable Gestures</string>

@@ -273,5 +273,6 @@
     <string name="Camera">Камера</string>
     <string name="Resolution">Разрешение</string>
     <string name="Bitrate">Битрейт</string>
+    <string name="CameraVideoMessagesNotice">Видеосообщения размером более 10 МБ будут автоматически отправляться как обычные видео, чтобы обойти серверное ограничение.</string>
     <string name="DisableGooeyAvatarAnimation">Отключить анимацию аватара «Gooey»</string>
 </resources>

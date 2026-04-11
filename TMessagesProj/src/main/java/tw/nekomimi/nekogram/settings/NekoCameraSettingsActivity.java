@@ -53,6 +53,24 @@ public class NekoCameraSettingsActivity extends BaseNekoXSettingsActivity {
     private final AbstractConfigCell headerCamera = cellGroup.appendCell(new ConfigCellHeader(getString(R.string.Camera)));
     private final AbstractConfigCell cameraResolutionRow = cellGroup.appendCell(new ConfigCellCustom("CameraResolution", CellGroup.ITEM_TYPE_TEXT_SETTINGS_CELL, true));
     private final AbstractConfigCell cameraBitrateRow = cellGroup.appendCell(new ConfigCellCustom("CameraBitrate", CellGroup.ITEM_TYPE_TEXT_SETTINGS_CELL, true));
+    private final AbstractConfigCell cameraVideoMessagesNoticeRow = cellGroup.appendCell(new AbstractConfigCell() {
+        @Override
+        public int getType() {
+            return CellGroup.ITEM_TYPE_TEXT;
+        }
+
+        @Override
+        public boolean isEnabled() {
+            return false;
+        }
+
+        @Override
+        public void onBindViewHolder(RecyclerView.ViewHolder holder) {
+            TextInfoPrivacyCell cell = (TextInfoPrivacyCell) holder.itemView;
+            cell.setBackground(Theme.getThemedDrawable(getContext(), R.drawable.greydivider_bottom, Theme.key_windowBackgroundGrayShadow));
+            cell.setText(getString(R.string.CameraVideoMessagesNotice));
+        }
+    });
     private final AbstractConfigCell dividerCamera = cellGroup.appendCell(new ConfigCellDivider());
 
     private ListAdapter listAdapter;
