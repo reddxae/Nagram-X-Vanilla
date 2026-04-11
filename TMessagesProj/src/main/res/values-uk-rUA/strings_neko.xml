@@ -41,6 +41,8 @@
     <string name="StickerSizeDialogMessageReplyTo">Мяу</string>
     <string name="StickerSizeDialogName">Duang</string>
     <string name="Experimental">Експериментальні</string>
+    <string name="AyuGramFeatures">Функції AyuGram</string>
+    <string name="StoriesSection">Історії</string>
     <string name="UnlimitedFavoredStickers">Необмежені улюблені наліпки</string>
     <string name="UnlimitedFavoredStickersAbout">Додавайте необмежену кількість стікерів до обраного. Стікери можуть не синхронізуватися з іншими пристроями.</string>
     <string name="MessageDetails">Детальніше</string>

@@ -272,4 +272,5 @@
     <string name="UnblockAllChannelsWarn">Ви впевнені, що хочете розблокувати **всі канали**?</string>
     <string name="BlockChannelsUnavailable">Деякі канали тимчасово недоступні.</string>
     <string name="FixLinkPreview">Виправити прев’ю посилань</string>
+    <string name="FixLinkPreviewDetails">Домен X/Twitter буде замінено на fixupx.com</string>
 </resources>

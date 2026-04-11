@@ -41,6 +41,8 @@
     <string name="StickerSizeDialogMessageReplyTo">Мяу</string>
     <string name="StickerSizeDialogName">Duang</string>
     <string name="Experimental">Экспериментальные</string>
+    <string name="AyuGramFeatures">Функции AyuGram</string>
+    <string name="StoriesSection">Истории</string>
     <string name="UnlimitedFavoredStickers">Неограниченные избранные стикеры</string>
     <string name="UnlimitedFavoredStickersAbout">Их синхронизация будет отключена.</string>
     <string name="MessageDetails">Подробности</string>

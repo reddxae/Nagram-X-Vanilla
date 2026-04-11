@@ -259,6 +259,7 @@
     <string name="UnblockAllChannelsWarn">Вы уверены, что хотите разблокировать **все каналы**?</string>
     <string name="BlockChannelsUnavailable">Некоторые каналы временно недоступны.</string>
     <string name="FixLinkPreview">Исправить предпросмотр ссылок</string>
+    <string name="FixLinkPreviewDetails">Домен X/Twitter будет заменён на fixupx.com</string>
     <string name="NagramX">Telegram</string>
     <string name="LlmApiUrlDefault">https://generativelanguage.googleapis.com/v1beta/openai</string>
     <string name="LlmModelNameDefault">gemini-flash-latest</string>
