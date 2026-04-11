@@ -10797,6 +10797,8 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
             return new AttachmentTabIconMetrics(72, 46, 49, 1.02f, 1.08f);
         } else if (iconResId == R.drawable.msg_filled_stories) {
             return new AttachmentTabIconMetrics(24, 22, 22);
+        } else if (iconResId == R.drawable.msg_stories_archive) {
+            return new AttachmentTabIconMetrics(24, 22, 22);
         } else if (iconResId == R.drawable.msg_filled_menu_groups) {
             return new AttachmentTabIconMetrics(24, 20, 13, 0f, -0.5f, 1.10f, 1.22f);
         } else if (iconResId == R.drawable.msg_filled_data_photos) {
@@ -10827,7 +10829,10 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
             return new AttachmentTabIconStyle(iconOnly ? 20 : 18, 1f, 1f, 0f, 0f);
         }
         float spanSizeDp = iconOnly ? 20f : 18f;
-        float targetContentSizeDp = iconOnly ? 15.5f : 14.5f;
+        float targetContentSizeDp = iconOnly ? 15.5f * 1.10f : 14.5f;
+        if (iconOnly && (iconResId == R.drawable.msg_filled_stories || iconResId == R.drawable.msg_stories_archive || iconResId == R.drawable.msg_round_gif_m)) {
+            targetContentSizeDp *= 1.10f;
+        }
         float scaleX = Math.min(
             targetContentSizeDp * metrics.canvasSize / (spanSizeDp * metrics.contentWidth),
             targetContentSizeDp * metrics.canvasSize / (spanSizeDp * metrics.contentHeight)
@@ -10870,7 +10875,8 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
 
     private int getAttachmentTabIconResId(int tabId) {
         return switch (tabId) {
-            case TAB_STORIES, TAB_ARCHIVED_STORIES, TAB_BOT_PREVIEWS -> R.drawable.msg_filled_stories;
+            case TAB_STORIES, TAB_BOT_PREVIEWS -> R.drawable.msg_filled_stories;
+            case TAB_ARCHIVED_STORIES -> R.drawable.msg_stories_archive;
             case TAB_GIFTS -> R.drawable.filled_gift_simple;
             case TAB_COMMON_GROUPS, TAB_GROUPUSERS -> R.drawable.msg_filled_menu_groups;
             case TAB_PHOTOVIDEO -> R.drawable.msg_filled_data_photos;

@@ -29,6 +29,7 @@ import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.ImageReceiver;
 import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.Utilities;
+import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.ProfileActivity;
 
 import xyz.nextalone.nagram.NaConfig;
@@ -47,6 +48,7 @@ public class ProfileGalleryBlurView extends View {
             new Paint(),
             new Paint(),
     };
+    private final Paint fallbackSolidPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
 
     private ProfileGalleryView view;
     public int actionSize;
@@ -144,6 +146,31 @@ public class ProfileGalleryBlurView extends View {
 
     public void setMusicView(ProfileMusicView musicView) {
         this.musicView = musicView;
+    }
+
+    private void drawFallbackOverlay(Canvas canvas, float width, boolean translate, float fraction, float alpha) {
+        if (view == null || size <= 0) {
+            return;
+        }
+        if (actionsView != null) {
+            actionsView.drawingBlur(false);
+        }
+        if (musicView != null) {
+            musicView.drawingBlur(false);
+        }
+
+        float openingScale = view.getMeasuredWidth() > 0 ? width / view.getMeasuredWidth() : 1f;
+        float scaledSize = size * openingScale;
+        fallbackSolidPaint.setColor(Theme.getColor(Theme.key_windowBackgroundWhite));
+
+        canvas.save();
+        if (translate) {
+            canvas.translate(0f, -scaledSize);
+        }
+        if (actionSize > 0) {
+            canvas.drawRect(0, scaledSize, width, scaledSize + actionSize, fallbackSolidPaint);
+        }
+        canvas.restore();
     }
 
     private void swap(int from, int to, int clear) {
@@ -420,7 +447,11 @@ public class ProfileGalleryBlurView extends View {
     }
 
     public void draw(Canvas canvas, ProfileActivity.AvatarImageView avatarImageView, float width, float height, boolean translate, float fraction, float alpha) {
-        if (view == null || !view.isAttachedToWindow() || view.getVisibility() == GONE || NaConfig.INSTANCE.getDisableAvatarBlur().Bool()) {
+        if (view == null || !view.isAttachedToWindow() || view.getVisibility() == GONE) {
+            return;
+        }
+        if (NaConfig.INSTANCE.getDisableAvatarBlur().Bool()) {
+            drawFallbackOverlay(canvas, width, translate, fraction, alpha);
             return;
         }
         if (usingRenderNode && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {

@@ -461,6 +461,17 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
 
     private boolean[] isOnline = new boolean[1];
 
+    private boolean shouldDrawDisableAvatarBlurTextShadow() {
+        return NaConfig.INSTANCE.getDisableAvatarBlur().Bool()
+                && currentExpandAnimatorValue > 0f
+                && avatarsViewPager != null
+                && avatarsViewPager.getVisibility() == View.VISIBLE;
+    }
+
+    private int getDisableAvatarBlurTextShadowColor() {
+        return Theme.multAlpha(Color.BLACK, Theme.isCurrentThemeDark() ? 0.58f : 0.42f);
+    }
+
     private boolean isCallAvailable;
     private boolean callItemVisible;
     private boolean videoCallItemVisible;
@@ -959,7 +970,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
 
         public void createBlurEffect(int actionsSize) {
             this.actionsSize = actionsSize;
-            this.blurEnabled = !NaConfig.INSTANCE.getDisableAvatarBlur().Bool(); // actionsSize > 0;
+            this.blurEnabled = actionsSize > 0;
         }
 
         public AvatarImageView(Context context) {
@@ -5634,7 +5645,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
 //        }
         overlaysView = new OverlaysView(context);
         avatarsBlurView = new ProfileGalleryBlurView(context);
-        avatarsBlurView.setSize(NaConfig.INSTANCE.getDisableAvatarBlur().Bool() ? 0 : getActionsExtraHeight());
+        avatarsBlurView.setSize(getActionsExtraHeight());
         avatarsViewPager = new ProfileGalleryView(context, userId != 0 ? userId : -chatId, actionBar, listView, avatarImage, getClassGuid(), overlaysView, avatarsBlurView) {
             @Override
             protected void setCustomAvatarProgress(float progress) {
@@ -5685,6 +5696,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
             if (playProfileAnimation == 0 && a == 0) {
                 continue;
             }
+            final int index = a;
             nameTextView[a] = new SimpleTextView(context) {
                 @Override
                 public void onInitializeAccessibilityNodeInfo(AccessibilityNodeInfo info) {
@@ -5706,7 +5718,16 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                 @Override
                 protected void onDraw(Canvas canvas) {
                     final int wasRightDrawableX = getRightDrawableX();
+                    boolean drawShadow = index == 1 && shouldDrawDisableAvatarBlurTextShadow();
+                    if (drawShadow) {
+                        getTextPaint().setShadowLayer(AndroidUtilities.dpf2(2f), 0, AndroidUtilities.dpf2(0.66f), getDisableAvatarBlurTextShadowColor());
+                    } else {
+                        getTextPaint().clearShadowLayer();
+                    }
                     super.onDraw(canvas);
+                    if (drawShadow) {
+                        getTextPaint().clearShadowLayer();
+                    }
                     if (wasRightDrawableX != getRightDrawableX()) {
                         updateCollectibleHint();
                     }
@@ -5754,6 +5775,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
             avatarContainer2.addView(nameTextView[a], LayoutHelper.createFrame(a == 0 ? initialTitleWidth : LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.LEFT | Gravity.TOP, 118, -6, (a == 0 ? rightMargin - (hasTitleExpanded ? 10 : 0) : 0), 0));
         }
         for (int a = 0; a < onlineTextView.length; a++) {
+            final int index = a;
             if (a == 1) {
                 onlineTextView[a] = new LinkSpanDrawable.ClickableSmallTextView(context) {
 
@@ -5801,9 +5823,37 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                     public boolean setText(CharSequence value) {
                         return super.setText(value);
                     }
+
+                    @Override
+                    protected void onDraw(Canvas canvas) {
+                        boolean drawShadow = shouldDrawDisableAvatarBlurTextShadow();
+                        if (drawShadow) {
+                            getTextPaint().setShadowLayer(AndroidUtilities.dpf2(1.8f), 0, AndroidUtilities.dpf2(0.66f), getDisableAvatarBlurTextShadowColor());
+                        } else {
+                            getTextPaint().clearShadowLayer();
+                        }
+                        super.onDraw(canvas);
+                        if (drawShadow) {
+                            getTextPaint().clearShadowLayer();
+                        }
+                    }
                 };
             } else {
-                onlineTextView[a] = new LinkSpanDrawable.ClickableSmallTextView(context);
+                onlineTextView[a] = new LinkSpanDrawable.ClickableSmallTextView(context) {
+                    @Override
+                    protected void onDraw(Canvas canvas) {
+                        boolean drawShadow = index != 0 && shouldDrawDisableAvatarBlurTextShadow();
+                        if (drawShadow) {
+                            getTextPaint().setShadowLayer(AndroidUtilities.dpf2(1.8f), 0, AndroidUtilities.dpf2(0.66f), getDisableAvatarBlurTextShadowColor());
+                        } else {
+                            getTextPaint().clearShadowLayer();
+                        }
+                        super.onDraw(canvas);
+                        if (drawShadow) {
+                            getTextPaint().clearShadowLayer();
+                        }
+                    }
+                };
             }
 
             onlineTextView[a].setEllipsizeByGradient(true);
