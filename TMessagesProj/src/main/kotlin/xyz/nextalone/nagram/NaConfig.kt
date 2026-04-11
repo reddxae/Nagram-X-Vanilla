@@ -1180,7 +1180,7 @@ object NaConfig {
         addConfig(
             "LeftBottomButtonAction",
             ConfigItem.configTypeInt,
-            0
+            1
         )
     val showTextMonoCode =
         addConfig(
