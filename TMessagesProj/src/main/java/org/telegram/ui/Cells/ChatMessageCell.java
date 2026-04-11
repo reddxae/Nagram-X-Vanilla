@@ -8808,6 +8808,9 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                         }
                     }
                 }
+                if (messageObject.messageOwner != null && messageObject.messageOwner.fwd_from != null && (viewsLayout != null || forwardsLayout != null)) {
+                    totalHeight += dp(10);
+                }
             } else if (messageObject.type == MessageObject.TYPE_PAID_MEDIA) {
                 drawName = isSavedChat && !messageObject.isOutOwner() && (messageObject.getSavedDialogId() < 0 || messageObject.getSavedDialogId() == UserObject.ANONYMOUS) || (messageObject.isFromGroup() && messageObject.isSupergroup() || messageObject.isImportedForward() && messageObject.messageOwner.fwd_from.from_id == null) && (currentPosition == null || (currentPosition.flags & MessageObject.POSITION_FLAG_TOP) != 0);
                 drawForwardedName = !isRepliesChat;

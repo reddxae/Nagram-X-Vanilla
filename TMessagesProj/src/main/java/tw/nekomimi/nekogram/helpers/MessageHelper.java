@@ -828,9 +828,9 @@ public class MessageHelper extends BaseController {
             return orig;
         } else {
             if (day.equals(time)) {
-                return orig + " · " + day;
+                return orig + " • " + day;
             } else {
-                return orig + " · " + day + ' ' + time;
+                return orig + " • " + day + ' ' + time;
             }
         }
     }
