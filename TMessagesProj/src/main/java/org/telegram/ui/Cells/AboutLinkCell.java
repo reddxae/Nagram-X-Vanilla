@@ -103,6 +103,7 @@ public class AboutLinkCell extends FrameLayout {
     private Point[] nextLinesLayoutsPositions;
     private boolean needSpace = false;
     private boolean moreButtonDisabled;
+    private boolean needDivider;
 
     private GestureDetectorCompat gestureDetector;
 
@@ -284,6 +285,20 @@ public class AboutLinkCell extends FrameLayout {
         }
 
         container.draw(canvas);
+
+        if (needDivider) {
+            Paint dividerPaint = Theme.getThemePaint(Theme.key_paint_divider, resourcesProvider);
+            if (dividerPaint == null) {
+                dividerPaint = Theme.dividerPaint;
+            }
+            canvas.drawLine(
+                LocaleController.isRTL ? 0 : AndroidUtilities.dp(20),
+                getMeasuredHeight() - 1,
+                getMeasuredWidth() - (LocaleController.isRTL ? AndroidUtilities.dp(20) : 0),
+                getMeasuredHeight() - 1,
+                dividerPaint
+            );
+        }
     }
 
     final float SPACE = AndroidUtilities.dp(3f);
@@ -356,11 +371,21 @@ public class AboutLinkCell extends FrameLayout {
     }
 
     public void setText(String text, boolean parseLinks) {
-        setTextAndValue(text, null, parseLinks);
+        setTextAndValue(text, null, parseLinks, false);
     }
 
     public void setTextAndValue(String text, String value, boolean parseLinks) {
+        setTextAndValue(text, value, parseLinks, false);
+    }
+
+    public void setTextAndValue(String text, String value, boolean parseLinks, boolean divider) {
+        boolean dividerChanged = needDivider != divider;
+        needDivider = divider;
         if (TextUtils.isEmpty(text) || TextUtils.equals(text, oldText)) {
+            if (dividerChanged) {
+                requestLayout();
+                invalidate();
+            }
             return;
         }
         try {
@@ -387,6 +412,7 @@ public class AboutLinkCell extends FrameLayout {
             checkTextLayout(lastMaxWidth, true);
         }
         requestLayout();
+        invalidate();
     }
 
     Runnable longPressedRunnable = new Runnable() {
@@ -659,7 +685,7 @@ public class AboutLinkCell extends FrameLayout {
     private int updateHeight() {
         int textHeight = textHeight();
         float fromHeight = fromHeight();
-        int height = shouldExpand ? (int) AndroidUtilities.lerp(fromHeight, textHeight, expandT) : textHeight;
+        int height = (shouldExpand ? (int) AndroidUtilities.lerp(fromHeight, textHeight, expandT) : textHeight) + (needDivider ? 1 : 0);
         setHeight(height);
         return height;
     }

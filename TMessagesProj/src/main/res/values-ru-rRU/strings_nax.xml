@@ -258,4 +258,17 @@
     <string name="UnblockAllChannelsWarn">Вы уверены, что хотите разблокировать **все каналы**?</string>
     <string name="BlockChannelsUnavailable">Некоторые каналы временно недоступны.</string>
     <string name="FixLinkPreview">Исправить предпросмотр ссылок</string>
+    <string name="NagramX">Telegram</string>
+    <string name="LlmApiUrlDefault">https://generativelanguage.googleapis.com/v1beta/openai</string>
+    <string name="LlmModelNameDefault">gemini-flash-latest</string>
+    <string name="LlmProviderOpenAIModel">gpt-5-nano</string>
+    <string name="LlmProviderGeminiModel">gemini-flash-lite-latest</string>
+    <string name="LlmProviderGroqModel">meta-llama/llama-4-maverick-17b-128e-instruct</string>
+    <string name="LlmProviderDeepSeekModel">deepseek-chat</string>
+    <string name="LlmProviderXAIModel">grok-4-fast-non-reasoning</string>
+    <string name="StyleMaterialDesign3">Material Design 3</string>
+    <string name="Camera">Камера</string>
+    <string name="Resolution">Разрешение</string>
+    <string name="Bitrate">Битрейт</string>
+    <string name="DisableGooeyAvatarAnimation">Отключить анимацию аватара «Gooey»</string>
 </resources>

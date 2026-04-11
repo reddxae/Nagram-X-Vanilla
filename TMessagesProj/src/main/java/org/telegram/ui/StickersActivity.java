@@ -1469,7 +1469,7 @@ public class StickersActivity extends BaseFragment implements NotificationCenter
                     break;
                 case TYPE_DOUBLE_TAP_REACTIONS: {
                     TextSettingsCell settingsCell = (TextSettingsCell) holder.itemView;
-                    settingsCell.setText(getString(R.string.DoubleTapSetting), false);
+                    settingsCell.setText(getString(R.string.DoubleTapSetting), pinnedReactionsListRow != -1);
                     settingsCell.setIcon(R.drawable.msg2_reactions2);
                     String reaction = MediaDataController.getInstance(currentAccount).getDoubleTapReaction();
                     if (reaction != null) {

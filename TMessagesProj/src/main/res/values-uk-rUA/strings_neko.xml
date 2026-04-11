@@ -101,6 +101,7 @@
     <string name="disableSwipeToNextChannel">Вимкнути перехід на наступний канал свайпом</string>
     <string name="disableChoosingSticker">Відправляти \"друкує\" замість вибирає наліпку</string>
     <string name="hideSendAsChannel">Сховати Надіслати як канал</string>
+    <string name="HideSendAsChannelDetails">Якщо ввімкнено, меню можна відкрити, утримуючи кнопку стікерів.</string>
     <string name="showSpoilersDirectly">Розкривати спойлери відразу</string>
     <string name="SaveToDownloadCount_zero">Збереження %1$d файлів у завантаження</string>
     <string name="SaveToDownloadCount_one">Збереження %1$d файлу в завантаження</string>
@@ -279,4 +280,8 @@
     <string name="EmojiUseDefault">Використовувати системні емодзі</string>
     <string name="Chat">Чати</string>
     <string name="Appearance">Зовнішній вигляд</string>
+    <string name="ProviderTelegramAPI">Telegram API</string>
+    <string name="NekoX">Telegram</string>
+    <string name="GoogleCloudTransKey">Ключ Google Cloud Translate</string>
+    <string name="CantRetrieveDcInfo">Не вдалося отримати інформацію про DC</string>
 </resources>

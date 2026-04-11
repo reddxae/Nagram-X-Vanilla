@@ -116,4 +116,12 @@
     <string name="VideoPlayerDecoderPreferSW">Перевага програмному</string>
     <string name="VideoPlayerDecoderHardware">Тільки апаратне декодування</string>
     <string name="VideoPlayerDecoderPreferHW">Перевага апаратному</string>
+    <string name="AppIconGoogle">Google</string>
+    <string name="Nagram">Telegram</string>
+    <string name="HideGiftButtonInProfiles">Приховати кнопку подарунка в профілях</string>
+    <string name="PushServiceTypeFCM">Google FCM</string>
+    <string name="PushServiceTypeUnified">Unified Push</string>
+    <string name="PushServiceTypeMicroG">microG</string>
+    <string name="PushServiceTypeUnifiedGateway">Шлюз Unified Push</string>
+    <string name="Pangu">Pangu</string>
 </resources>

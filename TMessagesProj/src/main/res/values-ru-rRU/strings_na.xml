@@ -118,4 +118,10 @@
     <string name="VideoPlayerDecoderPreferSW">Предпочтение SW</string>
     <string name="VideoPlayerDecoderHardware">Только HW</string>
     <string name="VideoPlayerDecoderPreferHW">Предпочтение HW</string>
+    <string name="AppIconGoogle">Google</string>
+    <string name="Nagram">Telegram</string>
+    <string name="PushServiceTypeFCM">Google FCM</string>
+    <string name="PushServiceTypeUnified">Unified Push</string>
+    <string name="PushServiceTypeMicroG">microG</string>
+    <string name="Pangu">Pangu</string>
 </resources>

@@ -101,6 +101,7 @@
     <string name="disableSwipeToNextChannel">Отключить переход на следующий канал пролистыванием</string>
     <string name="disableChoosingSticker">Отправлять «печатает» вместо «выбирает стикер»</string>
     <string name="hideSendAsChannel">Скрыть «Отправить как канал»</string>
+    <string name="HideSendAsChannelDetails">Если включено, меню можно открыть, удерживая кнопку стикеров.</string>
     <string name="showSpoilersDirectly">Раскрывать спойлеры сразу</string>
     <string name="SaveToDownloadCount_zero">Сохранение %1$d файлов для загрузки</string>
     <string name="SaveToDownloadCount_one">Сохранение файла %1$d для загрузки</string>
@@ -280,4 +281,7 @@
     <string name="EmojiUseDefault">Использовать системные эмодзи</string>
     <string name="Chat">Чаты</string>
     <string name="Appearance">Внешний вид</string>
+    <string name="ProviderTelegramAPI">Telegram API</string>
+    <string name="NekoX">Telegram</string>
+    <string name="CantRetrieveDcInfo">Не удалось получить информацию о DC</string>
 </resources>

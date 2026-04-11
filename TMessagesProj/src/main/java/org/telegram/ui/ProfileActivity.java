@@ -751,6 +751,34 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
     private int joinRow;
     private int lastSectionRow;
 
+    private boolean isProfileInfoRow(int position) {
+        return position == numberRow
+                || position == phoneRow
+                || position == restrictionReasonRow
+                || position == usernameRow
+                || position == setUsernameRow
+                || position == idDcRow
+                || position == userInfoRow
+                || position == channelInfoRow
+                || position == bioRow
+                || position == birthdayRow
+                || position == locationRow
+                || position == bizHoursRow
+                || position == bizLocationRow
+                || position == noteRow;
+    }
+
+    private boolean needProfileInfoDivider(int position) {
+        if (!isProfileInfoRow(position)) {
+            return false;
+        }
+        int nextPosition = position + 1;
+        while (nextPosition == infoHeaderRowEmpty || nextPosition == infoEndRowEmpty) {
+            nextPosition++;
+        }
+        return isProfileInfoRow(nextPosition);
+    }
+
     private boolean hoursExpanded;
     private boolean hoursShownMine;
 
@@ -13943,7 +13971,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                                         }
                                     }),
                                     LocaleController.getString(today ? R.string.ProfileBirthdayToday : R.string.ProfileBirthday),
-                                    isTopic || bizHoursRow != -1 || bizLocationRow != -1
+                                    needProfileInfoDivider(position)
                             );
 
                             containsGift = !myProfile && today && !getMessagesController().premiumPurchaseBlocked();
@@ -13963,7 +13991,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                             phoneNumber = null;
                         }
                         isFragmentPhoneNumber = phoneNumber != null && phoneNumber.matches("888\\d{8}");
-                        detailCell.setTextAndValue(text, LocaleController.getString(isFragmentPhoneNumber ? R.string.AnonymousNumber : R.string.PhoneMobile), false);
+                        detailCell.setTextAndValue(text, LocaleController.getString(isFragmentPhoneNumber ? R.string.AnonymousNumber : R.string.PhoneMobile), needProfileInfoDivider(position));
                     } else if (position == noteRow) {
                         final TLRPC.UserFull userInfo = getMessagesController().getUserFull(userId);
                         if (userInfo == null) return;
@@ -13982,7 +14010,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                             text,
                             getString(R.string.ProfileNotes),
                             getString(R.string.ProfileNotesInfo),
-                            false
+                            needProfileInfoDivider(position)
                         );
                     } else if (position == usernameRow) {
                         String username = null;
@@ -14040,12 +14068,11 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                             value = "";
                             usernames = new ArrayList<>();
                         }
-                        detailCell.setTextAndValue(text, alsoUsernamesString(username, usernames, value), infoEndRowEmpty == -1 && (isTopic || bizHoursRow != -1 || bizLocationRow != -1) && birthdayRow < 0);
+                        detailCell.setTextAndValue(text, alsoUsernamesString(username, usernames, value), needProfileInfoDivider(position));
                     } else if (position == idDcRow) {
                         long id = getId(true);
                         int dc = getDc();
-                        boolean isUserSelf = userId == UserConfig.getInstance(currentAccount).getClientUserId();
-                        detailCell.setTextAndValue(formatMonospaceId(id), formatDcDescription(dc), isUserSelf);
+                        detailCell.setTextAndValue(formatMonospaceId(id), formatDcDescription(dc), needProfileInfoDivider(position));
                     } else if (position == restrictionReasonRow) {
                         ArrayList<TLRPC.RestrictionReason> reasons = new ArrayList<>();
                         if (userId != 0) {
@@ -14066,11 +14093,11 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                                 value.append(", ");
                             }
                         }
-                        detailCell.setTextAndValue(value.toString(), getString(R.string.RestrictionReason), false);
+                        detailCell.setTextAndValue(value.toString(), getString(R.string.RestrictionReason), needProfileInfoDivider(position));
                     } else if (position == locationRow) {
                         if (chatInfo != null && chatInfo.location instanceof TLRPC.TL_channelLocation) {
                             TLRPC.TL_channelLocation location = (TLRPC.TL_channelLocation) chatInfo.location;
-                            detailCell.setTextAndValue(location.address, LocaleController.getString(R.string.AttachLocation), false);
+                            detailCell.setTextAndValue(location.address, LocaleController.getString(R.string.AttachLocation), needProfileInfoDivider(position));
                         }
                     } else if (position == numberRow) {
                         TLRPC.User user = UserConfig.getInstance(currentAccount).getCurrentUser();
@@ -14080,7 +14107,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                                 value = PhoneFormat.getInstance().format("+" + user.phone);
                             }
                         }
-                        detailCell.setTextAndValue(value, LocaleController.getString(R.string.TapToChangePhone), true);
+                        detailCell.setTextAndValue(value, LocaleController.getString(R.string.TapToChangePhone), needProfileInfoDivider(position));
                         detailCell.setContentDescriptionValueFirst(false);
                     } else if (position == setUsernameRow) {
                         TLRPC.User user = UserConfig.getInstance(currentAccount).getCurrentUser();
@@ -14112,7 +14139,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                                 text = LocaleController.getString(R.string.UsernameEmpty);
                             }
                         }
-                        detailCell.setTextAndValue(text, value, true);
+                        detailCell.setTextAndValue(text, value, needProfileInfoDivider(position));
                         detailCell.setContentDescriptionValueFirst(true);
                     }
                     if (containsGift) {
@@ -14143,21 +14170,21 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                     if (position == userInfoRow) {
                         // TLRPC.User user = userInfo.user != null ? userInfo.user : getMessagesController().getUser(userInfo.id);
                         // boolean addlinks = isBot || (user != null && user.premium && userInfo.about != null);
-                        aboutLinkCell.setTextAndValue(MessageHelper.zalgoFilter(userInfo.about), LocaleController.getString(R.string.UserBio), true);
+                        aboutLinkCell.setTextAndValue(MessageHelper.zalgoFilter(userInfo.about), LocaleController.getString(R.string.UserBio), true, needProfileInfoDivider(position));
                     } else if (position == channelInfoRow) {
                         String text = chatInfo.about;
                         while (text.contains("\n\n\n")) {
                             text = text.replace("\n\n\n", "\n\n");
                         }
-                        aboutLinkCell.setTextAndValue(MessageHelper.zalgoFilter(text), LocaleController.getString(R.string.DescriptionPlaceholder), ChatObject.isChannel(currentChat) && !currentChat.megagroup);
+                        aboutLinkCell.setTextAndValue(MessageHelper.zalgoFilter(text), LocaleController.getString(R.string.DescriptionPlaceholder), ChatObject.isChannel(currentChat) && !currentChat.megagroup, needProfileInfoDivider(position));
                     } else if (position == bioRow) {
                         String value;
                         if (userInfo == null || !TextUtils.isEmpty(userInfo.about)) {
                             value = userInfo == null ? LocaleController.getString(R.string.Loading) : userInfo.about;
-                            aboutLinkCell.setTextAndValue(MessageHelper.zalgoFilter(value), LocaleController.getString(R.string.UserBio), true/*getUserConfig().isPremium()*/);
+                            aboutLinkCell.setTextAndValue(MessageHelper.zalgoFilter(value), LocaleController.getString(R.string.UserBio), true/*getUserConfig().isPremium()*/, needProfileInfoDivider(position));
                             currentBio = userInfo != null ? userInfo.about : null;
                         } else {
-                            aboutLinkCell.setTextAndValue(LocaleController.getString(R.string.UserBio), LocaleController.getString(R.string.UserBioDetail), false);
+                            aboutLinkCell.setTextAndValue(LocaleController.getString(R.string.UserBio), LocaleController.getString(R.string.UserBioDetail), false, needProfileInfoDivider(position));
                             currentBio = null;
                         }
                         aboutLinkCell.setMoreButtonDisabled(true);
@@ -14587,7 +14614,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                     textCheckCell.setTextAndCheck(LocaleController.getString(R.string.Notifications), !getMessagesController().isDialogMuted(getDialogId(), topicId), false);
                     break;
                 case VIEW_TYPE_LOCATION:
-                    ((ProfileLocationCell) holder.itemView).set(userInfo != null ? userInfo.business_location : null, notificationsDividerRow < 0 && !myProfile);
+                    ((ProfileLocationCell) holder.itemView).set(userInfo != null ? userInfo.business_location : null, needProfileInfoDivider(position));
                     break;
                 case VIEW_TYPE_HOURS:
                     ProfileHoursCell hoursCell = (ProfileHoursCell) holder.itemView;
@@ -14603,7 +14630,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                             layoutManager.scrollToPositionWithOffset(savedScrollPosition, savedScrollOffset - listView.getPaddingTop());
                         }
                     });
-                    hoursCell.set(userInfo != null ? userInfo.business_work_hours : null, hoursExpanded, hoursShownMine, notificationsDividerRow < 0 && !myProfile || bizLocationRow >= 0);
+                    hoursCell.set(userInfo != null ? userInfo.business_work_hours : null, hoursExpanded, hoursShownMine, needProfileInfoDivider(position));
                     break;
                 case VIEW_TYPE_CHANNEL:
                     if (userInfo != null) {
