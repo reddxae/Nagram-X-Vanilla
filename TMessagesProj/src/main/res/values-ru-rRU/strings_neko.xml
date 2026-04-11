@@ -100,7 +100,10 @@
     <string name="hideGroupSticker">Скрыть стикер группы</string>
     <string name="customGroupVoipAudioBitrate">Битрейт аудио групповых звонков</string>
     <string name="maxRecentStickerCount">Максимум недавних стикеров</string>
+    <string name="disableSwipeToNext">Отключить переход свайпом к следующему...</string>
     <string name="disableSwipeToNextChannel">Отключить переход на следующий канал пролистыванием</string>
+    <string name="InChannels">В каналах</string>
+    <string name="InForums">В форумах</string>
     <string name="disableChoosingSticker">Отправлять «печатает» вместо «выбирает стикер»</string>
     <string name="hideSendAsChannel">Скрыть «Отправить как канал»</string>
     <string name="HideSendAsChannelDetails">Если включено, меню можно открыть, удерживая кнопку стикеров.</string>

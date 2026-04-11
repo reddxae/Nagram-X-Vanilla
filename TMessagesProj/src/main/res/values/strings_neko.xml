@@ -100,7 +100,10 @@
     <string name="hideGroupSticker">Hide Group Sticker</string>
     <string name="customGroupVoipAudioBitrate">Group VoIP Audio Bitrate</string>
     <string name="maxRecentStickerCount">Max Recent Stickers</string>
+    <string name="disableSwipeToNext">Disable Swipe to Next...</string>
     <string name="disableSwipeToNextChannel">Disable Swipe to Next Channel</string>
+    <string name="InChannels">In Channels</string>
+    <string name="InForums">In Forums</string>
     <string name="disableChoosingSticker">Send Typing Instead of Choosing Sticker</string>
     <string name="hideSendAsChannel">Hide Send as Channel</string>
     <string name="HideSendAsChannelDetails">When enabled, the menu can be accessed by holding the sticker button.</string>

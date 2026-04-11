@@ -100,7 +100,10 @@
     <string name="hideGroupSticker">Приховати наліпку групи</string>
     <string name="customGroupVoipAudioBitrate">Бітрейт аудіо VoIP для груп</string>
     <string name="maxRecentStickerCount">Максимум останніх наліпок</string>
+    <string name="disableSwipeToNext">Вимкнути перехід свайпом до наступного...</string>
     <string name="disableSwipeToNextChannel">Вимкнути перехід на наступний канал свайпом</string>
+    <string name="InChannels">У каналах</string>
+    <string name="InForums">У форумах</string>
     <string name="disableChoosingSticker">Відправляти \"друкує\" замість вибирає наліпку</string>
     <string name="hideSendAsChannel">Сховати Надіслати як канал</string>
     <string name="HideSendAsChannelDetails">Якщо ввімкнено, меню можна відкрити, утримуючи кнопку стікерів.</string>

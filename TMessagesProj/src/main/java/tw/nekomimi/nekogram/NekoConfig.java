@@ -159,6 +159,7 @@ public class NekoConfig {
     public static ConfigItem takeGIFasVideo = addConfig("TakeGIFasVideo", configTypeBool, false);
     public static ConfigItem maxRecentStickerCount = addConfig("maxRecentStickerCount", configTypeInt, 20);
     public static ConfigItem disableSwipeToNext = addConfig("disableSwipeToNextChannel", configTypeBool, true);
+    public static ConfigItem disableSwipeToNextInForums = addConfig("disableSwipeToNextInForums", configTypeBool, true);
     public static ConfigItem disableChoosingSticker = addConfig("disableChoosingSticker", configTypeBool, false);
     public static ConfigItem hideGroupSticker = addConfig("hideGroupSticker", configTypeBool, false);
     public static ConfigItem rememberAllBackMessages = addConfig("rememberAllBackMessages", configTypeBool, false);
@@ -303,6 +304,9 @@ public class NekoConfig {
             if (preferences.contains("DisableSendReadStories")) {
                 sendReadStoriesPackets.setConfigBool(!preferences.getBoolean("DisableSendReadStories", true));
             }
+        }
+        if (preferences.contains("disableSwipeToNextChannel") && !preferences.contains("disableSwipeToNextInForums")) {
+            disableSwipeToNextInForums.setConfigBool(preferences.getBoolean("disableSwipeToNextChannel", true));
         }
     }
 
