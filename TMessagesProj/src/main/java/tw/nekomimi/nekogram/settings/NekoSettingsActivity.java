@@ -42,6 +42,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.ApplicationLoader;
+import org.telegram.messenger.BuildConfig;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.R;
@@ -55,6 +56,7 @@ import org.telegram.ui.Cells.CheckBoxCell;
 import org.telegram.ui.Cells.SettingsSearchCell;
 import org.telegram.ui.Cells.ShadowSectionCell;
 import org.telegram.ui.Cells.TextCell;
+import org.telegram.ui.Cells.TextInfoPrivacyCell;
 import org.telegram.ui.Cells.TextSettingsCell;
 import org.telegram.ui.Components.EditTextBoldCursor;
 import org.telegram.ui.Components.FilledTabsView;
@@ -429,6 +431,7 @@ public class NekoSettingsActivity extends BaseFragment {
             }
         };
         frameLayout.setFitsSystemWindows(true);
+        frameLayout.setBackgroundColor(getThemedColor(Theme.key_windowBackgroundGray));
         return frameLayout;
     }
 
@@ -438,6 +441,7 @@ public class NekoSettingsActivity extends BaseFragment {
         private static final int VIEW_TYPE_BOTTOM = 2;
         private static final int VIEW_TYPE_TEXT = 3;
         private static final int VIEW_TYPE_TEXT_LINK = 4;
+        private static final int VIEW_TYPE_INFO = 5;
 
         private final RecyclerListView listView;
         private final RecyclerView.Adapter listAdapter;
@@ -465,6 +469,7 @@ public class NekoSettingsActivity extends BaseFragment {
         private int sourceCodeRow = -1;
         private int translationRow = -1;
         private int datacenterStatusRow = -1;
+        private int aboutClientInfoRow = -1;
         private int actionBarHeight;
 
         @SuppressLint("ApplySharedPref")
@@ -472,8 +477,11 @@ public class NekoSettingsActivity extends BaseFragment {
             super(context);
             this.type = type;
 
+            setBackgroundColor(Color.TRANSPARENT);
+
             listView = new RecyclerListView(context);
             listView.setVerticalScrollBarEnabled(false);
+            listView.setBackgroundColor(Color.TRANSPARENT);
             listView.setLayoutManager(new LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false));
             addView(listView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT, Gravity.TOP | Gravity.LEFT));
             listView.setAdapter(listAdapter = new RecyclerListView.SelectionAdapter() {
@@ -501,6 +509,9 @@ public class NekoSettingsActivity extends BaseFragment {
                         case VIEW_TYPE_TEXT_LINK:
                             view = new TextSettingsCell(getContext());
                             view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
+                            break;
+                        case VIEW_TYPE_INFO:
+                            view = new TextInfoPrivacyCell(getContext());
                             break;
                     }
                     //noinspection ConstantConditions
@@ -564,6 +575,14 @@ public class NekoSettingsActivity extends BaseFragment {
                             }
                             break;
                         }
+                        case VIEW_TYPE_INFO: {
+                            TextInfoPrivacyCell cell = (TextInfoPrivacyCell) holder.itemView;
+                            cell.setBackground(null);
+                            if (position == aboutClientInfoRow) {
+                                cell.setText(LocaleController.formatString("NagramVanillaAboutFooter", R.string.NagramVanillaAboutFooter, BuildConfig.VERSION_NAME, BuildConfig.VERSION_CODE));
+                            }
+                            break;
+                        }
                     }
                 }
 
@@ -571,6 +590,8 @@ public class NekoSettingsActivity extends BaseFragment {
                 public int getItemViewType(int position) {
                     if (position == categories2Row) {
                         return VIEW_TYPE_BOTTOM;
+                    } else if (position == aboutClientInfoRow) {
+                        return VIEW_TYPE_INFO;
                     } else if (position == nSettingsHeaderRow || position == otherRow) {
                         return VIEW_TYPE_HEADER;
                     } else if (position == chatRow || position == cameraRow || position == generalRow || position == passcodeRow || position == experimentRow || position == translatorRow ||
@@ -649,6 +670,7 @@ public class NekoSettingsActivity extends BaseFragment {
                 appRestartRow = rowCount++;
             } else {
                 datacenterStatusRow = rowCount++;
+                aboutClientInfoRow = rowCount++;
             }
         }
 

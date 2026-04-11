@@ -108,7 +108,6 @@ public class NekoChatSettingsActivity extends BaseNekoXSettingsActivity implemen
             add(new ConfigCellCheckBox(NaConfig.INSTANCE.getPremiumItemBoosts()));
             add(new ConfigCellCheckBox(NaConfig.INSTANCE.getPremiumItemRatingInProfiles()));
     }}, null));
-    ArrayList<ConfigCellCheckBox> premiumElementsRows = ((ConfigCellTextCheck2) premiumElementsToggleRow).getCheckBox();
     private final AbstractConfigCell unreadBadgeOnBackButton = cellGroup.appendCell(new ConfigCellTextCheck(NekoConfig.unreadBadgeOnBackButton));
     private final AbstractConfigCell sendCommentAfterForwardRow = cellGroup.appendCell(new ConfigCellTextCheck(NekoConfig.sendCommentAfterForward));
     private final AbstractConfigCell useChatAttachMediaMenuRow = cellGroup.appendCell(new ConfigCellTextCheck(NekoConfig.useChatAttachMediaMenu, getString(R.string.UseChatAttachEnterMenuNotice)));
@@ -632,10 +631,7 @@ public class NekoChatSettingsActivity extends BaseNekoXSettingsActivity implemen
                 ((ConfigCellTextCheck2) a).onClick();
             } else if (a instanceof ConfigCellCheckBox) {
                 ((ConfigCellCheckBox) a).onClick((CheckBoxCell) view);
-                int toggleRowIndex = cellGroup.rows.indexOf(premiumElementsToggleRow);
-                if (position > toggleRowIndex && position <= toggleRowIndex + premiumElementsRows.size()) {
-                    listAdapter.notifyItemRangeChanged(toggleRowIndex, premiumElementsRows.size());
-                }
+                notifyParentToggleRowChanged((ConfigCellCheckBox) a);
             }
         });
         listView.setOnItemLongClickListener((view, position, x, y) -> {
@@ -722,6 +718,26 @@ public class NekoChatSettingsActivity extends BaseNekoXSettingsActivity implemen
         frameLayout.addView(tooltip, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.BOTTOM | Gravity.LEFT, 8, 0, 8, 8));
 
         return fragmentView;
+    }
+
+    private void notifyParentToggleRowChanged(ConfigCellCheckBox checkBoxCell) {
+        if (listAdapter == null) {
+            return;
+        }
+        for (AbstractConfigCell row : cellGroup.rows) {
+            if (!(row instanceof ConfigCellTextCheck2)) {
+                continue;
+            }
+            ConfigCellTextCheck2 toggleRow = (ConfigCellTextCheck2) row;
+            if (!toggleRow.getCheckBox().contains(checkBoxCell)) {
+                continue;
+            }
+            int toggleRowIndex = cellGroup.rows.indexOf(toggleRow);
+            if (toggleRowIndex != -1) {
+                listAdapter.notifyItemRangeChanged(toggleRowIndex, toggleRow.getCheckBox().size() + 1);
+            }
+            return;
+        }
     }
 
     @SuppressLint("NotifyDataSetChanged")

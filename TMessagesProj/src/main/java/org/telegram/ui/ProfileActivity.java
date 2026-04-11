@@ -9246,10 +9246,8 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                         needLayoutText(diff, 0, false);
                     }
 
-                    FrameLayout.LayoutParams params1 = (FrameLayout.LayoutParams) nameTextView[a].getLayoutParams();
-                    float nameX = viewportWidth / 2f - (params1.leftMargin + Math.min(nameTextView[a].getExactWidth(), a == 1 ? params1.width : viewportWidth) * nameScale * 0.5f);
-                    FrameLayout.LayoutParams params2 = (FrameLayout.LayoutParams) onlineTextView[a].getLayoutParams();
-                    float onlineX = viewportWidth / 2f - (params2.leftMargin + Math.min(onlineTextView[hasFallbackPhoto ? 3 : a].getExactWidth(), a == 1 ? params2.width : viewportWidth) * 0.5f);
+                    float nameX = getCenteredTextTranslationX(nameTextView[a], nameTextView[a], viewportWidth, nameScale);
+                    float onlineX = getCenteredTextTranslationX(onlineTextView[a], onlineTextView[hasFallbackPhoto ? 3 : a], viewportWidth, 1f);
 
                     if (a == 1) {
                         this.nameX = nameX;
@@ -9323,10 +9321,8 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
             if (nameTextView[a] == null) {
                 continue;
             }
-            FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) nameTextView[a].getLayoutParams();
-            float nameX = listView.getMeasuredWidth() / 2f - (params.leftMargin + nameTextView[a].getExactWidth() * nameScale * 0.5f);
-            params = (FrameLayout.LayoutParams) onlineTextView[a].getLayoutParams();
-            float onlineX = listView.getMeasuredWidth() / 2f - (params.leftMargin + onlineTextView[a].getExactWidth() * 0.5f);
+            float nameX = getCenteredTextTranslationX(nameTextView[a], nameTextView[a], listView.getMeasuredWidth(), nameScale);
+            float onlineX = getCenteredTextTranslationX(onlineTextView[a], onlineTextView[hasFallbackPhoto ? 3 : a], listView.getMeasuredWidth(), 1f);
 
             if (a == 1) {
                 this.nameX = nameX;
@@ -9456,6 +9452,16 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
 
     private void needLayoutText(float diff) {
         needLayoutText(diff, 0, true);
+    }
+
+    private float getCenteredTextTranslationX(SimpleTextView positionedTextView, SimpleTextView contentTextView, float viewportWidth, float scale) {
+        FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) positionedTextView.getLayoutParams();
+        float maxContentWidth = viewportWidth;
+        if (params.width > 0) {
+            maxContentWidth = Math.max(0, params.width - positionedTextView.getPaddingLeft() - positionedTextView.getPaddingRight());
+        }
+        float contentWidth = Math.min(contentTextView.getExactWidth(), maxContentWidth);
+        return viewportWidth / 2f - (params.leftMargin + positionedTextView.getPaddingLeft() + contentWidth * scale * 0.5f);
     }
 
     private void updateTextLayoutBasedOnTranslation() {
@@ -13822,7 +13828,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                     cell.getTextView().setTextColor(getThemedColor(Theme.key_windowBackgroundWhiteGrayText3));
                     cell.getTextView().setMovementMethod(null);
                     cell.setBackground(Theme.getThemedDrawable(mContext, R.drawable.greydivider_bottom, Theme.key_windowBackgroundGrayShadow));
-                    cell.setText("Nagram X Vanilla\nv" + BuildConfig.VERSION_NAME + " (" + BuildConfig.VERSION_CODE + ")");
+                    cell.setText("Nagram X Vanilla\nv" + BuildConfig.VERSION_NAME);
                     cell.getTextView().setPadding(0, AndroidUtilities.dp(14), 0, AndroidUtilities.dp(14));
                     view = cell;
                     Drawable drawable = Theme.getThemedDrawable(mContext, R.drawable.greydivider_bottom, getThemedColor(Theme.key_windowBackgroundGrayShadow));
