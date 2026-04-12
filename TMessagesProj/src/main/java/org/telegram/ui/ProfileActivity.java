@@ -5533,8 +5533,9 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                 if (actionsView != null) {
                     actionsView.setExpandedAvatarOverrideStyle(
                             blur && NaConfig.INSTANCE.getDisableAvatarBlur().Bool(),
-                            getExpandedAvatarActionsBackgroundColor(),
-                            getExpandedAvatarActionsContentColor()
+                            getExpandedAvatarActionsButtonBackgroundColor(),
+                            getExpandedAvatarActionsContentColor(),
+                            getExpandedAvatarActionsButtonShadowColor()
                     );
                 }
                 if (musicView != null) {
@@ -6214,7 +6215,10 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
         return fragmentView;
     }
 
-    public int getExpandedAvatarActionsBackgroundColor() {
+    public int getExpandedAvatarActionsButtonBackgroundColor() {
+        if (NaConfig.INSTANCE.getDisableAvatarBlur().Bool()) {
+            return getDefaultExpandedAvatarActionsButtonBackgroundColor();
+        }
         if (hasExpandedAvatarPlayerBackground()) {
             if (musicView != null) {
                 return shouldUseNeutralExpandedAvatarColors()
@@ -6228,12 +6232,40 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
         return getThemedColor(Theme.key_windowBackgroundWhite);
     }
 
+    public int getExpandedAvatarActionsContainerColor() {
+        return getThemedColor(Theme.key_windowBackgroundWhite);
+    }
+
     public int getExpandedAvatarActionsContentColor() {
-        int backgroundColor = getExpandedAvatarActionsBackgroundColor();
+        int backgroundColor = ColorUtils.compositeColors(
+                getExpandedAvatarActionsButtonBackgroundColor(),
+                getExpandedAvatarActionsContainerColor()
+        );
         if (ColorUtils.calculateLuminance(backgroundColor) > 0.7f) {
             return getThemedColor(Theme.key_windowBackgroundWhiteBlackText);
         }
         return Color.WHITE;
+    }
+
+    private int getExpandedAvatarActionsButtonShadowColor() {
+        return ColorUtils.calculateLuminance(getExpandedAvatarActionsContainerColor()) > 0.5f
+                ? Theme.multAlpha(Color.BLACK, 0.08f)
+                : Theme.multAlpha(Color.WHITE, 0.05f);
+    }
+
+    private int getDefaultExpandedAvatarActionsButtonBackgroundColor() {
+        final int actionBarColor = getThemedColor(Theme.key_actionBarDefault);
+        final int headerColor = getThemedColor(Theme.key_avatar_backgroundActionBarBlue);
+        final int overlayColor;
+        if (AndroidUtilities.computePerceivedBrightness(actionBarColor) > .8f) {
+            overlayColor = Theme.multAlpha(getThemedColor(Theme.key_windowBackgroundWhiteBlueText), .30f);
+        } else if (AndroidUtilities.computePerceivedBrightness(actionBarColor) < .2f) {
+            overlayColor = Theme.multAlpha(Theme.adaptHSV(actionBarColor, +0.02f, +0.25f), .35f);
+        } else {
+            overlayColor = Theme.multAlpha(PeerColorActivity.adaptProfileEmojiColor(actionBarColor), .15f);
+        }
+        // Match the visible collapsed-profile button color, but without leaking expanded blur or peer colors.
+        return ColorUtils.compositeColors(overlayColor, headerColor);
     }
 
     private boolean shouldUseNeutralExpandedAvatarColors() {

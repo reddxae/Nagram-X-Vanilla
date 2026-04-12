@@ -46,8 +46,10 @@ public class ProfileActionsView extends View {
     private final List<Action> actions = new ArrayList<>();
     private final Paint paint = new Paint();
     private final Paint shaderPaint = new Paint();
+    private final Paint shadowPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final TextPaint textPaint = new TextPaint();
     private final Rect textBounds = new Rect();
+    private final RectF shadowRect = new RectF();
 
     public boolean isAnimatingCallAction = false;
     public boolean isOpeningLayout = true;
@@ -112,6 +114,7 @@ public class ProfileActionsView extends View {
     private boolean useExpandedAvatarOverrideStyle;
     private int expandedAvatarOverrideBackgroundColor;
     private int expandedAvatarOverrideContentColor = Color.WHITE;
+    private int expandedAvatarOverrideShadowColor;
 
     public boolean myProfile;
 
@@ -164,13 +167,15 @@ public class ProfileActionsView extends View {
         }
     }
 
-    public void setExpandedAvatarOverrideStyle(boolean enabled, int backgroundColor, int contentColor) {
+    public void setExpandedAvatarOverrideStyle(boolean enabled, int backgroundColor, int contentColor, int shadowColor) {
         if (useExpandedAvatarOverrideStyle != enabled
                 || expandedAvatarOverrideBackgroundColor != backgroundColor
-                || expandedAvatarOverrideContentColor != contentColor) {
+                || expandedAvatarOverrideContentColor != contentColor
+                || expandedAvatarOverrideShadowColor != shadowColor) {
             useExpandedAvatarOverrideStyle = enabled;
             expandedAvatarOverrideBackgroundColor = backgroundColor;
             expandedAvatarOverrideContentColor = contentColor;
+            expandedAvatarOverrideShadowColor = shadowColor;
             invalidate();
         }
     }
@@ -289,6 +294,13 @@ public class ProfileActionsView extends View {
                         action.rect.height() / 2.0f * (1.0f - action.getScale())
                     );
                     if (useExpandedAvatarOverrideStyle) {
+                        if (Color.alpha(expandedAvatarOverrideShadowColor) > 0) {
+                            shadowRect.set(AndroidUtilities.rectTmp);
+                            shadowRect.inset(-dpf2(0.66f), -dpf2(0.66f));
+                            shadowPaint.setColor(expandedAvatarOverrideShadowColor);
+                            shadowPaint.setAlpha((int) (Color.alpha(expandedAvatarOverrideShadowColor) * action.getAlpha() * alphaFraction1));
+                            canvas.drawRoundRect(shadowRect, r + dpf2(0.66f), r + dpf2(0.66f), shadowPaint);
+                        }
                         paint.setColor(expandedAvatarOverrideBackgroundColor);
                         paint.setAlpha((int) (Color.alpha(expandedAvatarOverrideBackgroundColor) * action.getAlpha() * alphaFraction1));
                         canvas.drawRoundRect(AndroidUtilities.rectTmp, r, r, paint);

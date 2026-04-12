@@ -10406,6 +10406,7 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
                 pipAvailable = true;
                 pipItem.setEnabled(true);
                 pipItem.animate().alpha(1.0f).setDuration(175).withEndAction(null).start();
+                pipInvalidateAvailability();
             }
             playerWasReady = true;
             if (currentMessageObject != null && currentMessageObject.isVideo()) {
@@ -14740,7 +14741,6 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
                     } else */if (!pipAvailable) {
                         pipItem.setEnabled(false);
                         setItemVisible(pipItem, true, !masksItemVisible && editItem.getAlpha() <= 0, 0.5f);
-                        pipInvalidateAvailability();
                     } else {
                         setItemVisible(pipItem, true, !masksItemVisible && editItem.getAlpha() <= 0);
                     }
@@ -15317,7 +15317,6 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
                 if (!pipAvailable) {
                     pipItem.setEnabled(false);
                     setItemVisible(pipItem, true, true, 0.5f);
-                    pipInvalidateAvailability();
                 } else {
                     setItemVisible(pipItem, true, true);
                 }
@@ -23289,7 +23288,8 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
 
     @Override
     public boolean pipIsAvailable() {
-        return pipItem != null && pipItem.isEnabled() && isPlaying;
+        final boolean hasPipContent = videoPlayer != null || photoViewerWebView != null && photoViewerWebView.isControllable();
+        return pipAvailable && pipItem != null && pipItem.getVisibility() == View.VISIBLE && hasPipContent;
     }
 
     @Override

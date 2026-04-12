@@ -167,7 +167,7 @@ public class ProfileGalleryBlurView extends View {
         float openingScale = view.getMeasuredWidth() > 0 ? width / view.getMeasuredWidth() : 1f;
         float scaledSize = size * openingScale;
         int fallbackColor = profileActivity != null
-                ? profileActivity.getExpandedAvatarActionsBackgroundColor()
+                ? profileActivity.getExpandedAvatarActionsContainerColor()
                 : Theme.getColor(Theme.key_windowBackgroundWhite);
         fallbackSolidPaint.setColor(fallbackColor);
 

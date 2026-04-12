@@ -11,18 +11,25 @@ package org.telegram.messenger;
 import android.app.Service;
 import android.content.Intent;
 import android.os.IBinder;
+import android.os.SystemClock;
 
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 
 public class VideoEncodingService extends Service implements NotificationCenter.NotificationCenterDelegate {
 
+    private static final long NOTIFICATION_UPDATE_DELAY_MS = 500L;
+
     private NotificationCompat.Builder builder;
     private MediaController.VideoConvertMessage currentMessage;
     private static VideoEncodingService instance;
+    private NotificationManagerCompat notificationManager;
 
     int currentAccount;
     String currentPath;
+    private int lastNotifiedProgress = -1;
+    private boolean lastNotificationIndeterminate = true;
+    private long lastNotificationUpdateTime;
 
     public VideoEncodingService() {
         super();
@@ -67,11 +74,12 @@ public class VideoEncodingService extends Service implements NotificationCenter.
         } catch (Throwable ignore) {
 
         }
-        NotificationManagerCompat.from(ApplicationLoader.applicationContext).cancel(4);
+        getNotificationManager().cancel(4);
         NotificationCenter.getInstance(currentAccount).removeObserver(this, NotificationCenter.fileUploadProgressChanged);
         NotificationCenter.getInstance(currentAccount).removeObserver(this, NotificationCenter.fileUploadFailed);
         NotificationCenter.getInstance(currentAccount).removeObserver(this, NotificationCenter.fileUploaded);
         currentMessage = null;
+        resetNotificationState();
         if (BuildVars.LOGS_ENABLED) {
             FileLog.d("VideoEncodingService: destroy video service");
         }
@@ -84,11 +92,16 @@ public class VideoEncodingService extends Service implements NotificationCenter.
             if (account == currentAccount && currentPath != null && currentPath.equals(fileName)) {
                 Long loadedSize = (Long) args[1];
                 Long totalSize = (Long) args[2];
-                float progress = Math.min(1f, loadedSize / (float) totalSize);
-                Boolean enc = (Boolean) args[3];
-                int currentProgress = (int) (progress * 100);
-                builder.setProgress(100, currentProgress, currentProgress == 0);
-                updateNotification();
+                boolean indeterminate = loadedSize == null || totalSize == null || loadedSize < 0 || totalSize <= 0;
+                int currentProgress = 0;
+                if (indeterminate) {
+                    builder.setProgress(100, 0, true);
+                } else {
+                    float progress = Math.min(1f, loadedSize / (float) totalSize);
+                    currentProgress = (int) (progress * 100);
+                    builder.setProgress(100, currentProgress, currentProgress == 0);
+                }
+                updateNotification(currentProgress, indeterminate, !indeterminate && currentProgress >= 100);
             }
         } else if (id == NotificationCenter.fileUploaded || id == NotificationCenter.fileUploadFailed) {
             String fileName = (String) args[0];
@@ -105,13 +118,37 @@ public class VideoEncodingService extends Service implements NotificationCenter.
         }
     }
 
-    private void updateNotification() {
+    private NotificationManagerCompat getNotificationManager() {
+        if (notificationManager == null) {
+            notificationManager = NotificationManagerCompat.from(ApplicationLoader.applicationContext);
+        }
+        return notificationManager;
+    }
+
+    private void resetNotificationState() {
+        lastNotifiedProgress = -1;
+        lastNotificationIndeterminate = true;
+        lastNotificationUpdateTime = 0;
+    }
+
+    private void updateNotification(int currentProgress, boolean indeterminate, boolean force) {
         try {
             MediaController.VideoConvertMessage message = MediaController.getInstance().getCurrentForegroundConverMessage();
             if (message == null) {
                 return;
             }
-            NotificationManagerCompat.from(ApplicationLoader.applicationContext).notify(4, builder.build());
+            if (!force && indeterminate == lastNotificationIndeterminate && (indeterminate || currentProgress == lastNotifiedProgress)) {
+                return;
+            }
+            long now = SystemClock.elapsedRealtime();
+            // Foreground notification updates can arrive in bursts while a file is being uploaded.
+            if (!force && !indeterminate && lastNotificationUpdateTime != 0 && now - lastNotificationUpdateTime < NOTIFICATION_UPDATE_DELAY_MS) {
+                return;
+            }
+            getNotificationManager().notify(4, builder.build());
+            lastNotifiedProgress = currentProgress;
+            lastNotificationIndeterminate = indeterminate;
+            lastNotificationUpdateTime = now;
         } catch (Throwable e) {
             FileLog.e(e);
         }
@@ -142,7 +179,7 @@ public class VideoEncodingService extends Service implements NotificationCenter.
             //ignore ForegroundServiceStartNotAllowedException
             FileLog.e(e);
         }
-        AndroidUtilities.runOnUIThread(this::updateNotification);
+        AndroidUtilities.runOnUIThread(() -> updateNotification(0, true, true));
         return Service.START_NOT_STICKY;
     }
 
@@ -178,11 +215,12 @@ public class VideoEncodingService extends Service implements NotificationCenter.
         currentMessage = message;
         currentAccount = message.currentAccount;
         currentPath = message.messageObject.messageOwner.attachPath;
+        resetNotificationState();
         NotificationCenter.getInstance(currentAccount).addObserver(this, NotificationCenter.fileUploadProgressChanged);
         NotificationCenter.getInstance(currentAccount).addObserver(this, NotificationCenter.fileUploadFailed);
         NotificationCenter.getInstance(currentAccount).addObserver(this, NotificationCenter.fileUploaded);
         if (isRunning()) {
-            updateNotification();
+            updateNotification(0, true, true);
         }
     }
 

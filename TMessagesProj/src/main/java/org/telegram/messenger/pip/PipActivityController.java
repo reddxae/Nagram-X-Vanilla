@@ -20,6 +20,8 @@ import org.telegram.messenger.pip.utils.PipUtils;
 import java.util.HashMap;
 
 public class PipActivityController {
+    private static final long SOURCE_LOSS_MOVE_TASK_DELAY_MS = 2000L;
+
     private final HashMap<String, PipSource> sources = new HashMap<>();
     private final PipActivityHandler handler;
     private PipActivityContentLayout pipContentView;
@@ -105,6 +107,11 @@ public class PipActivityController {
 
 
     private @Nullable PipSource maxPrioritySource;
+    private final Runnable moveTaskToBackRunnable = () -> {
+        if (AndroidUtilities.isInPictureInPictureMode(activity) && maxPrioritySource == null) {
+            activity.moveTaskToBack(false);
+        }
+    };
 
     private void updateSources() {
         final PipSource oldSource = maxPrioritySource;
@@ -131,6 +138,7 @@ public class PipActivityController {
     private void onMaxPrioritySourceChanged(PipSource oldSource, PipSource newSource) {
         Log.i("PIP_DEBUG", "onMaxPrioritySourceChanged " + (newSource != null ? newSource.tag : null));
 
+        AndroidUtilities.cancelRunOnUIThread(moveTaskToBackRunnable);
         PipUtils.applyPictureInPictureParams(activity, newSource);
 
         final boolean oldMediaSession = oldSource != null && oldSource.needMediaSession;
@@ -169,7 +177,7 @@ public class PipActivityController {
             newSource.state2.onReceiveMaxPriority();
         } else if (oldSource != null) {
             if (AndroidUtilities.isInPictureInPictureMode(activity)) {
-                activity.moveTaskToBack(false);
+                AndroidUtilities.runOnUIThread(moveTaskToBackRunnable, SOURCE_LOSS_MOVE_TASK_DELAY_MS);
             }
         }
 
