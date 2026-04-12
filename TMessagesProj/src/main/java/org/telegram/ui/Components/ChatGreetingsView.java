@@ -73,7 +73,7 @@ public class ChatGreetingsView extends LinearLayout {
         this.currentAccount = currentAccount;
         this.resourcesProvider = resourcesProvider;
 
-        setPadding(0, dp(8), 0, 0);
+        updateContainerPadding();
 
         titleView = new TextView(context);
         titleView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
@@ -237,10 +237,19 @@ public class ChatGreetingsView extends LinearLayout {
                 }
             }
         } else {
-            addView(titleView, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_HORIZONTAL, 20, showSticker ? 6 : -4, 20, 6));
-            addView(descriptionView, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_HORIZONTAL, 20, 6, 20, 6));
-            addView(stickerContainer, LayoutHelper.createLinear(112, 112, Gravity.CENTER_HORIZONTAL, 16, 10, 16, 16));
+            updateContainerPadding();
+            if (showSticker) {
+                addView(titleView, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_HORIZONTAL, 20, 6, 20, 6));
+                addView(descriptionView, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_HORIZONTAL, 20, 6, 20, 6));
+                addView(stickerContainer, LayoutHelper.createLinear(112, 112, Gravity.CENTER_HORIZONTAL, 16, 10, 16, 16));
+            } else {
+                addView(titleView, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_HORIZONTAL, 20, 0, 20, 0));
+            }
         }
+    }
+
+    private void updateContainerPadding() {
+        setPadding(0, showSticker ? dp(8) : 0, 0, 0);
     }
 
     public void setSticker(TLRPC.Document sticker) {
@@ -438,6 +447,7 @@ public class ChatGreetingsView extends LinearLayout {
                 descriptionView.setVisibility(View.VISIBLE);
             }
             stickerToSendView.setVisibility(View.VISIBLE);
+            stickerContainer.setVisibility(View.VISIBLE);
         }
         ignoreLayot = false;
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
