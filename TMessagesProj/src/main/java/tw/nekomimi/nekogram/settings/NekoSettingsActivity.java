@@ -477,7 +477,7 @@ public class NekoSettingsActivity extends BaseFragment {
             super(context);
             this.type = type;
 
-            setBackgroundColor(Color.TRANSPARENT);
+            setBackgroundColor(type == PAGE_ABOUT ? Theme.getColor(Theme.key_windowBackgroundGray) : Color.TRANSPARENT);
 
             listView = new RecyclerListView(context);
             listView.setVerticalScrollBarEnabled(false);

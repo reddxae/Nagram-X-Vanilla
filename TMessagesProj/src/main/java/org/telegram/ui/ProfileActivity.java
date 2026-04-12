@@ -1621,9 +1621,9 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
             }
 
             topOverlayGradient.draw(canvas);
-            bottomOverlayGradient.draw(canvas);
+            if (!NaConfig.INSTANCE.getDisableAvatarBlur().Bool()) bottomOverlayGradient.draw(canvas);
             canvas.drawRect(topOverlayRect, backgroundPaint);
-            canvas.drawRect(bottomOverlayRect, backgroundPaint);
+            if (!NaConfig.INSTANCE.getDisableAvatarBlur().Bool()) canvas.drawRect(bottomOverlayRect, backgroundPaint);
 
             int count = avatarsViewPager.getRealCount();
             selectedPosition = avatarsViewPager.getRealPosition();
@@ -6248,6 +6248,9 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
     }
 
     private int getExpandedAvatarActionsButtonShadowColor() {
+        if (NaConfig.INSTANCE.getDisableAvatarBlur().Bool()) {
+            return Color.TRANSPARENT;
+        }
         return ColorUtils.calculateLuminance(getExpandedAvatarActionsContainerColor()) > 0.5f
                 ? Theme.multAlpha(Color.BLACK, 0.08f)
                 : Theme.multAlpha(Color.WHITE, 0.05f);

@@ -27,10 +27,16 @@ public class PipActivityController {
     private PipActivityContentLayout pipContentView;
 
     public final Activity activity;
+    private final Runnable moveTaskToBackRunnable;
 
     public PipActivityController(Activity activity) {
         this.activity = activity;
         this.handler = new PipActivityHandler(activity);
+        this.moveTaskToBackRunnable = () -> {
+            if (AndroidUtilities.isInPictureInPictureMode(this.activity) && maxPrioritySource == null) {
+                this.activity.moveTaskToBack(false);
+            }
+        };
 
         handler.addPipListener(new IPipActivityListener() {
             @Override
@@ -107,11 +113,6 @@ public class PipActivityController {
 
 
     private @Nullable PipSource maxPrioritySource;
-    private final Runnable moveTaskToBackRunnable = () -> {
-        if (AndroidUtilities.isInPictureInPictureMode(activity) && maxPrioritySource == null) {
-            activity.moveTaskToBack(false);
-        }
-    };
 
     private void updateSources() {
         final PipSource oldSource = maxPrioritySource;

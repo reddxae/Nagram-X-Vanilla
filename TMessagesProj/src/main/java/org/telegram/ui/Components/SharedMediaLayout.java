@@ -10823,7 +10823,7 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
         return null;
     }
 
-    private AttachmentTabIconStyle getAttachmentTabIconStyle(int iconResId, boolean iconOnly) {
+    private AttachmentTabIconStyle getAttachmentTabIconStyle(int tabId, int iconResId, boolean iconOnly) {
         AttachmentTabIconMetrics metrics = getAttachmentTabIconMetrics(iconResId);
         if (metrics == null) {
             return new AttachmentTabIconStyle(iconOnly ? 20 : 18, 1f, 1f, 0f, 0f);
@@ -10840,6 +10840,9 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
         scaleX *= iconOnly ? metrics.iconOnlyScaleBias : metrics.mixedScaleBias;
         scaleX = Utilities.clamp(scaleX, iconOnly ? 1.6f : 1.35f, 0.82f);
         float scaleY = scaleX * (iconOnly ? metrics.iconOnlyScaleYBias : metrics.mixedScaleYBias);
+        if (iconOnly && (tabId == TAB_GROUPUSERS || tabId == TAB_COMMON_GROUPS) && iconResId == R.drawable.msg_filled_menu_groups) {
+            scaleY *= 1.10f;
+        }
 
         float unitDp = spanSizeDp / metrics.canvasSize;
         float translateXDp = -metrics.centerOffsetX * unitDp * scaleX;
@@ -10858,7 +10861,7 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
         }
 
         boolean iconOnly = titleType == NekoXConfig.TITLE_TYPE_ICON;
-        AttachmentTabIconStyle style = getAttachmentTabIconStyle(iconResId, iconOnly);
+        AttachmentTabIconStyle style = getAttachmentTabIconStyle(tabId, iconResId, iconOnly);
         SpannableStringBuilder builder = new SpannableStringBuilder(iconOnly ? "d\u200B" : "d");
         ColoredImageSpan span = new ColoredImageSpan(iconResId, ColoredImageSpan.ALIGN_CENTER);
         span.setSize(dp(style.spanSizeDp));

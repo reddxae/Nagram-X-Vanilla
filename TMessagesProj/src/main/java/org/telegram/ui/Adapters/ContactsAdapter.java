@@ -565,23 +565,25 @@ public class ContactsAdapter extends RecyclerListView.SectionsAdapter {
             case 1:
                 TextCell textCell = (TextCell) holder.itemView;
                 if (section == 0) {
+                    final int actionRowsCount = isAdmin || needPhonebook ? 1 : 3;
+                    final boolean divider = position < actionRowsCount - 1;
                     if (needPhonebook) {
                         if (position == 0) {
-                            textCell.setTextAndIcon(LocaleController.getString(R.string.InviteFriends), R.drawable.msg_invite, false);
+                            textCell.setTextAndIcon(LocaleController.getString(R.string.InviteFriends), R.drawable.msg_invite, divider);
                         }
                     } else if (isAdmin) {
                         if (isChannel) {
-                            textCell.setTextAndIcon(LocaleController.getString(R.string.ChannelInviteViaLink), R.drawable.msg_link2, false);
+                            textCell.setTextAndIcon(LocaleController.getString(R.string.ChannelInviteViaLink), R.drawable.msg_link2, divider);
                         } else {
-                            textCell.setTextAndIcon(LocaleController.getString(R.string.InviteToGroupByLink), R.drawable.msg_link2, false);
+                            textCell.setTextAndIcon(LocaleController.getString(R.string.InviteToGroupByLink), R.drawable.msg_link2, divider);
                         }
                     } else {
                         if (position == 0) {
-                            textCell.setTextAndIcon(LocaleController.getString(R.string.NewGroup), R.drawable.msg_groups, false);
+                            textCell.setTextAndIcon(LocaleController.getString(R.string.NewGroup), R.drawable.msg_groups, divider);
                         } else if (position == 1) {
-                            textCell.setTextAndIcon(LocaleController.getString(R.string.NewContact), R.drawable.msg_addcontact, false);
+                            textCell.setTextAndIcon(LocaleController.getString(R.string.NewContact), R.drawable.msg_addcontact, divider);
                         } else if (position == 2) {
-                            textCell.setTextAndIcon(LocaleController.getString(R.string.NewChannel), R.drawable.msg_channel, false);
+                            textCell.setTextAndIcon(LocaleController.getString(R.string.NewChannel), R.drawable.msg_channel, divider);
                         }
                     }
                 } else {
