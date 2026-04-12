@@ -88,8 +88,8 @@ android {
         def appHash = 'eb06d4abfb49dc3eeb1aeb98ae0f581e'
 
         if (properties != null) {
-            appId = properties.getProperty('TELEGRAM_APP_ID') ?: System.getenv('TELEGRAM_APP_ID') ?: appId
-            appHash = properties.getProperty('TELEGRAM_APP_HASH') ?: System.getenv('TELEGRAM_APP_HASH') ?: appHash
+            appId = properties.getProperty('TELEGRAM_API_ID') ?: System.getenv('TELEGRAM_API_ID') ?: appId
+            appHash = properties.getProperty('TELEGRAM_API_HASH') ?: System.getenv('TELEGRAM_API_HASH') ?: appHash
         }
 
         buildConfigField 'String', 'BUILD_VERSION_STRING', '"' + verName + '"'
