@@ -118,6 +118,8 @@ import org.telegram.ui.Components.NumberTextView;
 import org.telegram.ui.Components.PullForegroundDrawable;
 import org.telegram.ui.Components.RLottieDrawable;
 import org.telegram.ui.Components.RLottieImageView;
+import tw.nekomimi.nekogram.helpers.TimeStringHelper;
+import xyz.nextalone.nagram.NaConfig;
 import org.telegram.ui.Components.RadialProgressView;
 import org.telegram.ui.Components.RecyclerAnimationScrollHelper;
 import org.telegram.ui.Components.RecyclerItemsEnterAnimator;
@@ -2609,7 +2611,7 @@ public class TopicsFragment extends BaseFragment implements NotificationCenter.N
             chatFull.participants = this.chatFull.participants;
         }
         this.chatFull = chatFull;
-        String newSubtitle;
+        CharSequence newSubtitle;
         if (chatFull != null) {
             if (chatFull.participants_count <= 0) {
                 TLRPC.Chat chat = getMessagesController().getChat(chatId);
@@ -2621,7 +2623,11 @@ public class TopicsFragment extends BaseFragment implements NotificationCenter.N
                     newSubtitle = LocaleController.getString(R.string.MegaPrivate).toLowerCase();
                 }
             } else {
-                newSubtitle = LocaleController.formatPluralString("Members", chatFull.participants_count);
+                if (NaConfig.INSTANCE.getReplaceMembersWithIcon().Bool()) {
+                    newSubtitle = TimeStringHelper.createSubscribersString(null, LocaleController.formatNumber(chatFull.participants_count, ','));
+                } else {
+                    newSubtitle = LocaleController.formatPluralString("Members", chatFull.participants_count);
+                }
             }
         } else {
             newSubtitle = LocaleController.getString(R.string.Loading);

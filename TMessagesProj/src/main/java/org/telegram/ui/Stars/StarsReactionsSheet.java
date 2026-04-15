@@ -783,7 +783,6 @@ public class StarsReactionsSheet extends BottomSheet implements NotificationCent
 
             if (!doneRipple[0] && t > .95f) {
                 doneRipple[0] = true;
-                LaunchActivity.makeRipple(to.centerX(), to.centerY(), 1.5f);
                 try {
                     if (!NekoConfig.disableVibration.Bool()) container.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS, HapticFeedbackConstants.FLAG_IGNORE_VIEW_SETTING);
                 } catch (Exception ignore) {}
@@ -806,7 +805,6 @@ public class StarsReactionsSheet extends BottomSheet implements NotificationCent
 
                 if (!doneRipple[0]) {
                     doneRipple[0] = true;
-                    LaunchActivity.makeRipple(to.centerX(), to.centerY(), 1.5f);
                     try {
                         if (!NekoConfig.disableVibration.Bool()) container.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS, HapticFeedbackConstants.FLAG_IGNORE_VIEW_SETTING);
                     } catch (Exception ignore) {}

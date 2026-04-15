@@ -32,7 +32,6 @@ import org.telegram.ui.Components.CubicBezierInterpolator;
 import org.telegram.ui.Components.RLottieDrawable;
 import org.telegram.ui.Components.Reactions.ReactionsLayoutInBubble;
 import org.telegram.ui.GradientClip;
-import org.telegram.ui.LaunchActivity;
 
 import java.util.ArrayList;
 
@@ -386,26 +385,7 @@ public class StarReactionsOverlay extends View {
         AndroidUtilities.cancelRunOnUIThread(hideCounterRunnable);
         AndroidUtilities.runOnUIThread(hideCounterRunnable, 1500);
 
-        if (ripple) {
-            final long now = System.currentTimeMillis();
-            if (now - lastRippleTime < 100) {
-                accumulatedRippleIntensity += .5f;
-            } else {
-                accumulatedRippleIntensity *= Utilities.clamp(1f - (now - lastRippleTime - 100) / 200f, 1f, 0f);
-                if (getMeasuredWidth() == 0 && chatActivity.getLayoutContainer() != null) {
-                    chatActivity.getLayoutContainer().getLocationInWindow(pos2);
-                } else {
-                    getLocationInWindow(pos2);
-                }
-                LaunchActivity.makeRipple(pos2[0] + x, pos2[1] + y, Utilities.clamp(accumulatedRippleIntensity, 0.9f, 0.3f));
-                accumulatedRippleIntensity = 0;
-                lastRippleTime = now;
-            }
-        }
     }
-
-    private long lastRippleTime;
-    private float accumulatedRippleIntensity;
 
     private Runnable hideCounterRunnable;
 

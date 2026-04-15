@@ -105,6 +105,7 @@ public class ScrollSlidingTextTabStrip extends HorizontalScrollView {
     private SparseIntArray positionToId = new SparseIntArray(5);
     private SparseIntArray idToPosition = new SparseIntArray(5);
     private SparseIntArray positionToWidth = new SparseIntArray(5);
+    private SparseIntArray indicatorWidthOverrides = new SparseIntArray(5);
 
     private boolean animationRunning;
     private long lastAnimationTime;
@@ -446,6 +447,7 @@ public class ScrollSlidingTextTabStrip extends HorizontalScrollView {
         positionToId.clear();
         idToPosition.clear();
         positionToWidth.clear();
+        indicatorWidthOverrides.clear();
         tabsContainer.removeAllViews();
         allTextWidth = 0;
         tabCount = 0;
@@ -459,6 +461,14 @@ public class ScrollSlidingTextTabStrip extends HorizontalScrollView {
 
     public boolean hasTab(int id) {
         return idToPosition.get(id, -1) != -1;
+    }
+
+    public void setIndicatorWidthOverride(int id, int width) {
+        if (width > 0) {
+            indicatorWidthOverrides.put(id, width);
+        } else {
+            indicatorWidthOverrides.delete(id);
+        }
     }
 
     public void addTextTab(final int id, CharSequence text) {
@@ -878,6 +888,11 @@ public class ScrollSlidingTextTabStrip extends HorizontalScrollView {
     }
 
     private int getChildWidth(TextView child) {
+        int id = positionToId.get(tabsContainer.indexOfChild(child), -1);
+        int overrideWidth = indicatorWidthOverrides.get(id, 0);
+        if (overrideWidth > 0) {
+            return overrideWidth;
+        }
         Layout layout = child.getLayout();
         if (layout != null) {
             return (int) Math.ceil(layout.getLineWidth(0)) + dp(2);

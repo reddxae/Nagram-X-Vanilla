@@ -409,11 +409,6 @@ public class StoryRecorder implements NotificationCenter.NotificationCenterDeleg
                 protected void show(boolean sent) {
                     storyCell.drawAvatar = true;
                     storyCell.invalidate();
-                    if (sent) {
-                        final int[] loc = new int[2];
-                        storyCell.getLocationInWindow(loc);
-                        LaunchActivity.makeRipple(loc[0] + storyCell.getWidth() / 2f, loc[1] + storyCell.getHeight() / 2f, 1f);
-                    }
                 }
 
                 @Override

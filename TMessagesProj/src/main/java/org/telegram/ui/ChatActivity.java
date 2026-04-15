@@ -4439,7 +4439,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         }
 
         ActionBarMenu menu = actionBar.createMenu();
-        menu.setCenteredTitle(isTitleCentered());
+        menu.setCenteredTitle(false);
 
         if (isThreadChat() && threadMessageId != 0 && !isTopic) {
             viewInChatItem = menu.addItem(nkbtn_view_in_chat, R.drawable.msg_viewreplies);
@@ -47574,23 +47574,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
     }
 
     private boolean isTitleCentered() {
-        return canShowCenteredTitle(this);
-    }
-
-    private boolean canShowCenteredTitle(ChatActivity parentFragment) {
-        if (!NaConfig.INSTANCE.getCenterActionBarTitle().Bool()) {
-            return false;
-        }
-        if (NaConfig.INSTANCE.getCenterActionBarTitleType().Int() == 2) {
-            return false;
-        }
-        if (parentFragment == null) {
-            return false;
-        }
-        if (parentFragment.isReplyChatComment() || parentFragment.isReport()) {
-            return false;
-        }
-        return parentFragment.getChatMode() != ChatActivity.MODE_SEARCH && parentFragment.getChatMode() != ChatActivity.MODE_SAVED;
+        return false;
     }
 
     public MessageObject getMessageForTranslate() {

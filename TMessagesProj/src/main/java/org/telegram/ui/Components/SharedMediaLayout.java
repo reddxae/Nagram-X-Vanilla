@@ -10740,114 +10740,121 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
         }
     }
 
-    private static final class AttachmentTabIconMetrics {
-        final int canvasSize;
-        final float contentWidth;
-        final float contentHeight;
-        final float centerOffsetX;
-        final float centerOffsetY;
-        final float mixedScaleBias;
-        final float iconOnlyScaleBias;
-        final float mixedScaleYBias;
-        final float iconOnlyScaleYBias;
+    private static final float ATTACHMENT_TAB_ICON_MIXED_SPAN_DP = 18f;
+    private static final float ATTACHMENT_TAB_ICON_ONLY_SPAN_DP = 20f;
+    private static final float ATTACHMENT_TAB_ICON_MIXED_CONTENT_DP = 14.5f;
+    private static final float ATTACHMENT_TAB_ICON_ONLY_CONTENT_DP = 17.0f;
+    private static final float ATTACHMENT_TAB_ICON_ONLY_LAYOUT_WIDTH_DP = 25f;
+    private static final float ATTACHMENT_TAB_ICON_MIXED_LAYOUT_PADDING_DP = 2f;
 
-        private AttachmentTabIconMetrics(int canvasSize, float contentWidth, float contentHeight) {
-            this(canvasSize, contentWidth, contentHeight, 0f, 0f, 1f, 1f, 1f, 1f);
+    // Optical bounds ignore transparent padding inside the asset, so every tab icon is centered
+    // against the same fixed container instead of relying on each drawable's full canvas.
+    private static final class AttachmentTabIconSpec {
+        final float canvasSize;
+        final float contentLeft;
+        final float contentTop;
+        final float contentRight;
+        final float contentBottom;
+        final float mixedOpticalScale;
+        final float iconOnlyOpticalScale;
+        final float mixedNudgeXDp;
+        final float mixedNudgeYDp;
+        final float iconOnlyNudgeXDp;
+        final float iconOnlyNudgeYDp;
+
+        private AttachmentTabIconSpec(float canvasSize, float contentLeft, float contentTop, float contentRight, float contentBottom) {
+            this(canvasSize, contentLeft, contentTop, contentRight, contentBottom, 1f, 1f, 0f, 0f, 0f, 0f);
         }
 
-        private AttachmentTabIconMetrics(int canvasSize, float contentWidth, float contentHeight, float mixedScaleBias, float iconOnlyScaleBias) {
-            this(canvasSize, contentWidth, contentHeight, 0f, 0f, mixedScaleBias, iconOnlyScaleBias, 1f, 1f);
+        private AttachmentTabIconSpec(float canvasSize, float contentLeft, float contentTop, float contentRight, float contentBottom, float mixedOpticalScale, float iconOnlyOpticalScale) {
+            this(canvasSize, contentLeft, contentTop, contentRight, contentBottom, mixedOpticalScale, iconOnlyOpticalScale, 0f, 0f, 0f, 0f);
         }
 
-        private AttachmentTabIconMetrics(int canvasSize, float contentWidth, float contentHeight, float centerOffsetX, float centerOffsetY, float mixedScaleBias, float iconOnlyScaleBias, float mixedScaleYBias, float iconOnlyScaleYBias) {
+        private AttachmentTabIconSpec(float canvasSize, float contentLeft, float contentTop, float contentRight, float contentBottom, float mixedOpticalScale, float iconOnlyOpticalScale, float mixedNudgeXDp, float mixedNudgeYDp, float iconOnlyNudgeXDp, float iconOnlyNudgeYDp) {
             this.canvasSize = canvasSize;
-            this.contentWidth = contentWidth;
-            this.contentHeight = contentHeight;
-            this.centerOffsetX = centerOffsetX;
-            this.centerOffsetY = centerOffsetY;
-            this.mixedScaleBias = mixedScaleBias;
-            this.iconOnlyScaleBias = iconOnlyScaleBias;
-            this.mixedScaleYBias = mixedScaleYBias;
-            this.iconOnlyScaleYBias = iconOnlyScaleYBias;
-        }
-
-        private AttachmentTabIconMetrics(int canvasSize, float contentWidth, float contentHeight, float centerOffsetX, float centerOffsetY, float mixedScaleBias, float iconOnlyScaleBias) {
-            this(canvasSize, contentWidth, contentHeight, centerOffsetX, centerOffsetY, mixedScaleBias, iconOnlyScaleBias, 1f, 1f);
+            this.contentLeft = contentLeft;
+            this.contentTop = contentTop;
+            this.contentRight = contentRight;
+            this.contentBottom = contentBottom;
+            this.mixedOpticalScale = mixedOpticalScale;
+            this.iconOnlyOpticalScale = iconOnlyOpticalScale;
+            this.mixedNudgeXDp = mixedNudgeXDp;
+            this.mixedNudgeYDp = mixedNudgeYDp;
+            this.iconOnlyNudgeXDp = iconOnlyNudgeXDp;
+            this.iconOnlyNudgeYDp = iconOnlyNudgeYDp;
         }
     }
 
     private static final class AttachmentTabIconStyle {
         final int spanSizeDp;
-        final float scaleX;
-        final float scaleY;
+        final float scale;
+        final float layoutWidthDp;
         final float translateXDp;
         final float translateYDp;
 
-        private AttachmentTabIconStyle(int spanSizeDp, float scaleX, float scaleY, float translateXDp, float translateYDp) {
+        private AttachmentTabIconStyle(int spanSizeDp, float scale, float layoutWidthDp, float translateXDp, float translateYDp) {
             this.spanSizeDp = spanSizeDp;
-            this.scaleX = scaleX;
-            this.scaleY = scaleY;
+            this.scale = scale;
+            this.layoutWidthDp = layoutWidthDp;
             this.translateXDp = translateXDp;
             this.translateYDp = translateYDp;
         }
     }
 
-    private AttachmentTabIconMetrics getAttachmentTabIconMetrics(int iconResId) {
-        if (iconResId == R.drawable.filled_gift_simple) {
-            return new AttachmentTabIconMetrics(72, 46, 49, 1.02f, 1.08f);
-        } else if (iconResId == R.drawable.msg_filled_stories) {
-            return new AttachmentTabIconMetrics(24, 22, 22);
-        } else if (iconResId == R.drawable.msg_stories_archive) {
-            return new AttachmentTabIconMetrics(24, 22, 22);
-        } else if (iconResId == R.drawable.msg_filled_menu_groups) {
-            return new AttachmentTabIconMetrics(24, 20, 13, 0f, -0.5f, 1.10f, 1.22f);
-        } else if (iconResId == R.drawable.msg_filled_data_photos) {
-            return new AttachmentTabIconMetrics(24, 16, 16);
-        } else if (iconResId == R.drawable.baseline_bookmark_24) {
-            return new AttachmentTabIconMetrics(24, 14, 18, 1.03f, 1.08f);
-        } else if (iconResId == R.drawable.msg_filled_data_files) {
-            return new AttachmentTabIconMetrics(24, 13, 15, 0.5f, -0.5f, 1.04f, 1.08f);
-        } else if (iconResId == R.drawable.msg_limit_links) {
-            return new AttachmentTabIconMetrics(24, 20, 20);
-        } else if (iconResId == R.drawable.baseline_music_note_16) {
-            return new AttachmentTabIconMetrics(24, 12, 18, 1.04f, 1.08f);
-        } else if (iconResId == R.drawable.msg_filled_data_voice) {
-            return new AttachmentTabIconMetrics(24, 17, 19, -0.5f, 0.5f, 1.02f, 1.06f, 1.08f, 1.10f);
-        } else if (iconResId == R.drawable.msg_round_gif_m) {
-            return new AttachmentTabIconMetrics(32, 23, 11, 0.5f, 0.5f, 1.10f, 1.18f);
+    private AttachmentTabIconSpec getAttachmentTabIconSpec(int iconResId) {
+        if (iconResId == R.drawable.msg_filled_stories) {
+            return new AttachmentTabIconSpec(72f, 4f, 4f, 67f, 67f);
+        } else if (iconResId == R.drawable.msg_archive_stories) {
+            return new AttachmentTabIconSpec(72f, 3f, 4f, 68f, 68f);
+        } else if (iconResId == R.drawable.msg_media_gallery) {
+            return new AttachmentTabIconSpec(72f, 7f, 7f, 65f, 65f);
+        } else if (iconResId == R.drawable.baseline_mic_16) {
+            return new AttachmentTabIconSpec(24f, 5f, 2f, 19f, 21f, 1.08f, 1.08f);
+        } else if (iconResId == R.drawable.baseline_insert_drive_file_16) {
+            return new AttachmentTabIconSpec(24f, 4f, 2f, 20f, 22f, 1.04f, 1.06f);
+        } else if (iconResId == R.drawable.story_link) {
+            return new AttachmentTabIconSpec(72f, 9.2f, 9.7f, 62.8f, 63.3f);
+        } else if (iconResId == R.drawable.bot_music) {
+            return new AttachmentTabIconSpec(72f, 0f, 0f, 72f, 72f, 1.02f, 1.04f);
+        } else if (iconResId == R.drawable.gift) {
+            return new AttachmentTabIconSpec(24f, 3.57f, 3.21f, 20.43f, 21.16f, 1.04f, 1.06f);
+        } else if (iconResId == R.drawable.baseline_gif_96) {
+            return new AttachmentTabIconSpec(24f, 5f, 9f, 19f, 15f, 1.18f, 1.18f);
+        } else if (iconResId == R.drawable.filter_group) {
+            return new AttachmentTabIconSpec(108f, 13f, 27f, 96f, 82f, 1.20f, 1.20f);
         } else if (iconResId == R.drawable.msg_filled_menu_channels) {
-            return new AttachmentTabIconMetrics(24, 16, 16, 0f, 1f, 1.02f, 1.06f);
-        } else if (iconResId == R.drawable.msg_folders_bots) {
-            return new AttachmentTabIconMetrics(24, 22, 18, 1.02f, 1.06f);
+            return new AttachmentTabIconSpec(72f, 12f, 14f, 58f, 61f, 1.04f, 1.06f);
+        } else if (iconResId == R.drawable.baseline_bookmark_24) {
+            return new AttachmentTabIconSpec(24f, 5f, 3f, 19f, 21f, 1.03f, 1.05f);
         }
         return null;
     }
 
-    private AttachmentTabIconStyle getAttachmentTabIconStyle(int tabId, int iconResId, boolean iconOnly) {
-        AttachmentTabIconMetrics metrics = getAttachmentTabIconMetrics(iconResId);
-        if (metrics == null) {
-            return new AttachmentTabIconStyle(iconOnly ? 20 : 18, 1f, 1f, 0f, 0f);
+    private AttachmentTabIconStyle getAttachmentTabIconStyle(int iconResId, boolean iconOnly) {
+        float spanSizeDp = iconOnly ? ATTACHMENT_TAB_ICON_ONLY_SPAN_DP : ATTACHMENT_TAB_ICON_MIXED_SPAN_DP;
+        AttachmentTabIconSpec spec = getAttachmentTabIconSpec(iconResId);
+        if (spec == null) {
+            float layoutWidthDp = iconOnly ? ATTACHMENT_TAB_ICON_ONLY_LAYOUT_WIDTH_DP : spanSizeDp;
+            return new AttachmentTabIconStyle(Math.round(spanSizeDp), 1f, layoutWidthDp, 0f, 0f);
         }
-        float spanSizeDp = iconOnly ? 20f : 18f;
-        float targetContentSizeDp = iconOnly ? 15.5f * 1.10f : 14.5f;
-        if (iconOnly && (iconResId == R.drawable.msg_filled_stories || iconResId == R.drawable.msg_stories_archive || iconResId == R.drawable.msg_round_gif_m)) {
-            targetContentSizeDp *= 1.10f;
+        float targetContentSizeDp = (iconOnly ? ATTACHMENT_TAB_ICON_ONLY_CONTENT_DP : ATTACHMENT_TAB_ICON_MIXED_CONTENT_DP)
+                * (iconOnly ? spec.iconOnlyOpticalScale : spec.mixedOpticalScale);
+        float contentWidth = spec.contentRight - spec.contentLeft;
+        float contentHeight = spec.contentBottom - spec.contentTop;
+        float scale = targetContentSizeDp * spec.canvasSize / (spanSizeDp * Math.max(contentWidth, contentHeight));
+        float unitDp = spanSizeDp / spec.canvasSize;
+        float contentWidthDp = contentWidth * unitDp * scale;
+        float layoutWidthDp = iconOnly ? ATTACHMENT_TAB_ICON_ONLY_LAYOUT_WIDTH_DP : contentWidthDp + ATTACHMENT_TAB_ICON_MIXED_LAYOUT_PADDING_DP;
+        if (!iconOnly && iconResId == R.drawable.bot_music) {
+            layoutWidthDp += 1.5f;
         }
-        float scaleX = Math.min(
-            targetContentSizeDp * metrics.canvasSize / (spanSizeDp * metrics.contentWidth),
-            targetContentSizeDp * metrics.canvasSize / (spanSizeDp * metrics.contentHeight)
-        );
-        scaleX *= iconOnly ? metrics.iconOnlyScaleBias : metrics.mixedScaleBias;
-        scaleX = Utilities.clamp(scaleX, iconOnly ? 1.6f : 1.35f, 0.82f);
-        float scaleY = scaleX * (iconOnly ? metrics.iconOnlyScaleYBias : metrics.mixedScaleYBias);
-        if (iconOnly && (tabId == TAB_GROUPUSERS || tabId == TAB_COMMON_GROUPS) && iconResId == R.drawable.msg_filled_menu_groups) {
-            scaleY *= 1.10f;
-        }
-
-        float unitDp = spanSizeDp / metrics.canvasSize;
-        float translateXDp = -metrics.centerOffsetX * unitDp * scaleX;
-        float translateYDp = -metrics.centerOffsetY * unitDp * scaleY;
-        return new AttachmentTabIconStyle(Math.round(spanSizeDp), scaleX, scaleY, translateXDp, translateYDp);
+        float drawableCenterDp = spanSizeDp / 2f;
+        float scaledContentCenterXDp = ((spec.contentLeft + spec.contentRight) / 2f) * unitDp * scale;
+        float unscaledContentCenterYDp = ((spec.contentTop + spec.contentBottom) / 2f) * unitDp;
+        float scaledContentCenterYDp = drawableCenterDp + (unscaledContentCenterYDp - drawableCenterDp) * scale;
+        float translateXDp = layoutWidthDp / 2f - scaledContentCenterXDp + (iconOnly ? spec.iconOnlyNudgeXDp : spec.mixedNudgeXDp);
+        float translateYDp = drawableCenterDp - scaledContentCenterYDp + (iconOnly ? spec.iconOnlyNudgeYDp : spec.mixedNudgeYDp);
+        return new AttachmentTabIconStyle(Math.round(spanSizeDp), scale, layoutWidthDp, translateXDp, translateYDp);
     }
 
     private CharSequence getAttachmentTabDisplayTitle(int tabId, CharSequence title) {
@@ -10861,11 +10868,14 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
         }
 
         boolean iconOnly = titleType == NekoXConfig.TITLE_TYPE_ICON;
-        AttachmentTabIconStyle style = getAttachmentTabIconStyle(tabId, iconResId, iconOnly);
+        AttachmentTabIconStyle style = getAttachmentTabIconStyle(iconResId, iconOnly);
         SpannableStringBuilder builder = new SpannableStringBuilder(iconOnly ? "d\u200B" : "d");
         ColoredImageSpan span = new ColoredImageSpan(iconResId, ColoredImageSpan.ALIGN_CENTER);
         span.setSize(dp(style.spanSizeDp));
-        span.setScale(style.scaleX, style.scaleY);
+        span.setScale(style.scale, style.scale);
+        if (iconOnly || style.layoutWidthDp != style.spanSizeDp) {
+            span.setWidth(Math.round(dp(style.layoutWidthDp) / style.scale));
+        }
         span.setTranslateX(AndroidUtilities.dpf2(style.translateXDp));
         span.setTranslateY(AndroidUtilities.dpf2(style.translateYDp));
         builder.setSpan(span, 0, 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
@@ -10879,23 +10889,24 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
     private int getAttachmentTabIconResId(int tabId) {
         return switch (tabId) {
             case TAB_STORIES, TAB_BOT_PREVIEWS -> R.drawable.msg_filled_stories;
-            case TAB_ARCHIVED_STORIES -> R.drawable.msg_stories_archive;
-            case TAB_GIFTS -> R.drawable.filled_gift_simple;
-            case TAB_COMMON_GROUPS, TAB_GROUPUSERS -> R.drawable.msg_filled_menu_groups;
-            case TAB_PHOTOVIDEO -> R.drawable.msg_filled_data_photos;
-            case TAB_RECOMMENDED_CHANNELS -> dialog_id > 0 ? R.drawable.msg_folders_bots : R.drawable.msg_filled_menu_channels;
+            case TAB_ARCHIVED_STORIES -> R.drawable.msg_archive_stories;
+            case TAB_GIFTS -> R.drawable.gift;
+            case TAB_COMMON_GROUPS, TAB_GROUPUSERS -> R.drawable.filter_group;
+            case TAB_PHOTOVIDEO -> R.drawable.msg_media_gallery;
+            case TAB_RECOMMENDED_CHANNELS -> R.drawable.msg_filled_menu_channels;
             case TAB_SAVED_DIALOGS, TAB_SAVED_MESSAGES -> R.drawable.baseline_bookmark_24;
-            case TAB_FILES -> R.drawable.msg_filled_data_files;
-            case TAB_LINKS -> R.drawable.msg_limit_links;
-            case TAB_AUDIO -> R.drawable.baseline_music_note_16;
-            case TAB_VOICE -> R.drawable.msg_filled_data_voice;
-            case TAB_GIF -> R.drawable.msg_round_gif_m;
+            case TAB_FILES -> R.drawable.baseline_insert_drive_file_16;
+            case TAB_LINKS -> R.drawable.story_link;
+            case TAB_AUDIO -> R.drawable.bot_music;
+            case TAB_VOICE -> R.drawable.baseline_mic_16;
+            case TAB_GIF -> R.drawable.baseline_gif_96;
             default -> 0;
         };
     }
 
     private void addAttachmentTab(ArrayList<Pair<Integer, CharSequence>> tabs, SparseArray<CharSequence> contentDescriptions, int tabId, CharSequence title) {
         contentDescriptions.put(tabId, title);
+        scrollSlidingTextTabStrip.setIndicatorWidthOverride(tabId, 0);
         tabs.add(new Pair<>(tabId, getAttachmentTabDisplayTitle(tabId, title)));
     }
 
@@ -10904,8 +10915,8 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
             return;
         }
         boolean iconOnly = NekoConfig.attachmentTabsTitleType.Int() == NekoXConfig.TITLE_TYPE_ICON;
-        scrollSlidingTextTabStrip.setTabHorizontalPaddingDp(iconOnly ? 13 : 16);
-        scrollSlidingTextTabStrip.setTabsContainerHorizontalPaddingDp(iconOnly ? 6 : 7);
+        scrollSlidingTextTabStrip.setTabHorizontalPaddingDp(iconOnly ? 6 : 16);
+        scrollSlidingTextTabStrip.setTabsContainerHorizontalPaddingDp(iconOnly ? 3 : 7);
     }
 
     private int getThemedColor(int key) {

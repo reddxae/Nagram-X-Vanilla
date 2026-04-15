@@ -212,12 +212,9 @@ import org.telegram.ui.Components.voip.RTMPStreamPipOverlay;
 import org.telegram.ui.Components.voip.VoIPHelper;
 import org.telegram.ui.Gifts.GiftSheet;
 import org.telegram.ui.Gifts.SendGiftSheet;
-import org.telegram.ui.Stars.ISuperRipple;
 import org.telegram.ui.Stars.StarGiftSheet;
 import org.telegram.ui.Stars.StarsController;
 import org.telegram.ui.Stars.StarsIntroActivity;
-import org.telegram.ui.Stars.SuperRipple;
-import org.telegram.ui.Stars.SuperRippleFallback;
 import org.telegram.ui.Stories.StoriesController;
 import org.telegram.ui.Stories.StoriesListPlaceProvider;
 import org.telegram.ui.Stories.StoryViewer;
@@ -9316,29 +9313,6 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
             botSheets.add(sheet);
         for (BotWebViewSheet sheet : botSheets)
             sheet.dismiss(true);
-    }
-
-    public static void makeRipple(float x, float y, float intensity) {
-        if (instance == null) return;
-        instance.makeRippleInternal(x, y, intensity);
-    }
-
-    private ISuperRipple currentRipple;
-    private void makeRippleInternal(float x, float y, float intensity) {
-        View parent = getWindow().getDecorView();
-        if (parent == null) return;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            if (currentRipple == null || currentRipple.view != parent) {
-                currentRipple = new SuperRipple(parent);
-            }
-        } else if (Build.VERSION.SDK_INT >= 26) {
-            if (currentRipple == null || currentRipple.view != parent) {
-                currentRipple = new SuperRippleFallback(parent);
-            }
-        }
-        if (currentRipple != null) {
-            currentRipple.animate(x, y, intensity);
-        }
     }
 
     @Override

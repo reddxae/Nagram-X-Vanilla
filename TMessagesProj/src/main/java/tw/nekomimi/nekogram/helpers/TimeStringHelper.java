@@ -39,12 +39,19 @@ import java.util.Objects;
 import xyz.nextalone.nagram.NaConfig;
 
 public class TimeStringHelper {
+    private static final float DELETED_ICON_SCALE = 1.2f;
+    private static final float DELETED_ICON_WIDTH_SCALE = 0.82f;
+    private static final float CHANNEL_ICON_SCALE = 1.3f;
+    private static final float SUBSCRIBERS_ICON_SCALE = 1.3f;
     public static SpannableStringBuilder deletedSpan;
     public static Drawable deletedDrawable;
+    public static int deletedSpanWidth;
     public static SpannableStringBuilder editedSpan;
     public static Drawable editedDrawable;
     public static SpannableStringBuilder channelLabelSpan;
     public static Drawable channelLabelDrawable;
+    public static SpannableStringBuilder subscribersSpan;
+    public static Drawable subscribersDrawable;
     public static SpannableStringBuilder translatedSpan;
     public static Drawable translatedDrawable;
     public static SpannableStringBuilder arrowSpan;
@@ -52,6 +59,9 @@ public class TimeStringHelper {
     public static SpannableStringBuilder forwardsSpan;
     public static Drawable forwardsDrawable;
     public ChatActivity.ThemeDelegate themeDelegate;
+    private static int timeIconSize;
+    private static int channelIconSize;
+    private static int subscribersIconSize;
 
     public static CharSequence createDeletedString(MessageObject messageObject, boolean isEdited, boolean isTranslated) {
         String editedStr = NaConfig.INSTANCE.getCustomEditedMessage().String();
@@ -130,22 +140,49 @@ public class TimeStringHelper {
     }
 
     private static void createSpan() {
+        int currentTimeIconSize = Theme.chat_timePaint != null ? Math.round(Theme.chat_timePaint.getTextSize()) : dp(12);
+        if (timeIconSize != currentTimeIconSize) {
+            timeIconSize = currentTimeIconSize;
+            editedSpan = null;
+            deletedSpan = null;
+            translatedSpan = null;
+            arrowSpan = null;
+            forwardsSpan = null;
+            editedDrawable = null;
+            deletedDrawable = null;
+            deletedSpanWidth = 0;
+            translatedDrawable = null;
+            arrowDrawable = null;
+            forwardsDrawable = null;
+        }
+
         if (editedDrawable == null) {
-            editedDrawable = Theme.chat_editDrawable != null
+            Drawable source = Theme.chat_editDrawable != null
                     ? Theme.chat_editDrawable
-                    : Objects.requireNonNull(ContextCompat.getDrawable(ApplicationLoader.applicationContext, R.drawable.edit_pencil)).mutate();
+                    : Objects.requireNonNull(ContextCompat.getDrawable(ApplicationLoader.applicationContext, R.drawable.edit_pencil));
+            editedDrawable = copyDrawable(source);
+            editedDrawable.setBounds(0, 0, timeIconSize, timeIconSize);
         }
         if (editedSpan == null) {
             editedSpan = new SpannableStringBuilder("\u200B");
-            editedSpan.setSpan(new ColoredImageSpan(editedDrawable, true), 0, 1, 0);
+            ColoredImageSpan span = new ColoredImageSpan(editedDrawable, true);
+            span.setSize(timeIconSize);
+            editedSpan.setSpan(span, 0, 1, 0);
         }
 
         if (deletedDrawable == null) {
-            deletedDrawable = Objects.requireNonNull(ContextCompat.getDrawable(ApplicationLoader.applicationContext, R.drawable.msg_delete)).mutate();
+            int deletedIconSize = getScaledIconSize(timeIconSize, DELETED_ICON_SCALE);
+            deletedDrawable = copyDrawable(Objects.requireNonNull(ContextCompat.getDrawable(ApplicationLoader.applicationContext, R.drawable.baseline_delete_18)));
+            deletedDrawable.setBounds(0, 0, deletedIconSize, deletedIconSize);
         }
         if (deletedSpan == null) {
+            int deletedIconSize = getScaledIconSize(timeIconSize, DELETED_ICON_SCALE);
+            deletedSpanWidth = getScaledIconSize(deletedIconSize, DELETED_ICON_WIDTH_SCALE);
             deletedSpan = new SpannableStringBuilder("\u200B");
-            deletedSpan.setSpan(new ColoredImageSpan(deletedDrawable, true), 0, 1, 0);
+            ColoredImageSpan span = new ColoredImageSpan(deletedDrawable, true);
+            span.setSize(deletedIconSize);
+            span.setWidth(deletedSpanWidth);
+            deletedSpan.setSpan(span, 0, 1, 0);
         }
 
         if (translatedDrawable == null) {
@@ -174,14 +211,62 @@ public class TimeStringHelper {
     }
 
     public static SpannableStringBuilder getChannelLabelSpan() {
+        int currentChannelIconSize = Theme.chat_adminPaint != null ? Math.round(Theme.chat_adminPaint.getTextSize()) : dp(12);
+        if (channelIconSize != currentChannelIconSize) {
+            channelIconSize = currentChannelIconSize;
+            channelLabelSpan = null;
+            channelLabelDrawable = null;
+        }
         if (channelLabelDrawable == null) {
-            channelLabelDrawable = Objects.requireNonNull(ContextCompat.getDrawable(ApplicationLoader.applicationContext, R.drawable.msg_channel)).mutate();
+            int scaledChannelIconSize = getScaledIconSize(channelIconSize, CHANNEL_ICON_SCALE);
+            channelLabelDrawable = copyDrawable(Objects.requireNonNull(ContextCompat.getDrawable(ApplicationLoader.applicationContext, R.drawable.msg_filled_menu_channels)));
+            channelLabelDrawable.setBounds(0, 0, scaledChannelIconSize, scaledChannelIconSize);
         }
         if (channelLabelSpan == null) {
+            int scaledChannelIconSize = getScaledIconSize(channelIconSize, CHANNEL_ICON_SCALE);
             channelLabelSpan = new SpannableStringBuilder("\u200B");
-            channelLabelSpan.setSpan(new ColoredImageSpan(channelLabelDrawable, true), 0, 1, 0);
+            ColoredImageSpan span = new ColoredImageSpan(channelLabelDrawable, true);
+            span.setSize(scaledChannelIconSize);
+            channelLabelSpan.setSpan(span, 0, 1, 0);
         }
         return channelLabelSpan;
+    }
+
+    public static CharSequence createSubscribersString(@Nullable TextPaint textPaint, CharSequence countText) {
+        int baseSize = textPaint != null ? Math.round(textPaint.getTextSize()) : dp(14);
+        int scaledSubscribersIconSize = getScaledIconSize(baseSize, SUBSCRIBERS_ICON_SCALE);
+        if (subscribersIconSize != scaledSubscribersIconSize) {
+            subscribersIconSize = scaledSubscribersIconSize;
+            subscribersSpan = null;
+            subscribersDrawable = null;
+        }
+        if (subscribersDrawable == null) {
+            subscribersDrawable = copyDrawable(Objects.requireNonNull(ContextCompat.getDrawable(ApplicationLoader.applicationContext, R.drawable.filter_group)));
+            subscribersDrawable.setBounds(0, 0, scaledSubscribersIconSize, scaledSubscribersIconSize);
+        }
+        if (subscribersSpan == null) {
+            subscribersSpan = new SpannableStringBuilder("\u200B");
+            ColoredImageSpan span = new ColoredImageSpan(subscribersDrawable, true);
+            span.setSize(scaledSubscribersIconSize);
+            subscribersSpan.setSpan(span, 0, 1, 0);
+        }
+
+        return new SpannableStringBuilder()
+                .append(countText)
+                .append(" ")
+                .append(subscribersSpan);
+    }
+
+    private static int getScaledIconSize(int baseSize, float scale) {
+        return Math.max(1, Math.round(baseSize * scale));
+    }
+
+    private static Drawable copyDrawable(Drawable drawable) {
+        Drawable.ConstantState state = drawable.getConstantState();
+        if (state != null) {
+            return state.newDrawable().mutate();
+        }
+        return drawable.mutate();
     }
 
     public static CharSequence getColoredAdminString(View parent, TextPaint namePaint, SpannableStringBuilder sb) {

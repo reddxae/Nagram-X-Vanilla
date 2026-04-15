@@ -10176,7 +10176,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
 
     @Override
     public boolean needDelayOpenAnimation() {
-        if (NaConfig.INSTANCE.getSpringAnimation().Bool() || NaConfig.INSTANCE.getCenterActionBarTitle().Bool() && NaConfig.INSTANCE.getCenterActionBarTitleType().Int() != 2) {
+        if (NaConfig.INSTANCE.getSpringAnimation().Bool()) {
             return false;
         } else {
             return playProfileAnimation == 0;

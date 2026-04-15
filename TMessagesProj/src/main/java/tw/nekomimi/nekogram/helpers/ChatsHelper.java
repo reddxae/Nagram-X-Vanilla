@@ -15,7 +15,6 @@ import android.annotation.SuppressLint;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffColorFilter;
 import android.graphics.drawable.Drawable;
-import android.os.Build;
 import android.text.TextUtils;
 import android.view.View;
 import android.widget.Toast;
@@ -160,10 +159,6 @@ public class ChatsHelper extends BaseController {
             NaConfig.INSTANCE.getLeftBottomButton().setConfigInt(configValues.get(i));
 
             if (chatActivity.replyButton == null) return;
-
-            if (chatActivity.bottomMessagesActionContainer != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                LaunchActivity.makeRipple(chatActivity.bottomMessagesActionContainer.getLeft(), chatActivity.bottomMessagesActionContainer.getBottom(), 2);
-            }
 
             chatActivity.replyButton.setText(getLeftButtonText(noForwards));
 

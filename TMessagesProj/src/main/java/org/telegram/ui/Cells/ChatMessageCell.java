@@ -17389,13 +17389,13 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
         timeTextWidth = timeWidth = (int) Math.ceil(Theme.chat_timePaint.measureText(currentTimeString, 0, currentTimeString == null ? 0 : currentTimeString.length()));
         if (timeString instanceof SpannableStringBuilder) {
             if (edited && NaConfig.INSTANCE.getUseEditedIcon().Bool() && TimeStringHelper.editedDrawable != null) {
-                timeTextWidth = timeWidth += TimeStringHelper.editedDrawable.getIntrinsicWidth();
+                timeTextWidth = timeWidth += TimeStringHelper.editedDrawable.getBounds().isEmpty() ? TimeStringHelper.editedDrawable.getIntrinsicWidth() : TimeStringHelper.editedDrawable.getBounds().width();
             }
             if (ayuDeleted && NaConfig.INSTANCE.getUseDeletedIcon().Bool() && TimeStringHelper.deletedDrawable != null) {
-                timeTextWidth = timeWidth += TimeStringHelper.deletedDrawable.getIntrinsicWidth();
+                timeTextWidth = timeWidth += TimeStringHelper.deletedSpanWidth > 0 ? TimeStringHelper.deletedSpanWidth : (TimeStringHelper.deletedDrawable.getBounds().isEmpty() ? TimeStringHelper.deletedDrawable.getIntrinsicWidth() : TimeStringHelper.deletedDrawable.getBounds().width());
             }
             if (translated && TimeStringHelper.translatedDrawable != null) {
-                timeTextWidth = timeWidth += TimeStringHelper.translatedDrawable.getIntrinsicWidth();
+                timeTextWidth = timeWidth += TimeStringHelper.translatedDrawable.getBounds().isEmpty() ? TimeStringHelper.translatedDrawable.getIntrinsicWidth() : TimeStringHelper.translatedDrawable.getBounds().width();
             }
         }
         if (currentMessageObject.scheduled && currentMessageObject.messageOwner.date == 0x7FFFFFFE || currentMessageObject.notime) {

@@ -518,6 +518,9 @@
     <string name="ChannelAddToChannel">Add to channel</string>
     <string name="ChannelDeleteFromList">Delete from this list</string>
     <string name="ChannelSubscribers">Subscribers</string>
+    <string name="ReplaceSubscribersWithIcon">Replace "subscribers" with icon</string>
+    <string name="ReplaceMembersWithIcon">Replace "members" with icon</string>
+    <string name="HideOnlineMembersCounter">Hide online members counter</string>
     <string name="ChannelBlacklist">Removed Users</string>
     <string name="ChannelPermissions">Permissions</string>
     <string name="ChannelPermissionsHeader">What can members of this group do?</string>

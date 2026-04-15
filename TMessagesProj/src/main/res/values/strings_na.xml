@@ -74,7 +74,7 @@
     <string name="DisableClickCommandToSend">Ask Before Sending Bot Command</string>
     <string name="DisableDialogsFloatingButton">Hide Floating Button</string>
     <string name="DisableFlagSecure">Disable FLAG_SECURE</string>
-    <string name="CenterActionBarTitleType">Use Centered Title</string>
+    <string name="CenterActionBarTitleType">Use Centered Title in Settings</string>
     <string name="ShowQuickReplyInBotCommands">Show Quick Reply in Bot Commands</string>
     <string name="PushServiceType">Push Service Type</string>
     <string name="PushServiceTypeInApp">In-App</string>

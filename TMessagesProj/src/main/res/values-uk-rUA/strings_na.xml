@@ -71,7 +71,7 @@
     <string name="DisableClickCommandToSend">Запитувати перед відправленням команди бота</string>
     <string name="DisableDialogsFloatingButton">Приховати плаваючу кнопку</string>
     <string name="DisableFlagSecure">Вимкнути FLAG_SECURE</string>
-    <string name="CenterActionBarTitleType">Заголовок по центру</string>
+    <string name="CenterActionBarTitleType">Заголовок по центру в налаштуваннях</string>
     <string name="ShowQuickReplyInBotCommands">Показувати швидку відповідь у командах бота</string>
     <string name="PushServiceType">Служба Push-сповіщень</string>
     <string name="PushServiceTypeInApp">У застосунку</string>

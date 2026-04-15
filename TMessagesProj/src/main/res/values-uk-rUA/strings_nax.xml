@@ -71,8 +71,6 @@
     <string name="Translated">перекладено</string>
     <string name="ProviderRealMicrosoftTranslator">Перекладач Microsoft</string>
     <string name="TranslatorSettings">Перекладач</string>
-    <string name="SettingsOnly">Лише в налаштуваннях</string>
-    <string name="ChatsOnly">Лише в чатах</string>
     <string name="InstantViewTranslation">Миттєвий перегляд</string>
     <string name="SaveDeletedMessageForBot">Зберегти у чатах бота</string>
     <string name="DrawerElements">Елементи меню</string>

@@ -22,6 +22,7 @@ import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
+import android.text.SpannableStringBuilder;
 import android.text.TextPaint;
 import android.text.TextUtils;
 import android.view.Gravity;
@@ -67,6 +68,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import xyz.nextalone.nagram.NaConfig;
 import tw.nekomimi.nekogram.helpers.MessageHelper;
+import tw.nekomimi.nekogram.helpers.TimeStringHelper;
 
 public class ChatAvatarContainer extends FrameLayout implements NotificationCenter.NotificationCenterDelegate {
 
@@ -1250,16 +1252,27 @@ public class ChatAvatarContainer extends FrameLayout implements NotificationCent
         if (ChatObject.isChannel(chat)) {
             if (info != null && info.participants_count != 0) {
                 if (chat.megagroup) {
-                    if (onlineCount > 1) {
-                        newSubtitle = String.format("%s, %s", LocaleController.formatPluralString("Members", info.participants_count), LocaleController.formatPluralString("OnlineCount", Math.min(onlineCount, info.participants_count)));
+                    boolean showOnlineCount = onlineCount > 1 && !NaConfig.INSTANCE.getHideOnlineMembersCounter().Bool();
+                    if (showOnlineCount) {
+                        if (NaConfig.INSTANCE.getReplaceMembersWithIcon().Bool()) {
+                            newSubtitle = createTopPanelCountWithIcon(LocaleController.formatNumber(info.participants_count, ','), LocaleController.formatPluralString("OnlineCount", Math.min(onlineCount, info.participants_count)));
+                        } else {
+                            newSubtitle = String.format("%s, %s", LocaleController.formatPluralString("Members", info.participants_count), LocaleController.formatPluralString("OnlineCount", Math.min(onlineCount, info.participants_count)));
+                        }
                     } else {
-                        newSubtitle = LocaleController.formatPluralString("Members", info.participants_count);
+                        if (NaConfig.INSTANCE.getReplaceMembersWithIcon().Bool()) {
+                            newSubtitle = createTopPanelCountWithIcon(LocaleController.formatNumber(info.participants_count, ','), null);
+                        } else {
+                            newSubtitle = LocaleController.formatPluralString("Members", info.participants_count);
+                        }
                     }
                 } else {
                     int[] result = new int[1];
                     boolean ignoreShort = AndroidUtilities.isAccessibilityScreenReaderEnabled();
                     String shortNumber = ignoreShort ? String.valueOf(result[0] = info.participants_count) : LocaleController.formatShortNumber(info.participants_count, result);
-                    if (chat.megagroup) {
+                    if (NaConfig.INSTANCE.getReplaceSubscribersWithIcon().Bool()) {
+                        newSubtitle = createTopPanelCountWithIcon(shortNumber, null);
+                    } else if (chat.megagroup) {
                         newSubtitle = LocaleController.formatPluralString("Members", result[0]).replace(String.format("%d", result[0]), shortNumber);
                     } else {
                         newSubtitle = LocaleController.formatPluralString("Subscribers", result[0]).replace(String.format("%d", result[0]), shortNumber);
@@ -1296,14 +1309,31 @@ public class ChatAvatarContainer extends FrameLayout implements NotificationCent
                 if (info != null && info.participants != null) {
                     count = info.participants.participants.size();
                 }
-                if (onlineCount > 1 && count != 0) {
-                    newSubtitle = String.format("%s, %s", LocaleController.formatPluralString("Members", count), LocaleController.formatPluralString("OnlineCount", onlineCount));
+                boolean showOnlineCount = onlineCount > 1 && count != 0 && !NaConfig.INSTANCE.getHideOnlineMembersCounter().Bool();
+                if (showOnlineCount) {
+                    if (NaConfig.INSTANCE.getReplaceMembersWithIcon().Bool()) {
+                        newSubtitle = createTopPanelCountWithIcon(LocaleController.formatNumber(count, ','), LocaleController.formatPluralString("OnlineCount", onlineCount));
+                    } else {
+                        newSubtitle = String.format("%s, %s", LocaleController.formatPluralString("Members", count), LocaleController.formatPluralString("OnlineCount", onlineCount));
+                    }
                 } else {
-                    newSubtitle = LocaleController.formatPluralString("Members", count);
+                    if (NaConfig.INSTANCE.getReplaceMembersWithIcon().Bool()) {
+                        newSubtitle = createTopPanelCountWithIcon(LocaleController.formatNumber(count, ','), null);
+                    } else {
+                        newSubtitle = LocaleController.formatPluralString("Members", count);
+                    }
                 }
             }
         }
         return newSubtitle;
+    }
+
+    private static CharSequence createTopPanelCountWithIcon(CharSequence countText, CharSequence secondaryText) {
+        SpannableStringBuilder builder = new SpannableStringBuilder(TimeStringHelper.createSubscribersString(null, countText));
+        if (!TextUtils.isEmpty(secondaryText)) {
+            builder.append(", ").append(secondaryText);
+        }
+        return builder;
     }
 
     public int getLastSubtitleColorKey() {

@@ -56,6 +56,9 @@ import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.R;
 import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.UserConfig;
+import org.telegram.ui.CallLogActivity;
+import org.telegram.ui.ContactsActivity;
+import org.telegram.ui.DialogsActivity;
 import org.telegram.ui.Adapters.FiltersView;
 import org.telegram.ui.Components.AnimatedEmojiDrawable;
 import org.telegram.ui.Components.BackupImageView;
@@ -69,6 +72,7 @@ import org.telegram.ui.Components.SnowflakesEffect;
 import java.util.ArrayList;
 
 import tw.nekomimi.nekogram.NekoConfig;
+import tw.nekomimi.nekogram.settings.BaseNekoXSettingsActivity;
 import xyz.nextalone.nagram.NaConfig;
 
 public class ActionBar extends FrameLayout {
@@ -2036,7 +2040,12 @@ public class ActionBar extends FrameLayout {
     }
 
     private boolean isCentered() {
-        return NaConfig.INSTANCE.getCenterActionBarTitle().Bool() && NaConfig.INSTANCE.getCenterActionBarTitleType().Int() != 3;
+        return NaConfig.INSTANCE.getCenterActionBarTitle().Bool() && (
+            parentFragment instanceof BaseNekoXSettingsActivity ||
+            parentFragment instanceof DialogsActivity ||
+            parentFragment instanceof ContactsActivity ||
+            parentFragment instanceof CallLogActivity
+        );
     }
 
     // --- Spring Animation ---

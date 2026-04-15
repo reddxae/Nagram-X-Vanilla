@@ -780,12 +780,6 @@ object NaConfig {
             ConfigItem.configTypeInt,
             1 // 0: append; 1: replace
         )
-    val centerActionBarTitleType =
-        addConfig(
-            "CenterActionBarTitleType",
-            ConfigItem.configTypeInt,
-            1 // 0: off; 1: always on; 2: settings only; 3: chats only
-        )
     val drawerItemMyProfile =
         addConfig(
             "DrawerItemMyProfile",
@@ -879,6 +873,24 @@ object NaConfig {
     val hideChannelSilentBroadcast =
         addConfig(
             "HideChannelSilentBroadcast",
+            ConfigItem.configTypeBool,
+            false
+        )
+    val replaceSubscribersWithIcon =
+        addConfig(
+            "ReplaceSubscribersWithIcon",
+            ConfigItem.configTypeBool,
+            false
+        )
+    val replaceMembersWithIcon =
+        addConfig(
+            "ReplaceMembersWithIcon",
+            ConfigItem.configTypeBool,
+            false
+        )
+    val hideOnlineMembersCounter =
+        addConfig(
+            "HideOnlineMembersCounter",
             ConfigItem.configTypeBool,
             false
         )

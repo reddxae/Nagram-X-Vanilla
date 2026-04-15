@@ -25,7 +25,6 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.DefaultItemAnimator;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.ApplicationLoader;
 import org.telegram.messenger.ContactsController;
@@ -55,7 +54,6 @@ import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.RecyclerListView;
 import org.telegram.ui.Components.SeekBarView;
 import org.telegram.ui.Components.UndoView;
-import org.telegram.ui.LaunchActivity;
 
 import java.util.ArrayList;
 import java.util.Locale;
@@ -88,7 +86,6 @@ public class NekoGeneralSettingsActivity extends BaseNekoXSettingsActivity {
     private ChatBlurAlphaSeekBar chatBlurAlphaSeekbar;
     private UndoView restartTooltip;
     private Parcelable recyclerViewState = null;
-
     private boolean wasCentered = false;
     private boolean wasCenteredAtBeginning = false;
     private float centeredMeasure = -1;
@@ -221,12 +218,7 @@ public class NekoGeneralSettingsActivity extends BaseNekoXSettingsActivity {
             getString(R.string.Enable),
             getString(R.string.Disable)
     }, null));
-    private final AbstractConfigCell centerActionBarTitleRow = cellGroup.appendCell(new ConfigCellSelectBox(null, NaConfig.INSTANCE.getCenterActionBarTitleType(), new String[]{
-            getString(R.string.Disable),
-            getString(R.string.Enable),
-            getString(R.string.SettingsOnly),
-            getString(R.string.ChatsOnly)
-    }, null));
+    private final AbstractConfigCell centerActionBarTitleRow = cellGroup.appendCell(new ConfigCellTextCheck(NaConfig.INSTANCE.getCenterActionBarTitle(), null, getString(R.string.CenterActionBarTitleType)));
     private final AbstractConfigCell drawerElementsRow = cellGroup.appendCell(new ConfigCellTextCheckIcon(null, "DrawerElements", null, R.drawable.menu_newfilter, false, () ->
         showDialog(showConfigMenuWithIconAlert(this, R.string.DrawerElements, new ArrayList<>() {{
             add(new ConfigCellTextCheckIcon(NaConfig.INSTANCE.getDrawerItemMyProfile(), getString(R.string.MyProfile), R.drawable.left_status_profile));
@@ -302,16 +294,12 @@ public class NekoGeneralSettingsActivity extends BaseNekoXSettingsActivity {
     private final AbstractConfigCell dividerAutoDownload = cellGroup.appendCell(new ConfigCellDivider());
 
     public NekoGeneralSettingsActivity() {
-        if (!NaConfig.INSTANCE.getCenterActionBarTitle().Bool()) {
-            NaConfig.INSTANCE.getCenterActionBarTitleType().setConfigInt(0);
-        }
         if (!shouldShowPersian()) {
             cellGroup.rows.remove(usePersianCalendarRow);
             cellGroup.rows.remove(displayPersianCalendarByLatinRow);
         }
         wasCentered = isCentered();
         wasCenteredAtBeginning = wasCentered;
-
         checkProfileConfigCellRows();
         checkCustomDoHCellRows();
         addRowsToMap(cellGroup);
@@ -481,9 +469,7 @@ public class NekoGeneralSettingsActivity extends BaseNekoXSettingsActivity {
                 NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.reloadInterface);
             } else if (key.equals(NekoConfig.hideAllTab.getKey())) {
                 restartTooltip.showWithAction(0, UndoView.ACTION_NEED_RESTART, null, null);
-            } else if (key.equals(NaConfig.INSTANCE.getCenterActionBarTitleType().getKey())) {
-                int value = (int) newValue;
-                NaConfig.INSTANCE.getCenterActionBarTitle().setConfigBool(value != 0);
+            } else if (key.equals(NaConfig.INSTANCE.getCenterActionBarTitle().getKey())) {
                 animateActionBarUpdate(this);
             } else if (key.equals(NaConfig.INSTANCE.getHideArchive().getKey())) {
                 setCanNotChange();
@@ -826,30 +812,41 @@ public class NekoGeneralSettingsActivity extends BaseNekoXSettingsActivity {
     }
 
     private boolean isCentered() {
-        return NaConfig.INSTANCE.getCenterActionBarTitle().Bool() && NaConfig.INSTANCE.getCenterActionBarTitleType().Int() != 3;
+        return NaConfig.INSTANCE.getCenterActionBarTitle().Bool();
     }
 
     private void animateActionBarUpdate(BaseNekoXSettingsActivity fragment) {
         boolean centered = isCentered();
         ActionBar actionBar = fragment.getActionBar();
         if (wasCentered == centered) {
+            NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.reloadInterface);
             return;
         }
         if (actionBar != null) {
             SimpleTextView titleTextView = actionBar.getTitleTextView();
+            if (titleTextView == null) {
+                NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.reloadInterface);
+                reloadUI(INavigationLayout.REBUILD_FLAG_REBUILD_LAST);
+                return;
+            }
             if (centeredMeasure == -1) {
                 centeredMeasure = actionBar.getMeasuredWidth() / 2f - titleTextView.getTextWidth() / 2f - dp((AndroidUtilities.isTablet() ? 80 : 72));
             }
-            titleTextView.animate().translationX(centeredMeasure * (centered ? 1 : 0) - (wasCenteredAtBeginning ? Math.abs(centeredMeasure) : 0)).setDuration(150).setListener(new AnimatorListenerAdapter() {
-                @Override
-                public void onAnimationEnd(Animator animation) {
-                    super.onAnimationEnd(animation);
-                    wasCentered = centered;
-                    reloadUI(0);
-                    LaunchActivity.makeRipple(centered ? (actionBar.getMeasuredWidth() / 2f) : 0, 0, centered ? 1.3f : 0.1f);
-                }
-            }).start();
+            titleTextView.animate()
+                .translationX(centeredMeasure * (centered ? 1 : 0) - (wasCenteredAtBeginning ? Math.abs(centeredMeasure) : 0))
+                .setDuration(150)
+                .setListener(new AnimatorListenerAdapter() {
+                    @Override
+                    public void onAnimationEnd(Animator animation) {
+                        super.onAnimationEnd(animation);
+                        wasCentered = centered;
+                        NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.reloadInterface);
+                        reloadUI(0);
+                    }
+                })
+                .start();
         } else {
+            NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.reloadInterface);
             reloadUI(INavigationLayout.REBUILD_FLAG_REBUILD_LAST);
         }
     }
