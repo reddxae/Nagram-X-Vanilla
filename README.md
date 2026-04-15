@@ -1,7 +1,14 @@
-# Nagram X Vanilla
+# Vanilla
 Yet another Nagram fork with Telegram official branding.
 
 Based on Telegram 12.1.1 without shitty liquid ass redesign. Intended for personal use with various QoL fixes.
+
+## Why?
+The point is... ugh, well, I'm more into ReVanced-style mods than making fully rebranded ones. I love that aesthetic when the app looks essentially the same as the original, just with some useful additions — rather than going in a completely different design direction. Besides, I don't have time for that stuff.
+
+Vanilla utilizes GitHub Actions workers to produce builds and push them to users. This ensures that builds are transparent, meaning they contain exactly what's available in the repository's source code.
+
+An important paradigm of this client is No Cringe. You won't find any epic ripple animations here when you toggle settings, neither that half-broken "chat centering" which isn't properly centered and turns into an unwanted overflown scrollbar, nor even worse stuff — built-in AI assistants. There are also no client-side user blacklists, no "Extras" in this source code or paywalled features — and there won't ever be.
 
 ## Changes over [regular Nagram X](https://github.com/risin42/NagramX)
 - Telegram official branding over the app (logo, name, icons, splash)
@@ -15,6 +22,7 @@ Based on Telegram 12.1.1 without shitty liquid ass redesign. Intended for person
 - "Disable Avatar Blur" feature will UI with pre-12.0.0 profile behaviour (kind of)
 - Hide Direct Share button everywhere with "Hide Share Button Next to Post"
 - Icons for Attachments Tabs
+- Replace subscribers/members caption to monochrome icon
 - Thousands separators for large numbers, also for sub counter when "Disable Number Rounding" enabled
 - Hide Stars rating and Gift button from profile
 - Changed Nagram's set of by-default enabled features in the sake of being predictable
@@ -26,7 +34,7 @@ Based on Telegram 12.1.1 without shitty liquid ass redesign. Intended for person
   - Do not convert date in media viewer to numeric format
   - Other tweaks to beautify appearance
 
-## How to compile
+## How to build yourself
 
 ### Locally
 
@@ -80,13 +88,10 @@ Based on Telegram 12.1.1 without shitty liquid ass redesign. Intended for person
 
 4. Trigger the Build APK workflow.
 
-## Acknowledgments
+## Many thanks for those who contribute to open source
 
-- [AyuGram](https://github.com/AyuGram/AyuGram4A)
-- [Cherrygram](https://github.com/arsLan4k1390/Cherrygram)
-- [Dr4iv3rNope](https://github.com/Dr4iv3rNope/NotSoAndroidAyuGram)
-- [exteraGram](https://github.com/exteraSquad/exteraGram)
-- [Nagram](https://github.com/NextAlone/Nagram)
-- [Nagram X](https://github.com/risin42/NagramX)
-- [Nekogram](https://github.com/Nekogram/Nekogram)
-- [OctoGram](https://github.com/OctoGramApp/OctoGram)
+- [Nekogram](https://github.com/Nekogram/Nekogram) for being the bare minimum basis of all our forks
+- [Cherrygram](https://github.com/arsLan4k1390/Cherrygram) for adding new features and being helpful
+- [Dr4iv3rNope](https://github.com/Dr4iv3rNope/NotSoAndroidAyuGram) for reverse-engineering AyuGram's proprietary features
+- [Nagram](https://github.com/NextAlone/Nagram) and [Nagram X](https://github.com/risin42/NagramX) for collecting awesome things
+- [OctoGram](https://github.com/OctoGramApp/OctoGram) for its excellent design solutions
