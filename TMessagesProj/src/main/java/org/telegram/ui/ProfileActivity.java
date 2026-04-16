@@ -667,6 +667,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
     private int passwordSuggestionRow;
     private int settingsSectionRow;
     private int settingsSectionRow2;
+    private int vanillaHeaderRow;
     private int notificationRow;
     private int nekoRow;
     private int languageRow;
@@ -6257,18 +6258,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
     }
 
     private int getDefaultExpandedAvatarActionsButtonBackgroundColor() {
-        final int actionBarColor = getThemedColor(Theme.key_actionBarDefault);
-        final int headerColor = getThemedColor(Theme.key_avatar_backgroundActionBarBlue);
-        final int overlayColor;
-        if (AndroidUtilities.computePerceivedBrightness(actionBarColor) > .8f) {
-            overlayColor = Theme.multAlpha(getThemedColor(Theme.key_windowBackgroundWhiteBlueText), .30f);
-        } else if (AndroidUtilities.computePerceivedBrightness(actionBarColor) < .2f) {
-            overlayColor = Theme.multAlpha(Theme.adaptHSV(actionBarColor, +0.02f, +0.25f), .35f);
-        } else {
-            overlayColor = Theme.multAlpha(PeerColorActivity.adaptProfileEmojiColor(actionBarColor), .15f);
-        }
-        // Match the visible collapsed-profile button color, but without leaking expanded blur or peer colors.
-        return ColorUtils.compositeColors(overlayColor, headerColor);
+        return Theme.getProfileActionBackgroundColorForNoAvatarBlur(resourcesProvider);
     }
 
     private boolean shouldUseNeutralExpandedAvatarColors() {
@@ -9944,12 +9934,6 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                             resumeDelayedFragmentAnimation();
                             needLayout(true);
                         }
-                        if (NaConfig.INSTANCE.getPreferCommonGroupsTab().Bool() && userInfo.common_chats_count > 0 && sharedMediaLayout.scrollSlidingTextTabStrip != null && sharedMediaLayout.scrollSlidingTextTabStrip.getCurrentTabId() == SharedMediaLayout.TAB_GIFTS) {
-                            AndroidUtilities.runOnUIThread(() -> {
-                                sharedMediaLayout.scrollToPage(SharedMediaLayout.TAB_COMMON_GROUPS);
-                                sharedMediaLayout.scrollSlidingTextTabStrip.selectTabWithId(SharedMediaLayout.TAB_COMMON_GROUPS, 1.0f, true);
-                            });
-                        }
                     }
                 }
                 updateAutoDeleteItem();
@@ -11071,6 +11055,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
         passwordSuggestionRow = -1;
         settingsSectionRow = -1;
         settingsSectionRow2 = -1;
+        vanillaHeaderRow = -1;
         notificationRow = -1;
         nekoRow = -1;
         languageRow = -1;
@@ -11252,14 +11237,13 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                     filtersRow = rowCount++;
                 }
                 devicesRow = rowCount++;
-                nekoRow = rowCount++;
                 languageRow = rowCount++;
+                devicesSectionRow = rowCount++;
+                vanillaHeaderRow = rowCount++;
+                nekoRow = rowCount++;
                 // hide premium / help
                 boolean hidePremium = NaConfig.INSTANCE.getHidePremiumSection().Bool();
                 boolean hideHelp = NaConfig.INSTANCE.getHideHelpSection().Bool();
-                if (!(hidePremium && hideHelp)) {
-                    devicesSectionRow = rowCount++;
-                }
                 if (!hidePremium) {
                     if (!getMessagesController().premiumFeaturesBlocked()) {
                         premiumRow = rowCount++;
@@ -13965,7 +13949,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                     cell.getTextView().setTextColor(getThemedColor(Theme.key_windowBackgroundWhiteGrayText3));
                     cell.getTextView().setMovementMethod(null);
                     cell.setBackground(Theme.getThemedDrawable(mContext, R.drawable.greydivider_bottom, Theme.key_windowBackgroundGrayShadow));
-                    cell.setText("Nagram X Vanilla\nversion " + BuildConfig.VERSION_NAME);
+                    cell.setText(formatString(R.string.TelegramVersionFooter, BuildConfig.VERSION_NAME));
                     cell.getTextView().setPadding(0, AndroidUtilities.dp(14), 0, AndroidUtilities.dp(14));
                     view = cell;
                     Drawable drawable = Theme.getThemedDrawable(mContext, R.drawable.greydivider_bottom, getThemedColor(Theme.key_windowBackgroundGrayShadow));
@@ -14080,6 +14064,8 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                         headerCell.setText(LocaleController.getString(R.string.ChannelMembers));
                     } else if (position == settingsSectionRow2) {
                         headerCell.setText(LocaleController.getString(R.string.SETTINGS));
+                    } else if (position == vanillaHeaderRow) {
+                        headerCell.setText("Vanilla");
                     } else if (position == numberSectionRow) {
                         headerCell.setText(LocaleController.getString(R.string.Account));
                     } else if (position == helpHeaderRow) {
@@ -14485,7 +14471,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                     } else if (position == stickersRow) {
                         textCell.setTextAndIcon(LocaleController.getString(R.string.StickersName), R.drawable.msg_sticker, true);
                     } else if (position == nekoRow) {
-                        textCell.setTextAndIcon(getString(R.string.NekoSettings), R.drawable.msg_settings, true);
+                        textCell.setTextAndIcon(getString(R.string.NekoSettings), R.drawable.msg_settings, false);
                     } else if (position == liteModeRow) {
                         textCell.setTextAndIcon(LocaleController.getString(R.string.PowerUsage), R.drawable.msg2_battery, true);
                     } else if (position == questionRow) {
@@ -14945,7 +14931,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
 
         @Override
         public int getItemViewType(int position) {
-            if (position == infoHeaderRow || position == membersHeaderRow || position == settingsSectionRow2 ||
+            if (position == infoHeaderRow || position == membersHeaderRow || position == settingsSectionRow2 || position == vanillaHeaderRow ||
                     position == numberSectionRow || position == helpHeaderRow || position == debugHeaderRow || position == botPermissionsHeader) {
                 return VIEW_TYPE_HEADER;
             } else if (position == phoneRow || position == locationRow || position == numberRow || position == birthdayRow || position == restrictionReasonRow || position == idDcRow) {
@@ -14966,7 +14952,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                     position == clearLogsRow || position == switchBackendRow || position == setAvatarRow || position == addToGroupButtonRow ||
                     position == addToContactsRow || position == liteModeRow || position == premiumGiftingRow || position == businessRow ||
                     position == botStarsBalanceRow || position == botTonBalanceRow || position == channelBalanceRow || position == botPermissionLocation ||
-                    position == botPermissionBiometry || position == botPermissionEmojiStatus || position == tonRow
+                    position == botPermissionBiometry || position == botPermissionEmojiStatus || position == tonRow || position == nekoRow
             ) {
                 return VIEW_TYPE_TEXT;
             } else if (position == notificationsDividerRow) {
@@ -16280,6 +16266,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
             put(++pointer, settingsSectionRow2, sparseIntArray);
             put(++pointer, notificationRow, sparseIntArray);
             put(++pointer, languageRow, sparseIntArray);
+            put(++pointer, vanillaHeaderRow, sparseIntArray);
             put(++pointer, premiumRow, sparseIntArray);
             put(++pointer, starsRow, sparseIntArray);
             put(++pointer, businessRow, sparseIntArray);
@@ -16293,6 +16280,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
             put(++pointer, stickersRow, sparseIntArray);
             put(++pointer, devicesRow, sparseIntArray);
             put(++pointer, devicesSectionRow, sparseIntArray);
+            put(++pointer, nekoRow, sparseIntArray);
             put(++pointer, helpHeaderRow, sparseIntArray);
             put(++pointer, questionRow, sparseIntArray);
             put(++pointer, faqRow, sparseIntArray);
@@ -16361,7 +16349,6 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
             put(++pointer, botPermissionsDivider, sparseIntArray);
             put(++pointer, channelDividerRow, sparseIntArray);
             put(++pointer, musicRow, sparseIntArray);
-            put(++pointer, nekoRow, sparseIntArray);
         }
 
         private void put(int id, int position, SparseIntArray sparseIntArray) {
@@ -17291,7 +17278,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
     private void createSaveExclusionItem(long chatId) {
         if (!NaConfig.INSTANCE.getEnableSaveDeletedMessages().Bool()) return;
         var autoTranslatePopupWrapper = new SaveExclusionPopupWrapper(ProfileActivity.this, otherItem.getPopupLayout().getSwipeBack(), chatId, getResourceProvider());
-        otherItem.addSwipeBackItem(R.drawable.baseline_delete_24, null, getString(R.string.SaveDeletedExclusionMenu), autoTranslatePopupWrapper.windowLayout);
+        otherItem.addSwipeBackItem(R.drawable.menu_delete_old, null, getString(R.string.SaveDeletedExclusionMenu), autoTranslatePopupWrapper.windowLayout);
         if (!NaConfig.INSTANCE.getRegexFiltersEnabled().Bool() && !ChatObject.isForum(currentChat)) otherItem.addColoredGap();
     }
 

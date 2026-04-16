@@ -59,6 +59,7 @@ import org.telegram.messenger.UserConfig;
 import org.telegram.ui.CallLogActivity;
 import org.telegram.ui.ContactsActivity;
 import org.telegram.ui.DialogsActivity;
+import org.telegram.ui.ProfileActivity;
 import org.telegram.ui.Adapters.FiltersView;
 import org.telegram.ui.Components.AnimatedEmojiDrawable;
 import org.telegram.ui.Components.BackupImageView;
@@ -72,6 +73,7 @@ import org.telegram.ui.Components.SnowflakesEffect;
 import java.util.ArrayList;
 
 import tw.nekomimi.nekogram.NekoConfig;
+import tw.nekomimi.nekogram.settings.BaseNekoSettingsActivity;
 import tw.nekomimi.nekogram.settings.BaseNekoXSettingsActivity;
 import xyz.nextalone.nagram.NaConfig;
 
@@ -2012,8 +2014,8 @@ public class ActionBar extends FrameLayout {
     }
 
     public void unreadBadgeSetCount(int count) {
-        if (backButtonImageView != null && NekoConfig.unreadBadgeOnBackButton.Bool()) {
-            backButtonImageView.setUnread(count);
+        if (backButtonImageView != null) {
+            backButtonImageView.setUnread(0);
         }
     }
 
@@ -2039,13 +2041,44 @@ public class ActionBar extends FrameLayout {
         return titlesContainer;
     }
 
+    public void updateTitleViewsGravity() {
+        int titleGravity = isCentered() ? Gravity.CENTER : Gravity.LEFT | Gravity.CENTER_VERTICAL;
+        int subtitleGravity = isCentered() ? Gravity.CENTER : Gravity.LEFT;
+        for (SimpleTextView simpleTextView : titleTextView) {
+            if (simpleTextView != null) {
+                simpleTextView.setGravity(titleGravity);
+            }
+        }
+        if (subtitleTextView != null) {
+            subtitleTextView.setGravity(subtitleGravity);
+        }
+        if (additionalSubtitleTextView != null) {
+            additionalSubtitleTextView.setGravity(subtitleGravity);
+        }
+        requestLayout();
+    }
+
     private boolean isCentered() {
-        return NaConfig.INSTANCE.getCenterActionBarTitle().Bool() && (
+        if (!NaConfig.INSTANCE.getCenterActionBarTitle().Bool() || parentFragment == null) {
+            return false;
+        }
+        if (parentFragment instanceof BaseNekoSettingsActivity ||
             parentFragment instanceof BaseNekoXSettingsActivity ||
             parentFragment instanceof DialogsActivity ||
             parentFragment instanceof ContactsActivity ||
-            parentFragment instanceof CallLogActivity
-        );
+            parentFragment instanceof CallLogActivity) {
+            return true;
+        }
+        if (parentFragment instanceof ProfileActivity) {
+            return ((ProfileActivity) parentFragment).isSettings();
+        }
+        String simpleName = parentFragment.getClass().getSimpleName();
+        return simpleName.contains("Settings")
+            || "DatacenterActivity".equals(simpleName)
+            || "SessionsActivity".equals(simpleName)
+            || "ThemeActivity".equals(simpleName)
+            || "LanguageSelectActivity".equals(simpleName)
+            || "PasscodeActivity".equals(simpleName);
     }
 
     // --- Spring Animation ---

@@ -251,6 +251,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import tw.nekomimi.nekogram.BackButtonMenuRecent;
 import tw.nekomimi.nekogram.NekoConfig;
+import tw.nekomimi.nekogram.NekoXConfig;
 import tw.nekomimi.nekogram.helpers.PasscodeHelper;
 import xyz.nextalone.nagram.NaConfig;
 
@@ -3563,7 +3564,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
 
                 @Override
                 public int getTabCounter(int tabId) {
-                    if (NaConfig.INSTANCE.getIgnoreUnreadCount().Int() == NekoConfig.DIALOG_FILTER_EXCLUDE_ALL) {
+                    if (NaConfig.INSTANCE.getHideUnreadCounter().Bool()) {
                         return 0;
                     }
 
@@ -3720,7 +3721,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
 
                 @Override
                 public void onTabSelected(FilterTabsView.Tab tab, boolean forward, boolean animated) {
-                    if (NaConfig.INSTANCE.getFolderNameAsTitle().Bool()) {
+                    if (NekoConfig.tabsTitleType.Int() == NekoXConfig.TITLE_TYPE_ICON) {
                         actionBar.setTitleAnimatedX(tab.isDefault ? actionBarTitleNax : tab.realTitle, tab.isDefault ? statusDrawable : null, forward, 250);
                     } else {
                         actionBar.setTitle(actionBarTitleNax, statusDrawable);
@@ -6950,7 +6951,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
 
                 // NagramX: use folder name as title
                 if (!actionBarTitleNax.equals(actionBar.getTitle())) {
-                    if (NaConfig.INSTANCE.getFolderNameAsTitle().Bool()) {
+                    if (NekoConfig.tabsTitleType.Int() == NekoXConfig.TITLE_TYPE_ICON) {
                         actionBar.setTitleAnimatedX(actionBarTitleNax, statusDrawable, false, 250);
                     } else {
                         actionBar.setTitle(actionBarTitleNax, statusDrawable);

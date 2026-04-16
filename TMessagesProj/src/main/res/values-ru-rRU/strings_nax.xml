@@ -41,9 +41,9 @@
     <string name="HideShareButton">Скрыть кнопку Share рядом с постом</string>
     <string name="ClearRegexFilters">Очистить</string>
     <string name="ClearRegexFiltersAlertMessage">Вы уверены, что хотите удалить все сохранённые фильтры? Это удалит как общие фильтры, так и фильтры чатов.</string>
-    <string name="PreferredTranslateTargetLang">Пользовательский список языков</string>
+    <string name="PreferredTranslateTargetLang">Переопределить список предпочтительных языков</string>
     <string name="PreferredTranslateTargetLangExample">Например: ja, zh_cn, zh_tw</string>
-    <string name="PreferredTranslateTargetLangName">Предпочитаемые языки</string>
+    <string name="PreferredTranslateTargetLangName">Переопределить предпочитаемые языки</string>
     <string name="ClearDeleted">Очистить удалённые</string>
     <string name="ClearDeletedAlertMessage">Вы уверены, что хотите очистить все удалённые сообщения в этом чате?</string>
     <string name="ForwardsRestrictedInfoAyuDeleted">Пересылка запрещена.</string>
@@ -89,8 +89,10 @@
     <string name="TranslatorKeepMarkdown">Сохранять разметку</string>
     <string name="TranslatorOptions">Параметры</string>
     <string name="GoogleTranslateExp">Использовать новый Google Переводчик</string>
-    <string name="SpringAnimation">Spring-анимации</string>
-    <string name="SpringAnimationCrossfade">Анимированная панель действий</string>
+    <string name="SpringAnimation">«Spring»-анимации</string>
+    <string name="SpringAnimationCrossfade">Анимированные кнопки меню/назад</string>
+    <string name="Configure">Настройка</string>
+    <string name="Backups">Резервные копии</string>
     <string name="Other">Другое</string>
     <string name="RestartApp">Перезапустить приложение</string>
     <string name="ResetSettings">Сброс настроек</string>
@@ -148,7 +150,7 @@
     <string name="GeminiNotSupport">Gemini не поддерживается на этом устройстве.</string>
     <string name="ReplyInPrivate">Ответить в личном чате</string>
     <string name="TranscribeProviderGeminiPrompt">Промпт (необязательно)</string>
-    <string name="uploadBoost">Увеличить скорость скачивания</string>
+    <string name="uploadBoost">Ускорение загрузки</string>
     <string name="HideDividers">Скрыть разделители</string>
     <string name="DebugMenuEnableInvoicePayment">Включить оплату счетов</string>
     <string name="DebugMenuDisableInvoicePayment">Отключить оплату счетов</string>
@@ -255,6 +257,7 @@
     <string name="FixLinkPreview">Исправить предпросмотр ссылок</string>
     <string name="FixLinkPreviewDetails">Домен X/Twitter будет заменён на fixupx.com</string>
     <string name="NagramX">Telegram</string>
+    <string name="TelegramVersionFooter">Telegram для Android, версия %1$s</string>
     <string name="LlmApiUrlDefault">https://generativelanguage.googleapis.com/v1beta/openai</string>
     <string name="LlmModelNameDefault">gemini-flash-latest</string>
     <string name="LlmProviderOpenAIModel">gpt-5-nano</string>
@@ -266,6 +269,5 @@
     <string name="Resolution">Разрешение</string>
     <string name="Bitrate">Битрейт</string>
     <string name="CameraVideoMessagesNotice">Видеосообщения размером более 10 МБ будут автоматически отправляться как обычные видео, чтобы обойти серверное ограничение.</string>
-    <string name="NagramVanillaAboutFooter">Nagram X Vanilla, версия %1$s (сборка %2$d)</string>
     <string name="DisableGooeyAvatarAnimation">Отключить анимацию аватара «Gooey»</string>
 </resources>

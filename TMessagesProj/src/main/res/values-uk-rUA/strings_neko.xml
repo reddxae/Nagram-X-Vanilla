@@ -21,7 +21,7 @@
     <string name="AddToSavedMessages">Зберегти</string>
     <string name="CreateMention">Згадати</string>
     <string name="TransparentStatusBar">Прозорий рядок стану</string>
-    <string name="ChristmasHat">Різдвяна шапка у заголовку</string>
+    <string name="ChristmasHat">Примусово показувати ковпак Санти в заголовку чатів</string>
     <string name="ActionBarDecoration">Оформлення заголовку</string>
     <string name="DependsOnDate">За календарем</string>
     <string name="Christmas">Різдво</string>
@@ -67,8 +67,8 @@
     <string name="HideAllTab">Приховати вкладку «Усі чати»</string>
     <string name="HideAllTabAbout">Довге натискання на заголовок у списку чатів показує Всі чати.</string>
     <string name="TabTitleType">Показувати на вкладках</string>
-    <string name="TabTitleTypeText">Назви</string>
-    <string name="TabTitleTypeIcon">Іконки</string>
+    <string name="TabTitleTypeText">Лише назви</string>
+    <string name="TabTitleTypeIcon">Лише іконки</string>
     <string name="TabTitleTypeMix">Іконки з назвами</string>
     <string name="ConfirmAVMessage">Запитувати перед надсиланням відео/голосового повідомлення</string>
     <string name="AskBeforeCalling">Запитувати перед дзвінком</string>
@@ -88,7 +88,7 @@
     <string name="AutoPauseVideoAbout">При блокуванні екрана або згортанні програми.</string>
     <string name="DisableProximityEvents">Вимкнути датчик наближення</string>
     <string name="SelectBetween">Виберіть діапазон</string>
-    <string name="AvatarAsBackground">Тип фону</string>
+    <string name="AvatarAsBackground">Стиль тла</string>
     <string name="BlurAvatarBackground">Розмиття фону</string>
     <string name="DarkenAvatarBackground">Затемнення фону</string>
     <string name="ProviderDeepLTranslate">DeepL Перекладач</string>
@@ -116,11 +116,11 @@
     <string name="SaveToDownloadCount_other">Збереження %1$d файлів у завантаження</string>
     <string name="disableNotificationBubbles">Вимкнути бульбашки сповіщень</string>
     <string name="ReactionsDisabled">Вимкнути</string>
-    <string name="customSavePath">Шлях зберігання завантажень</string>
+    <string name="customSavePath">Назва папки для зберігання</string>
     <string name="customSavePathHint">Залиште порожнім, щоб зберегти у стандартну папку</string>
     <string name="channelLabel">канал</string>
-    <string name="forceBlurInChat">Примусове розмиття в чаті</string>
-    <string name="ChatBlurAlphaValue">Розмиття чатів (Alpha)</string>
+    <string name="forceBlurInChat">Примусово вмикати розмиття в усіх темах</string>
+    <string name="ChatBlurAlphaValue">Прозорість розмиття панелей чату</string>
     <string name="MutualContact">Взаємний контакт</string>
     <string name="MutualContactDescription">Цей контакт є взаємним контактом.</string>
     <string name="DatacenterStatusAbout">Перевірте стан **дата-центрів** Telegram.</string>

@@ -195,7 +195,7 @@ object NaConfig {
         addConfig(
             "AutoInsertGIFCaption",
             ConfigItem.configTypeBool,
-            true
+            false
         )
     val zalgoFilter =
         addConfig(
@@ -435,11 +435,11 @@ object NaConfig {
             ConfigItem.configTypeBool,
             false
         )
-    val disablePreviewVideoSoundShortcut =
+    val unmuteVideosWithVolumeButton =
         addConfig(
-            "DisablePreviewVideoSoundShortcut",
+            "UnmuteVideosWithVolumeButton",
             ConfigItem.configTypeBool,
-            true
+            false
         )
     val disableAutoWebLogin =
         addConfig(
@@ -760,7 +760,7 @@ object NaConfig {
         addConfig(
             "PreferredTranslateTargetLang",
             ConfigItem.configTypeString,
-            "ja, zh"
+            ""
         )
     val disableScreenshotDetection =
         addConfig(
@@ -924,9 +924,9 @@ object NaConfig {
             ConfigItem.configTypeBool,
             false
         )
-    val folderNameAsTitle =
+    val hideUnreadCounter =
         addConfig(
-            "FolderNameAsTitle",
+            "HideUnreadCounter",
             ConfigItem.configTypeBool,
             false
         )
@@ -1200,12 +1200,6 @@ object NaConfig {
             ConfigItem.configTypeBool,
             true
         )
-    val preferCommonGroupsTab =
-        addConfig(
-            "PreferCommonGroupsTab",
-            ConfigItem.configTypeBool,
-            true
-        )
     val sendHighQualityPhoto =
         addConfig(
             "SendHighQualityPhoto",
@@ -1290,12 +1284,6 @@ object NaConfig {
             ConfigItem.configTypeBool,
             true
         )
-    val ignoreUnreadCount =
-        addConfig(
-            "IgnoreUnreadCount",
-            ConfigItem.configTypeInt,
-            getIgnoreMutedCountLegacy()
-        )
     val markdownParser =
         addConfig(
             "MarkdownParser",
@@ -1306,7 +1294,7 @@ object NaConfig {
         addConfig(
             "KeepTranslatorPreferences",
             ConfigItem.configTypeBool,
-            false
+            true
         )
     val usePinnedReactionsChats =
         addConfig(
@@ -1415,18 +1403,26 @@ object NaConfig {
         return NekoConfig.translationProvider.Int() == Translator.providerLLMTranslator
     }
 
-    private fun getIgnoreMutedCountLegacy(): Int {
-        return when {
-            preferences.getBoolean("IgnoreFolderCount", false) -> NekoConfig.DIALOG_FILTER_EXCLUDE_ALL
-            preferences.getBoolean("IgnoreMutedCount", true) -> NekoConfig.DIALOG_FILTER_EXCLUDE_MUTED
-            else -> NekoConfig.DIALOG_FILTER_EXCLUDE_NONE
-        }
-    }
-
     private fun fixConfig() {
         if (!preferences.contains(hideShareButton.key) && preferences.contains("HideShareButtonInChannel")) {
             hideShareButton.setConfigBool(preferences.getBoolean("HideShareButtonInChannel", false))
             preferences.edit().remove("HideShareButtonInChannel").apply()
+        }
+        if (!preferences.contains(hideUnreadCounter.key)) {
+            val legacyValue = preferences.all["IgnoreUnreadCount"]
+            when (legacyValue) {
+                is Int -> hideUnreadCounter.setConfigBool(legacyValue == NekoConfig.DIALOG_FILTER_EXCLUDE_ALL)
+                else -> hideUnreadCounter.setConfigBool(preferences.getBoolean("IgnoreFolderCount", false))
+            }
+            preferences.edit()
+                .remove("IgnoreUnreadCount")
+                .remove("IgnoreFolderCount")
+                .remove("IgnoreMutedCount")
+                .apply()
+        }
+        if (!preferences.contains(unmuteVideosWithVolumeButton.key) && preferences.contains("DisablePreviewVideoSoundShortcut")) {
+            unmuteVideosWithVolumeButton.setConfigBool(!preferences.getBoolean("DisablePreviewVideoSoundShortcut", true))
+            preferences.edit().remove("DisablePreviewVideoSoundShortcut").apply()
         }
         if (translatorMode.Int() > 1) {
             translatorMode.setConfigInt(1)

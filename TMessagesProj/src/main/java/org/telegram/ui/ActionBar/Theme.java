@@ -130,6 +130,7 @@ import org.telegram.ui.Components.ThemeEditorView;
 import org.telegram.ui.Components.TypingDotsDrawable;
 import org.telegram.ui.LaunchActivity;
 import org.telegram.ui.RoundVideoProgressShadow;
+import org.telegram.ui.PeerColorActivity;
 import org.telegram.ui.ThemeActivity;
 import org.telegram.ui.ThemePreviewActivity;
 
@@ -9737,6 +9738,24 @@ public class Theme {
             return provider.getColor(key);
         }
         return getColor(key);
+    }
+
+    /**
+     * Neutral profile action button background used when avatar blur is disabled.
+     * This matches the visible interaction button color in profiles without peer-color overlays.
+     */
+    public static int getProfileActionBackgroundColorForNoAvatarBlur(ResourcesProvider provider) {
+        final int actionBarColor = getColor(key_actionBarDefault, provider);
+        final int headerColor = getColor(key_avatar_backgroundActionBarBlue, provider);
+        final int overlayColor;
+        if (AndroidUtilities.computePerceivedBrightness(actionBarColor) > .8f) {
+            overlayColor = multAlpha(getColor(key_windowBackgroundWhiteBlueText, provider), .30f);
+        } else if (AndroidUtilities.computePerceivedBrightness(actionBarColor) < .2f) {
+            overlayColor = multAlpha(adaptHSV(actionBarColor, +0.02f, +0.25f), .35f);
+        } else {
+            overlayColor = multAlpha(PeerColorActivity.adaptProfileEmojiColor(actionBarColor), .15f);
+        }
+        return ColorUtils.compositeColors(overlayColor, headerColor);
     }
 
     public static int getColor(int key) {

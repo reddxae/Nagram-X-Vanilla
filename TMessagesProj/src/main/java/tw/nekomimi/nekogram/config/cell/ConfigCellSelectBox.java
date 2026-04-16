@@ -26,12 +26,17 @@ public class ConfigCellSelectBox extends AbstractConfigCell {
     private final ConfigItem bindConfig;
     private final String[] selectList; // split by \n
     private final String title;
+    private final CharSequence description;
     private final Runnable onClickCustom;
     private Context ctxCustom;
     private final String key;
 
     // default: customTitle=null customOnClick=null
     public ConfigCellSelectBox(String key, ConfigItem bind, Object selectList_s, Runnable customOnClick) {
+        this(key, bind, selectList_s, null, customOnClick);
+    }
+
+    public ConfigCellSelectBox(String key, ConfigItem bind, Object selectList_s, CharSequence description, Runnable customOnClick) {
         this.bindConfig = bind;
         String key1 = key;
         if (key == null) {
@@ -48,6 +53,7 @@ public class ConfigCellSelectBox extends AbstractConfigCell {
             this.selectList = null;
         }
         title = getString(this.key);
+        this.description = description;
         this.onClickCustom = customOnClick;
     }
 
@@ -73,7 +79,7 @@ public class ConfigCellSelectBox extends AbstractConfigCell {
         if (selectList != null && bindConfig.Int() < selectList.length) {
             valueText = selectList[bindConfig.Int()];
         }
-        cell.setTextAndValue(title, valueText, false, cellGroup.needSetDivider(this), true);
+        cell.setTextAndValueAndDescription(title, valueText, description, false, cellGroup.needSetDivider(this), true);
     }
 
     public void onClickWithDialog(Context ctx) {

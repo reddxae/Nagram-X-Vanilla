@@ -390,9 +390,10 @@ public abstract class BaseFragment {
             }
             if (parentLayout != null && actionBar == null) {
                 actionBar = createActionBar(parentLayout.getView().getContext());
-                if (actionBar != null) {
-                    actionBar.parentFragment = this;
-                }
+            }
+            if (actionBar != null) {
+                actionBar.parentFragment = this;
+                actionBar.updateTitleViewsGravity();
             }
         }
     }

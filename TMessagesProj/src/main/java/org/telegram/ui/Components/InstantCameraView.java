@@ -34,6 +34,7 @@ import android.graphics.PorterDuff;
 import android.graphics.PorterDuffXfermode;
 import android.graphics.RectF;
 import android.graphics.SurfaceTexture;
+import android.graphics.drawable.ColorDrawable;
 import android.hardware.Camera;
 import android.media.AudioFormat;
 import android.media.AudioManager;
@@ -747,7 +748,7 @@ public class InstantCameraView extends FrameLayout implements NotificationCenter
         if (lastBitmap != null) {
             textureOverlayView.setImageBitmap(lastBitmap);
         } else {
-            textureOverlayView.setImageResource(R.drawable.icplaceholder);
+            textureOverlayView.setImageDrawable(new ColorDrawable(Theme.getProfileActionBackgroundColorForNoAvatarBlur(resourcesProvider)));
         }
         cameraReady = false;
         selectedCamera = null;

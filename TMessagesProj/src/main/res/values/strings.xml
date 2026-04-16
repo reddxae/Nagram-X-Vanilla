@@ -518,9 +518,9 @@
     <string name="ChannelAddToChannel">Add to channel</string>
     <string name="ChannelDeleteFromList">Delete from this list</string>
     <string name="ChannelSubscribers">Subscribers</string>
-    <string name="ReplaceSubscribersWithIcon">Replace "subscribers" with icon</string>
-    <string name="ReplaceMembersWithIcon">Replace "members" with icon</string>
-    <string name="HideOnlineMembersCounter">Hide online members counter</string>
+    <string name="ReplaceSubscribersWithIcon">Show Icon Instead of \"subscribers\"</string>
+    <string name="ReplaceMembersWithIcon">Show Icon Instead of \"members\"</string>
+    <string name="HideOnlineMembersCounter">Hide Online Members Counter</string>
     <string name="ChannelBlacklist">Removed Users</string>
     <string name="ChannelPermissions">Permissions</string>
     <string name="ChannelPermissionsHeader">What can members of this group do?</string>
@@ -2493,6 +2493,7 @@
     <string name="Emoji">Emoji</string>
     <string name="LargeEmoji">Large Emoji</string>
     <string name="TelegramVersion">Telegram for Android %1$s</string>
+    <string name="TelegramVersionFooter">Telegram for Android, version %1$s</string>
     <string name="DebugMenu">Debug Menu</string>
     <string name="DebugMenuLongPress">Long press again for debug menu</string>
     <string name="DebugSendLogs">Send Logs</string>

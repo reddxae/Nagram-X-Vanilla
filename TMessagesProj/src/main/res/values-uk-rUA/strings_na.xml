@@ -9,7 +9,7 @@
     <string name="DoubleTapAction">Дія при подвійному дотику</string>
     <string name="SendReactions">Надсилати реакції</string>
     <string name="ShowReactions">Показати реакції</string>
-    <string name="CustomTitle">Свій заголовок</string>
+    <string name="CustomTitle">Власний заголовок на сторінці чатів</string>
     <string name="CustomTitleHint">Залиште порожнім, щоб використовувати Telegram</string>
     <string name="CreateMono">Створити монопростір</string>
     <string name="CreateMonoLanguage">Мова коду</string>
@@ -99,7 +99,7 @@
     <string name="RegexFiltersEdit">Редагувати фільтр</string>
     <string name="RegexFiltersAddDescription">Ви можете скористатися сайтом <![CDATA[<a href="https://regex101.com">regex101.com</a>]]> для повної перевірки вашого регулярного виразу. Ви також можете використовувати звичайний текст, але не забудьте екранувати дужки.</string>
     <string name="RegexFiltersAddError">Помилка синтаксису регулярного виразу</string>
-    <string name="ShowTimeHint">Натисніть «Час» для детальної інформації</string>
+    <string name="ShowTimeHint">Натискання на час показує точну дату</string>
     <string name="SearchHashtagDefaultPageChannel">Типовий пошук хештегів у каналах</string>
     <string name="SearchHashtagDefaultPageChat">Типовий пошук хештегів у чатах</string>
     <string name="LocaleToDBC">Текст локалізації з використанням регістру DBC</string>
@@ -108,9 +108,19 @@
     <string name="SendWithPangu">Надіслати з Pangu</string>
     <string name="SendWithoutPangu">Надіслати без Pangu</string>
     <string name="DefaultHlsVideoQuality">Якість відео HLS за замовчуванням</string>
-    <string name="DisableBotOpenButton">Вимкнути кнопку відкриття бота</string>
+    <string name="DisableBotOpenButton">Сховати кнопку відкриття бота</string>
     <string name="CustomTitleUserName">Використовувати ім\'я користувача як заголовок</string>
-    <string name="EnhancedVideoBitrate">Покращений бітрейт відео</string>
+    <string name="EnhancedVideoBitrate">Покращений бітрейт відео, що завантажуються</string>
+    <string name="UnmuteVideosWithVolumeButton">Вмикати звук відео кнопкою гучності</string>
+    <string name="HideUnreadCounter">Приховати лічильник непрочитаних</string>
+    <string name="Drawer">Бічне меню</string>
+    <string name="ShowOnChatsTabsNotice">Якщо вибрано режим «Icons Only», назва папки буде використовуватися як заголовок.</string>
+    <string name="DisableIgnoreDate">Вимкнути (ігнорувати дату)</string>
+    <string name="DisableSystemAccountNotice">Список ваших акаунтів не відображатиметься в налаштуваннях Android.</string>
+    <string name="DisableNumberRoundingNotice">Якщо ввімкнено, 4.8K буде показано як 4785.</string>
+    <string name="UploadBoostNotice">У повільних мережах може працювати гірше та спричиняти проблеми.</string>
+    <string name="LocalPremiumNotice">Перевірки на боці сервера все одно застосовуються.</string>
+    <string name="VoiceEnhancementsNotice">Нормалізація голосу та приглушення фонового шуму.</string>
     <string name="ActionBarButtons">Кнопки панелі дій</string>
     <string name="VideoPlayerDecoder">Декодер відео</string>
     <string name="VideoPlayerDecoderPreferSW">Перевага програмному</string>

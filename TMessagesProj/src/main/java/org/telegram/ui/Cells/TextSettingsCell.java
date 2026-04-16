@@ -42,6 +42,7 @@ public class TextSettingsCell extends FrameLayout {
 
     private Theme.ResourcesProvider resourcesProvider;
     private TextView textView;
+    private TextView descriptionTextView;
     private AnimatedTextView valueTextView;
     private ImageView imageView;
     private boolean imageViewIsColorful;
@@ -88,6 +89,16 @@ public class TextSettingsCell extends FrameLayout {
         textView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText, resourcesProvider));
         addView(textView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT, (LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT) | Gravity.TOP, padding, 0, padding, 0));
 
+        descriptionTextView = new TextView(context);
+        descriptionTextView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 13);
+        descriptionTextView.setSingleLine(false);
+        descriptionTextView.setMaxLines(Integer.MAX_VALUE);
+        descriptionTextView.setEllipsize(null);
+        descriptionTextView.setGravity(LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT);
+        descriptionTextView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteGrayText2, resourcesProvider));
+        descriptionTextView.setVisibility(GONE);
+        addView(descriptionTextView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, (LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT) | Gravity.TOP, padding, 35, padding, 0));
+
         valueTextView = new AnimatedTextView(context, true, true, !LocaleController.isRTL);
         valueTextView.setAnimationProperties(.55f, 0, 320, CubicBezierInterpolator.EASE_OUT_QUINT);
         valueTextView.setTextSize(AndroidUtilities.dp(16));
@@ -120,7 +131,10 @@ public class TextSettingsCell extends FrameLayout {
 
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        setMeasuredDimension(MeasureSpec.getSize(widthMeasureSpec), AndroidUtilities.dp(50) + (needDivider ? 1 : 0));
+        boolean hasDescription = descriptionTextView.getVisibility() == VISIBLE;
+        int widthSize = MeasureSpec.getSize(widthMeasureSpec);
+        int baseHeight = AndroidUtilities.dp(hasDescription ? 64 : 50);
+        setMeasuredDimension(widthSize, baseHeight + (needDivider ? 1 : 0));
 
         int availableWidth = getMeasuredWidth() - getPaddingLeft() - getPaddingRight() - AndroidUtilities.dp(34);
         int width = betterLayout ? availableWidth : availableWidth / 2;
@@ -160,7 +174,38 @@ public class TextSettingsCell extends FrameLayout {
         } else {
             width = availableWidth;
         }
-        textView.measure(MeasureSpec.makeMeasureSpec(width, MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec(getMeasuredHeight(), MeasureSpec.EXACTLY));
+        textView.measure(
+                MeasureSpec.makeMeasureSpec(width, MeasureSpec.EXACTLY),
+                MeasureSpec.makeMeasureSpec(getMeasuredHeight(), hasDescription ? MeasureSpec.AT_MOST : MeasureSpec.EXACTLY)
+        );
+        if (hasDescription) {
+            descriptionTextView.measure(
+                    MeasureSpec.makeMeasureSpec(width, MeasureSpec.EXACTLY),
+                    MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED)
+            );
+            int contentHeight = Math.max(
+                    AndroidUtilities.dp(35) + descriptionTextView.getMeasuredHeight() + AndroidUtilities.dp(10),
+                    AndroidUtilities.dp(10) + textView.getMeasuredHeight() + AndroidUtilities.dp(10)
+            );
+            int finalHeight = Math.max(baseHeight, contentHeight);
+            if (finalHeight != baseHeight) {
+                setMeasuredDimension(widthSize, finalHeight + (needDivider ? 1 : 0));
+                int exactHeight = getMeasuredHeight();
+                if (valueImageView.getVisibility() == VISIBLE) {
+                    valueImageView.measure(MeasureSpec.makeMeasureSpec(width, MeasureSpec.AT_MOST), MeasureSpec.makeMeasureSpec(exactHeight, MeasureSpec.EXACTLY));
+                }
+                if (imageView.getVisibility() == VISIBLE) {
+                    if (imageViewIsColorful) {
+                        imageView.measure(MeasureSpec.makeMeasureSpec(AndroidUtilities.dp(28), MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec(AndroidUtilities.dp(28), MeasureSpec.EXACTLY));
+                    } else {
+                        imageView.measure(MeasureSpec.makeMeasureSpec(width, MeasureSpec.AT_MOST), MeasureSpec.makeMeasureSpec(exactHeight, MeasureSpec.AT_MOST));
+                    }
+                }
+                if (valueTextView.getVisibility() == VISIBLE) {
+                    valueTextView.measure(MeasureSpec.makeMeasureSpec(width, MeasureSpec.AT_MOST), MeasureSpec.makeMeasureSpec(exactHeight, MeasureSpec.EXACTLY));
+                }
+            }
+        }
     }
 
     @Override
@@ -195,6 +240,8 @@ public class TextSettingsCell extends FrameLayout {
         textView.setText(text);
         valueTextView.setVisibility(INVISIBLE);
         valueImageView.setVisibility(INVISIBLE);
+        descriptionTextView.setVisibility(GONE);
+        resetTextLayout(false);
         needDivider = divider;
         setWillNotDraw(!divider);
     }
@@ -208,11 +255,24 @@ public class TextSettingsCell extends FrameLayout {
     }
 
     public void setTextAndValue(CharSequence text, CharSequence value, boolean animated, boolean divider, boolean isNekoCell) {
+        setTextAndValueAndDescription(text, value, null, animated, divider, isNekoCell);
+    }
+
+    public void setTextAndValueAndDescription(CharSequence text, CharSequence value, CharSequence description, boolean animated, boolean divider, boolean isNekoCell) {
         textView.setText(text);
-        if (isNekoCell) {
+        boolean hasDescription = !TextUtils.isEmpty(description);
+        if (hasDescription) {
+            descriptionTextView.setText(description);
+            descriptionTextView.setVisibility(VISIBLE);
+        } else {
+            descriptionTextView.setVisibility(GONE);
+        }
+        resetTextLayout(hasDescription);
+        if (!hasDescription && isNekoCell) {
             textView.setLines(0);
             textView.setMaxLines(0);
             textView.setSingleLine(false);
+            textView.setEllipsize(null);
         }
         valueImageView.setVisibility(INVISIBLE);
         if (value != null) {
@@ -229,6 +289,8 @@ public class TextSettingsCell extends FrameLayout {
     public void setTextAndIcon(CharSequence text, int resId, boolean divider) {
         textView.setText(text);
         valueTextView.setVisibility(INVISIBLE);
+        descriptionTextView.setVisibility(GONE);
+        resetTextLayout(false);
         if (resId != 0) {
             valueImageView.setVisibility(VISIBLE);
             valueImageView.setImageResource(resId);
@@ -289,6 +351,9 @@ public class TextSettingsCell extends FrameLayout {
         setEnabled(value);
         if (animators != null) {
             animators.add(ObjectAnimator.ofFloat(textView, "alpha", value ? 1.0f : 0.5f));
+            if (descriptionTextView.getVisibility() == VISIBLE) {
+                animators.add(ObjectAnimator.ofFloat(descriptionTextView, "alpha", value ? 1.0f : 0.5f));
+            }
             if (valueTextView.getVisibility() == VISIBLE) {
                 animators.add(ObjectAnimator.ofFloat(valueTextView, "alpha", value ? 1.0f : 0.5f));
             }
@@ -297,6 +362,9 @@ public class TextSettingsCell extends FrameLayout {
             }
         } else {
             textView.setAlpha(value ? 1.0f : 0.5f);
+            if (descriptionTextView.getVisibility() == VISIBLE) {
+                descriptionTextView.setAlpha(value ? 1.0f : 0.5f);
+            }
             if (valueTextView.getVisibility() == VISIBLE) {
                 valueTextView.setAlpha(value ? 1.0f : 0.5f);
             }
@@ -310,6 +378,9 @@ public class TextSettingsCell extends FrameLayout {
     public void setEnabled(boolean value) {
         super.setEnabled(value);
         textView.setAlpha(value || !canDisable ? 1.0f : 0.5f);
+        if (descriptionTextView.getVisibility() == VISIBLE) {
+            descriptionTextView.setAlpha(value || !canDisable ? 1.0f : 0.5f);
+        }
         if (valueTextView.getVisibility() == VISIBLE) {
             valueTextView.setAlpha(value || !canDisable ? 1.0f : 0.5f);
         }
@@ -378,7 +449,17 @@ public class TextSettingsCell extends FrameLayout {
     @Override
     public void onInitializeAccessibilityNodeInfo(AccessibilityNodeInfo info) {
         super.onInitializeAccessibilityNodeInfo(info);
-        info.setText(textView.getText() + (valueTextView != null && valueTextView.getVisibility() == View.VISIBLE ? "\n" + valueTextView.getText() : ""));
+        StringBuilder accessibilityText = new StringBuilder();
+        if (textView.getText() != null) {
+            accessibilityText.append(textView.getText());
+        }
+        if (descriptionTextView.getVisibility() == View.VISIBLE && descriptionTextView.getText() != null) {
+            accessibilityText.append('\n').append(descriptionTextView.getText());
+        }
+        if (valueTextView != null && valueTextView.getVisibility() == View.VISIBLE && valueTextView.getText() != null) {
+            accessibilityText.append('\n').append(valueTextView.getText());
+        }
+        info.setText(accessibilityText.toString());
         info.setEnabled(isEnabled());
     }
 
@@ -415,6 +496,10 @@ public class TextSettingsCell extends FrameLayout {
         removeView(textView);
         addView(textView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT, (LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT) | Gravity.TOP, padding, 0, padding, 0));
 
+        descriptionTextView.setGravity(LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT);
+        removeView(descriptionTextView);
+        addView(descriptionTextView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, (LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT) | Gravity.TOP, padding, 35, padding, 0));
+
         valueTextView.setGravity((LocaleController.isRTL ? Gravity.LEFT : Gravity.RIGHT) | Gravity.CENTER_VERTICAL);
         removeView(valueTextView);
         addView(valueTextView, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.MATCH_PARENT, (LocaleController.isRTL ? Gravity.LEFT : Gravity.RIGHT) | Gravity.TOP, padding, 0, padding, 0));
@@ -424,5 +509,27 @@ public class TextSettingsCell extends FrameLayout {
 
         removeView(valueImageView);
         addView(valueImageView, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, (LocaleController.isRTL ? Gravity.LEFT : Gravity.RIGHT) | Gravity.CENTER_VERTICAL, padding, 0, padding, 0));
+
+        resetTextLayout(descriptionTextView.getVisibility() == VISIBLE);
+    }
+
+    private void resetTextLayout(boolean hasDescription) {
+        LayoutParams layoutParams = (LayoutParams) textView.getLayoutParams();
+        if (hasDescription) {
+            textView.setLines(1);
+            textView.setMaxLines(1);
+            textView.setSingleLine(true);
+            textView.setEllipsize(TextUtils.TruncateAt.END);
+            layoutParams.height = LayoutParams.WRAP_CONTENT;
+            layoutParams.topMargin = AndroidUtilities.dp(10);
+        } else {
+            textView.setLines(1);
+            textView.setMaxLines(1);
+            textView.setSingleLine(true);
+            textView.setEllipsize(TextUtils.TruncateAt.END);
+            layoutParams.height = LayoutParams.MATCH_PARENT;
+            layoutParams.topMargin = 0;
+        }
+        textView.setLayoutParams(layoutParams);
     }
 }

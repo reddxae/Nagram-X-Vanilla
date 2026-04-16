@@ -37,7 +37,6 @@ import kotlin.Unit;
 import tw.nekomimi.nekogram.config.CellGroup;
 import tw.nekomimi.nekogram.config.cell.AbstractConfigCell;
 import tw.nekomimi.nekogram.config.cell.ConfigCellCustom;
-import tw.nekomimi.nekogram.config.cell.ConfigCellDivider;
 import tw.nekomimi.nekogram.config.cell.ConfigCellHeader;
 import tw.nekomimi.nekogram.ui.PopupBuilder;
 import tw.nekomimi.nekogram.ui.cells.HeaderCell;
@@ -71,8 +70,6 @@ public class NekoCameraSettingsActivity extends BaseNekoXSettingsActivity {
             cell.setText(getString(R.string.CameraVideoMessagesNotice));
         }
     });
-    private final AbstractConfigCell dividerCamera = cellGroup.appendCell(new ConfigCellDivider());
-
     private ListAdapter listAdapter;
 
     public NekoCameraSettingsActivity() {

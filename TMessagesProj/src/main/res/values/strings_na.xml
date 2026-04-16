@@ -9,7 +9,7 @@
     <string name="DoubleTapAction">Double Tap Actions</string>
     <string name="SendReactions">Send Reactions</string>
     <string name="ShowReactions">Show Reactions</string>
-    <string name="CustomTitle">Custom Title</string>
+    <string name="CustomTitle">Custom Title on Chats Page</string>
     <string name="CustomTitleHint">Leave blank to use Telegram</string>
     <string name="CreateMono">Create Monospace</string>
     <string name="CreateMonoLanguage">Code Language</string>
@@ -38,8 +38,8 @@
     <string name="AlwaysShowDownloadIcon">Always Show Download Icon</string>
     <string name="HideTitle">Hide Title</string>
     <string name="IgnoreUnreadCount">Hide Unread Counter</string>
-    <string name="SendWithoutMarkdown">Send without markdown</string>
-    <string name="SendAsEmoji">Send as emoji</string>
+    <string name="SendWithoutMarkdown">Send without Markdown</string>
+    <string name="SendAsEmoji">Send as Emoji</string>
     <string name="CustomArtworkApi">Custom Artwork API</string>
     <string name="CustomEditedMessage">Custom Edited Mark</string>
     <string name="DisableEmojiDrawLimit">Disable Emoji Draw Limit</string>
@@ -47,16 +47,16 @@
     <string name="NotificationIcon">Notification Icon</string>
     <string name="Official">Official</string>
     <string name="Nagram" translatable="false">Telegram</string>
-    <string name="HalloWeen">HalloWeen</string>
+    <string name="HalloWeen">Halloween</string>
     <string name="ShowOnlineStatus">Show Online Status</string>
     <string name="ShowOnlineStatusNotice">Show the online status of other people next to their profile photo in groups.</string>
-    <string name="DoActionsInCommonGroups">Applied in common groups</string>
+    <string name="DoActionsInCommonGroups">Applied in Common Groups</string>
     <string name="ShowFullAbout">Always Expand Chat Description</string>
     <string name="TypeMessageHintUseGroupName">Use Group Name as Hint Text</string>
     <string name="HideGiftButtonInProfiles">Hide Gift Button in Profiles</string>
     <string name="HideBotButtonInInputField">Hide Bot Button in Input Field</string>
     <string name="ShowSendAsUnderMessageHint">Show Sender Under Message Hint</string>
-    <string name="CheckAllForum">Add forum</string>
+    <string name="CheckAllForum">Add Forum</string>
     <string name="DecorationNone">None</string>
     <string name="ChatDecoration">Chat Decoration</string>
     <string name="NeedChangeNekoSettings">You need to change Modification Settings</string>
@@ -87,8 +87,7 @@
     <string name="StickersChooseShortNameForStickerPack">Choose a short name for your pack.</string>
     <string name="StickersCopyStickerSet">Copy Sticker Set</string>
     <string name="DisableChannelMuteButton">Hide Bottom Bar in Channels</string>
-    <string name="DisablePreviewVideoSoundShortcut">Disable Unmute Videos with Volume Buttons</string>
-    <string name="DisablePreviewVideoSoundShortcutNotice">Prevent volume key from enabling preview video sound.</string>
+    <string name="UnmuteVideosWithVolumeButton">Unmute Videos with Volume Button</string>
     <string name="DisableAutoWebLogin">Disable Auto Web Login</string>
     <string name="PreviewSendPhoto">Send Photo</string>
     <string name="PreviewSendVideo">Send Video</string>
@@ -101,12 +100,12 @@
     <string name="RegexFiltersSubMenuDescription">You can choose to exclude Shared Filters for this chat.</string>
     <string name="RegexFiltersChatHeader">Chat Filters</string>
     <string name="RegexFiltersEnableInChats">Enable Filters in Private Chats</string>
-    <string name="RegexFiltersCaseInsensitive">Case insensitive expressions</string>
-    <string name="RegexFiltersAdd">Add filter</string>
-    <string name="RegexFiltersEdit">Edit filter</string>
+    <string name="RegexFiltersCaseInsensitive">Case-Insensitive Expressions</string>
+    <string name="RegexFiltersAdd">Add Filter</string>
+    <string name="RegexFiltersEdit">Edit Filter</string>
     <string name="RegexFiltersAddDescription">You can use site <![CDATA[<a href="https://regex101.com">regex101.com</a>]]> to fully test your regular expression. You can also use plain text, but don\'t forget to escape brackets.</string>
     <string name="RegexFiltersAddError">Regex syntax error</string>
-    <string name="ShowTimeHint">Tap Time for Details</string>
+    <string name="ShowTimeHint">Tap on Time for Detailed Date</string>
     <string name="SearchHashtagDefaultPageChannel">Default Hashtag Search Page in Channels</string>
     <string name="SearchHashtagDefaultPageChat">Default Hashtag Search Page in Chats</string>
     <string name="LocaleToDBC">Locale Text Using DBC Case</string>
@@ -116,9 +115,18 @@
     <string name="SendWithPangu">Send with Pangu</string>
     <string name="SendWithoutPangu">Send without Pangu</string>
     <string name="DefaultHlsVideoQuality">Default HLS Video Quality</string>
-    <string name="DisableBotOpenButton">Disable Bot Open Button</string>
+    <string name="DisableBotOpenButton">Hide Bot Open Button</string>
     <string name="CustomTitleUserName">Use User Nickname as Title</string>
-    <string name="EnhancedVideoBitrate">Enhanced Shared Video Bitrate</string>
+    <string name="EnhancedVideoBitrate">Enhanced Uploading Video Bitrate</string>
+    <string name="HideUnreadCounter">Hide Unread Counter</string>
+    <string name="Drawer">Drawer</string>
+    <string name="ShowOnChatsTabsNotice">When \"Icons only\" is selected, the folder name will be used as the title.</string>
+    <string name="DisableIgnoreDate">Disable (ignore date)</string>
+    <string name="DisableSystemAccountNotice">The list of your accounts will not be displayed in the Android settings.</string>
+    <string name="DisableNumberRoundingNotice">When enabled, 4.8K will be shown as 4785.</string>
+    <string name="UploadBoostNotice">May cause problems and even worse speed on slow connections.</string>
+    <string name="LocalPremiumNotice">Server-side checks still applied.</string>
+    <string name="VoiceEnhancementsNotice">Voice normalization and background noise suppression.</string>
     <string name="ActionBarButtons">Action Bar Buttons</string>
     <string name="VideoPlayerDecoder">Video Decoder</string>
     <string name="VideoPlayerDecoderPreferSW">Prefer SW</string>

@@ -6787,7 +6787,7 @@ public class StoryRecorder implements NotificationCenter.NotificationCenterDeleg
         if (bitmap != null) {
             return new BitmapDrawable(bitmap);
         } else {
-            return getContext().getResources().getDrawable(R.drawable.icplaceholder);
+            return new ColorDrawable(Color.BLACK);
         }
     }
 

@@ -41,9 +41,9 @@
     <string name="HideShareButton">Сховати кнопку Share поруч із постом</string>
     <string name="ClearRegexFilters">Очистити</string>
     <string name="ClearRegexFiltersAlertMessage">Ви впевнені, що хочете очистити всі збережені фільтри? Це призведе до видалення як спільних, так і специфічних для чату фільтрів.</string>
-    <string name="PreferredTranslateTargetLang">Користувацький список мов</string>
+    <string name="PreferredTranslateTargetLang">Перевизначити список бажаних мов</string>
     <string name="PreferredTranslateTargetLangExample">Для прикладу, ua, pl, zh_tw</string>
-    <string name="PreferredTranslateTargetLangName">Пріоритетні мови</string>
+    <string name="PreferredTranslateTargetLangName">Перевизначити бажані мови</string>
     <string name="ClearDeleted">Очистити видалені</string>
     <string name="ClearDeletedAlertMessage">Ви дійсно хочете очистити всі видалені повідомлення в цьому чаті?</string>
     <string name="ForwardsRestrictedInfoAyuDeleted">Пересилка заборона.</string>
@@ -89,8 +89,10 @@
     <string name="TranslatorKeepMarkdown">Зберігати розмітку</string>
     <string name="TranslatorOptions">Параметри</string>
     <string name="GoogleTranslateExp">Використовувати новий Google Translate</string>
-    <string name="SpringAnimation">Анімація Spring</string>
-    <string name="SpringAnimationCrossfade">Анімована панель дії</string>
+    <string name="SpringAnimation">«Spring»-анімації</string>
+    <string name="SpringAnimationCrossfade">Анімовані кнопки меню/назад</string>
+    <string name="Configure">Налаштування</string>
+    <string name="Backups">Резервні копії</string>
     <string name="Other">Інше</string>
     <string name="RestartApp">Перезапустити застосунок</string>
     <string name="ResetSettings">Скидання налаштувань</string>
@@ -148,7 +150,7 @@
     <string name="GeminiNotSupport">Gemini не підтримується на цьому пристрої.</string>
     <string name="ReplyInPrivate">Відповісти в приватному чаті</string>
     <string name="TranscribeProviderGeminiPrompt">Prompt (необов\'язково)</string>
-    <string name="uploadBoost">Збільшення швидкості вивантаження</string>
+    <string name="uploadBoost">Прискорення вивантаження</string>
     <string name="HideDividers">Приховати розділювачі</string>
     <string name="DebugMenuEnableInvoicePayment">Включити оплату за рахунками</string>
     <string name="DebugMenuDisableInvoicePayment">Вимкнути оплату за рахунками</string>
@@ -253,7 +255,6 @@
     <string name="Resolution">Роздільна здатність</string>
     <string name="Bitrate">Бітрейт</string>
     <string name="CameraVideoMessagesNotice">Відеоповідомлення розміром понад 10 МБ автоматично надсилатимуться як звичайні відео, щоб обійти серверне обмеження.</string>
-    <string name="NagramVanillaAboutFooter">Nagram X Vanilla, версія %1$s (збірка %2$d)</string>
     <string name="DisableGooeyAvatarAnimation">Вимкнути анімацію аватара «Gooey»</string>
     <string name="BlockChannel">Заблокувати канал</string>
     <string name="UnblockChannel">Розблокувати канал</string>
@@ -268,4 +269,5 @@
     <string name="BlockChannelsUnavailable">Деякі канали тимчасово недоступні.</string>
     <string name="FixLinkPreview">Виправити прев’ю посилань</string>
     <string name="FixLinkPreviewDetails">Домен X/Twitter буде замінено на fixupx.com</string>
+    <string name="TelegramVersionFooter">Telegram для Android, версія %1$s</string>
 </resources>

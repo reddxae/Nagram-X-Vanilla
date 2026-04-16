@@ -14,6 +14,7 @@ import android.graphics.Color;
 import android.graphics.LinearGradient;
 import android.graphics.Paint;
 import android.graphics.Shader;
+import android.graphics.drawable.ColorDrawable;
 import android.media.projection.MediaProjectionManager;
 import android.os.Build;
 import android.os.Parcelable;
@@ -73,6 +74,10 @@ public abstract class PrivateVideoPreviewDialog extends FrameLayout implements V
     private int currentPage;
 
     private boolean needScreencast;
+
+    private ColorDrawable createCameraPlaceholderDrawable() {
+        return new ColorDrawable(Theme.getProfileActionBackgroundColorForNoAvatarBlur(null));
+    }
 
     public PrivateVideoPreviewDialog(Context context, boolean mic, boolean screencast) {
         super(context);
@@ -543,7 +548,7 @@ public abstract class PrivateVideoPreviewDialog extends FrameLayout implements V
                 if (bitmap != null) {
                     imageView.setImageBitmap(bitmap);
                 } else {
-                    imageView.setImageResource(R.drawable.icplaceholder);
+                    imageView.setImageDrawable(createCameraPlaceholderDrawable());
                 }
 
                 imageView.setScaleType(ImageView.ScaleType.FIT_XY);

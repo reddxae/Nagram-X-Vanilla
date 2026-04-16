@@ -17,6 +17,7 @@ import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.PorterDuff;
+import android.graphics.drawable.ColorDrawable;
 import android.media.projection.MediaProjectionManager;
 import android.os.Build;
 import android.util.TypedValue;
@@ -90,6 +91,10 @@ public abstract class PrivateVideoPreviewDialogNew extends FrameLayout implement
     private final MotionBackgroundDrawable bgGreen = new MotionBackgroundDrawable(0xFF5FD051, 0xFF00B48E, 0xFFA9CC66, 0xFF5AB147, 0, false, true);
     private final MotionBackgroundDrawable bgBlueViolet = new MotionBackgroundDrawable(0xFF00A3E6, 0xFF296EF7, 0xFF18CEE2, 0xFF3FB2FF, 0, false, true);
     private final GestureDetector scrollGestureDetector;
+
+    private ColorDrawable createCameraPlaceholderDrawable() {
+        return new ColorDrawable(Theme.getProfileActionBackgroundColorForNoAvatarBlur(null));
+    }
 
     public PrivateVideoPreviewDialogNew(Context context, float startLocationX, float startLocationY) {
         super(context);
@@ -393,7 +398,7 @@ public abstract class PrivateVideoPreviewDialogNew extends FrameLayout implement
         if (bitmap != null && bitmap.getPixel(0, 0) != 0) {
             imageView.setImageBitmap(bitmap);
         } else {
-            imageView.setImageResource(R.drawable.icplaceholder);
+            imageView.setImageDrawable(createCameraPlaceholderDrawable());
         }
         if (animate) {
             imageView.setVisibility(VISIBLE);
@@ -511,7 +516,7 @@ public abstract class PrivateVideoPreviewDialogNew extends FrameLayout implement
         {
             ImageView imageView = new ImageView(getContext());
             imageView.setTag("image_stab");
-            imageView.setImageResource(R.drawable.icplaceholder);
+            imageView.setImageDrawable(createCameraPlaceholderDrawable());
             imageView.setScaleType(ImageView.ScaleType.FIT_XY);
             container.addView(imageView);
         }

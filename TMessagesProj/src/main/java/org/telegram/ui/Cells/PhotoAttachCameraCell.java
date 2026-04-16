@@ -14,6 +14,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffColorFilter;
+import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
@@ -92,7 +93,7 @@ public class PhotoAttachCameraCell extends FrameLayout {
         if (bitmap != null) {
             backgroundView.setImageBitmap(bitmap);
         } else {
-            backgroundView.setImageResource(R.drawable.icplaceholder);
+            backgroundView.setImageDrawable(new ColorDrawable(Theme.getProfileActionBackgroundColorForNoAvatarBlur(resourcesProvider)));
         }
     }
 
