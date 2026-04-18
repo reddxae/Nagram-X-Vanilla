@@ -14,13 +14,13 @@ import android.hardware.camera2.CaptureFailure;
 import android.hardware.camera2.CaptureRequest;
 import android.hardware.camera2.CaptureResult;
 import android.hardware.camera2.TotalCaptureResult;
+import android.hardware.camera2.params.OutputConfiguration;
 import android.hardware.camera2.params.StreamConfigurationMap;
 import android.media.Image;
 import android.media.ImageReader;
 import android.os.Build;
 import android.os.Handler;
 import android.os.HandlerThread;
-import android.util.Log;
 import android.util.Range;
 import android.util.Size;
 import android.util.SizeF;
@@ -33,8 +33,8 @@ import androidx.annotation.RequiresApi;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.ApplicationLoader;
 import org.telegram.messenger.FileLog;
-import org.telegram.messenger.MessagesController;
-import org.telegram.messenger.UserConfig;
+import org.telegram.messenger.LocaleController;
+import org.telegram.messenger.R;
 import org.telegram.messenger.Utilities;
 
 import java.io.File;
@@ -45,10 +45,18 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
+import java.util.Set;
 
 @TargetApi(Build.VERSION_CODES.LOLLIPOP)
 public class Camera2Session {
+
+    private static final int VIDEO_STABILIZATION_OFF = CaptureRequest.CONTROL_VIDEO_STABILIZATION_MODE_OFF;
+    private static final float DEFAULT_MAIN_EQUIVALENT_FOCAL_LENGTH = 26f;
+    private static final int ROUND_VIDEO_RECORD_FPS = 30;
 
     private boolean isError;
     private boolean isSuccess;
@@ -57,6 +65,7 @@ public class Camera2Session {
     private final CameraManager cameraManager;
     private final boolean isFront;
     public final String cameraId;
+    private final String physicalCameraId;
     private CameraCharacteristics cameraCharacteristics;
 
     private HandlerThread thread;
@@ -72,7 +81,14 @@ public class Camera2Session {
     private CaptureRequest.Builder captureRequestBuilder;
     private Rect sensorSize;
     private float maxZoom = 1f;
+    private float minZoom = 1f;
     private float currentZoom = 1f;
+    private final boolean zoomRatioSupported;
+    private final int preferredVideoStabilizationMode;
+    private final boolean opticalStabilizationSupported;
+    private final Range<Integer> preferredRecordingFpsRange;
+    private final Set<CaptureRequest.Key<?>> availablePhysicalRequestKeys;
+    private boolean stabilizationEnabled;
 
     private final Size previewSize;
 
@@ -122,10 +138,582 @@ public class Camera2Session {
         if (cameraId == null || bestSize == null) {
             return null;
         }
-        return new Camera2Session(context, front, cameraId, bestSize);
+        return new Camera2Session(context, front, cameraId, null, bestSize);
     }
 
-    private Camera2Session(Context context, boolean isFront, String cameraId, Size size) {
+    public static Camera2Session create(boolean front, int viewWidth, int viewHeight, boolean lockToPrimaryModule) {
+        return create(front, viewWidth, viewHeight);
+    }
+
+    public static Camera2Session create(RoundVideoCameraSelection selection) {
+        if (selection == null) {
+            return null;
+        }
+        final Context context = ApplicationLoader.applicationContext;
+        if (context == null || selection.previewSize == null) {
+            return null;
+        }
+        return new Camera2Session(context, selection.front, selection.cameraId, selection.physicalCameraId, selection.previewSize);
+    }
+
+    public static ArrayList<RoundVideoCameraOption> getRoundVideoCameraOptions() {
+        final Context context = ApplicationLoader.applicationContext;
+        if (context == null || Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
+            return new ArrayList<>();
+        }
+        final CameraManager cameraManager = (CameraManager) context.getSystemService(Context.CAMERA_SERVICE);
+        if (cameraManager == null) {
+            return new ArrayList<>();
+        }
+        try {
+            return queryRoundVideoCameraOptions(cameraManager);
+        } catch (Exception e) {
+            FileLog.e(e);
+            return new ArrayList<>();
+        }
+    }
+
+    public static RoundVideoCameraSelection resolveRoundVideoCameraSelection(String selectedKey, int viewWidth, int viewHeight) {
+        return resolveRoundVideoCameraSelectionInternal(selectedKey, null, viewWidth, viewHeight);
+    }
+
+    public static RoundVideoCameraSelection resolveRoundVideoCameraSelectionForFacing(boolean front, String selectedKey, int viewWidth, int viewHeight) {
+        return resolveRoundVideoCameraSelectionInternal(selectedKey, front, viewWidth, viewHeight);
+    }
+
+    private static RoundVideoCameraSelection resolveRoundVideoCameraSelectionInternal(String selectedKey, Boolean requiredFacing, int viewWidth, int viewHeight) {
+        final Context context = ApplicationLoader.applicationContext;
+        if (context == null || Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
+            return null;
+        }
+        final CameraManager cameraManager = (CameraManager) context.getSystemService(Context.CAMERA_SERVICE);
+        if (cameraManager == null) {
+            return null;
+        }
+        try {
+            Set<String> availableCameraIds = new HashSet<>(Arrays.asList(cameraManager.getCameraIdList()));
+            ArrayList<RoundVideoCameraOption> options = queryRoundVideoCameraOptions(cameraManager);
+            if (options.isEmpty()) {
+                return null;
+            }
+            RoundVideoCameraOption selectedOption = findRoundVideoCameraOption(options, selectedKey, requiredFacing);
+            if (selectedOption == null) {
+                selectedOption = findDefaultRoundVideoCameraOption(options, requiredFacing);
+            }
+            if (selectedOption == null) {
+                return null;
+            }
+
+            String resolvedCameraId = selectedOption.cameraId;
+            String resolvedPhysicalCameraId = null;
+            String previewCameraId = selectedOption.cameraId;
+            float initialZoom = 1f;
+            boolean canOpenSelectedCameraDirectly = availableCameraIds.contains(selectedOption.cameraId);
+            if (!selectedOption.front) {
+                String logicalCameraId = selectedOption.logicalCameraId;
+                String directCameraId = selectedOption.directCameraId;
+                if (logicalCameraId == null) {
+                    logicalCameraId = findBestLogicalBackCameraId(cameraManager, selectedOption);
+                }
+                if (logicalCameraId != null) {
+                    CameraCharacteristics logicalCharacteristics = cameraManager.getCameraCharacteristics(logicalCameraId);
+                    resolvedCameraId = logicalCameraId;
+                    previewCameraId = logicalCameraId;
+                    initialZoom = clampZoomRatio(logicalCharacteristics, getTargetZoomRatioForLogicalCamera(cameraManager, logicalCameraId, selectedOption));
+                } else if (canOpenSelectedCameraDirectly) {
+                    resolvedCameraId = selectedOption.cameraId;
+                    previewCameraId = selectedOption.cameraId;
+                } else if (directCameraId != null && availableCameraIds.contains(directCameraId)) {
+                    resolvedCameraId = directCameraId;
+                    previewCameraId = directCameraId;
+                } else if (logicalCameraId != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                    resolvedCameraId = logicalCameraId;
+                    resolvedPhysicalCameraId = selectedOption.cameraId;
+                    previewCameraId = logicalCameraId;
+                } else if (logicalCameraId != null) {
+                    CameraCharacteristics logicalCharacteristics = cameraManager.getCameraCharacteristics(logicalCameraId);
+                    resolvedCameraId = logicalCameraId;
+                    previewCameraId = logicalCameraId;
+                    initialZoom = clampZoomRatio(logicalCharacteristics, getTargetZoomRatioForLogicalCamera(cameraManager, logicalCameraId, selectedOption));
+                }
+            }
+            Size previewSize = getPreviewSize(cameraManager, previewCameraId, viewWidth, viewHeight);
+            if (previewSize == null && resolvedCameraId != null && !resolvedCameraId.equals(previewCameraId)) {
+                previewSize = getPreviewSize(cameraManager, resolvedCameraId, viewWidth, viewHeight);
+            }
+            if (previewSize == null) {
+                return null;
+            }
+            return new RoundVideoCameraSelection(selectedOption.key, selectedOption.title, selectedOption.front, resolvedCameraId, resolvedPhysicalCameraId, previewSize, initialZoom);
+        } catch (Exception e) {
+            FileLog.e(e);
+            return null;
+        }
+    }
+
+    private static CameraSelection buildSelection(String id, CameraCharacteristics characteristics, boolean front, int viewWidth, int viewHeight, boolean skipLogicalMultiCamera) {
+        if (characteristics == null) {
+            return null;
+        }
+        Integer lensFacing = characteristics.get(CameraCharacteristics.LENS_FACING);
+        if (lensFacing == null || lensFacing != (front ? CameraCharacteristics.LENS_FACING_FRONT : CameraCharacteristics.LENS_FACING_BACK)) {
+            return null;
+        }
+        if (skipLogicalMultiCamera && isLogicalMultiCamera(characteristics)) {
+            return null;
+        }
+        StreamConfigurationMap confMap = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
+        if (confMap == null || Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            return null;
+        }
+        Size previewSize = chooseOptimalSize(confMap.getOutputSizes(SurfaceTexture.class), viewWidth, viewHeight, false);
+        if (previewSize == null) {
+            return null;
+        }
+        return new CameraSelection(id, previewSize, getAspectDifference(characteristics, viewWidth, viewHeight), getSensorArea(characteristics), getPrimaryModuleScore(characteristics));
+    }
+
+    private static ArrayList<RoundVideoCameraOption> queryRoundVideoCameraOptions(CameraManager cameraManager) throws Exception {
+        ArrayList<RoundVideoCameraOption> options = new ArrayList<>();
+        HashSet<String> addedCameraIds = new HashSet<>();
+        HashMap<String, String> physicalToLogical = new HashMap<>();
+        HashMap<String, Float> logicalMainEquivalentFocal = new HashMap<>();
+
+        String[] cameraIds = cameraManager.getCameraIdList();
+        Set<String> availableCameraIds = new HashSet<>(Arrays.asList(cameraIds));
+        for (String id : cameraIds) {
+            CameraCharacteristics characteristics = cameraManager.getCameraCharacteristics(id);
+            if (!isLogicalMultiCamera(characteristics)) {
+                continue;
+            }
+            float groupMainEquivalentFocal = DEFAULT_MAIN_EQUIVALENT_FOCAL_LENGTH;
+            Float bestScore = null;
+            for (String physicalId : characteristics.getPhysicalCameraIds()) {
+                try {
+                    CameraCharacteristics physicalCharacteristics = cameraManager.getCameraCharacteristics(physicalId);
+                    Integer lensFacing = physicalCharacteristics.get(CameraCharacteristics.LENS_FACING);
+                    if (lensFacing == null || lensFacing != CameraCharacteristics.LENS_FACING_BACK) {
+                        continue;
+                    }
+                    float equivalentFocalLength = getEquivalentOrRepresentativeFocalLength(physicalCharacteristics);
+                    float score = Math.abs(equivalentFocalLength - DEFAULT_MAIN_EQUIVALENT_FOCAL_LENGTH);
+                    if (bestScore == null || score < bestScore) {
+                        bestScore = score;
+                        groupMainEquivalentFocal = equivalentFocalLength > 0f ? equivalentFocalLength : DEFAULT_MAIN_EQUIVALENT_FOCAL_LENGTH;
+                    }
+                    physicalToLogical.put(physicalId, id);
+                } catch (Exception ignore) {
+
+                }
+            }
+            logicalMainEquivalentFocal.put(id, groupMainEquivalentFocal);
+        }
+
+        for (String physicalId : physicalToLogical.keySet()) {
+            try {
+                CameraCharacteristics characteristics = cameraManager.getCameraCharacteristics(physicalId);
+                String logicalCameraId = physicalToLogical.get(physicalId);
+                Float mainEquivalentFocal = logicalMainEquivalentFocal.get(logicalCameraId);
+                RoundVideoCameraOption option = buildRoundVideoCameraOption(physicalId, characteristics, logicalCameraId, mainEquivalentFocal != null ? mainEquivalentFocal : DEFAULT_MAIN_EQUIVALENT_FOCAL_LENGTH);
+                if (option != null && addedCameraIds.add(option.cameraId)) {
+                    options.add(option);
+                }
+            } catch (Exception ignore) {
+
+            }
+        }
+
+        for (String id : cameraIds) {
+            if (addedCameraIds.contains(id)) {
+                continue;
+            }
+            CameraCharacteristics characteristics = cameraManager.getCameraCharacteristics(id);
+            if (isLogicalMultiCamera(characteristics)) {
+                continue;
+            }
+            RoundVideoCameraOption option = buildRoundVideoCameraOption(id, characteristics, null, DEFAULT_MAIN_EQUIVALENT_FOCAL_LENGTH);
+            if (option != null && addedCameraIds.add(option.cameraId)) {
+                options.add(option);
+            }
+        }
+
+        ArrayList<RoundVideoCameraOption> routedOptions = new ArrayList<>(options.size());
+        for (RoundVideoCameraOption option : options) {
+            if (!option.front) {
+                String directCameraId = availableCameraIds.contains(option.cameraId) ? option.cameraId : findBestDirectBackCameraId(cameraManager, option);
+                option = option.withDirectCameraId(directCameraId);
+            }
+            routedOptions.add(option);
+        }
+        options = routedOptions;
+
+        options.sort((first, second) -> {
+            if (first.front != second.front) {
+                return first.front ? -1 : 1;
+            }
+            if (!first.front && first.moduleOrder != second.moduleOrder) {
+                return Integer.compare(first.moduleOrder, second.moduleOrder);
+            }
+            if (first.aspectDifference != second.aspectDifference) {
+                return Float.compare(first.aspectDifference, second.aspectDifference);
+            }
+            return Double.compare(second.sensorArea, first.sensorArea);
+        });
+
+        HashMap<String, Integer> totals = new HashMap<>();
+        for (RoundVideoCameraOption option : options) {
+            totals.put(option.title, totals.getOrDefault(option.title, 0) + 1);
+        }
+        HashMap<String, Integer> indexes = new HashMap<>();
+        ArrayList<RoundVideoCameraOption> normalized = new ArrayList<>(options.size());
+        for (RoundVideoCameraOption option : options) {
+            String title = option.title;
+            if (totals.getOrDefault(title, 0) > 1) {
+                int index = indexes.getOrDefault(title, 0) + 1;
+                indexes.put(title, index);
+                title = title + " " + index;
+            }
+            normalized.add(option.withTitle(title));
+        }
+        return normalized;
+    }
+
+    private static RoundVideoCameraOption buildRoundVideoCameraOption(String cameraId, CameraCharacteristics characteristics, String logicalCameraId, float mainEquivalentFocalLength) {
+        if (characteristics == null) {
+            return null;
+        }
+        Integer lensFacing = characteristics.get(CameraCharacteristics.LENS_FACING);
+        if (lensFacing == null || (lensFacing != CameraCharacteristics.LENS_FACING_FRONT && lensFacing != CameraCharacteristics.LENS_FACING_BACK)) {
+            return null;
+        }
+        StreamConfigurationMap confMap = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
+        if (confMap == null || Build.VERSION.SDK_INT < Build.VERSION_CODES.M || confMap.getOutputSizes(SurfaceTexture.class) == null) {
+            return null;
+        }
+
+        boolean front = lensFacing == CameraCharacteristics.LENS_FACING_FRONT;
+        float equivalentFocalLength = getEquivalentOrRepresentativeFocalLength(characteristics);
+        float referenceFocalLength = mainEquivalentFocalLength > 0f ? mainEquivalentFocalLength : DEFAULT_MAIN_EQUIVALENT_FOCAL_LENGTH;
+        float startZoomRatio = !front && equivalentFocalLength > 0f ? equivalentFocalLength / referenceFocalLength : 1f;
+        if (!Float.isFinite(startZoomRatio) || startZoomRatio <= 0f) {
+            startZoomRatio = 1f;
+        }
+        float aspectDifference = getAspectDifference(characteristics, 1, 1);
+        double sensorArea = getSensorArea(characteristics);
+        int moduleOrder = front ? 0 : getRoundVideoModuleOrder(startZoomRatio);
+        return new RoundVideoCameraOption(
+                (front ? "front:" : "rear:") + cameraId,
+                cameraId,
+                logicalCameraId,
+                null,
+                front,
+                buildRoundVideoCameraTitle(front, startZoomRatio),
+                startZoomRatio,
+                equivalentFocalLength,
+                aspectDifference,
+                sensorArea,
+                moduleOrder
+        );
+    }
+
+    private static RoundVideoCameraOption findRoundVideoCameraOption(ArrayList<RoundVideoCameraOption> options, String selectedKey, Boolean requiredFacing) {
+        if (selectedKey == null || selectedKey.isEmpty()) {
+            return null;
+        }
+        for (RoundVideoCameraOption option : options) {
+            if (option.key.equals(selectedKey) && (requiredFacing == null || option.front == requiredFacing)) {
+                return option;
+            }
+        }
+        return null;
+    }
+
+    private static RoundVideoCameraOption findDefaultRoundVideoCameraOption(ArrayList<RoundVideoCameraOption> options, Boolean requiredFacing) {
+        if (options.isEmpty()) {
+            return null;
+        }
+        for (RoundVideoCameraOption option : options) {
+            if (requiredFacing == null || option.front == requiredFacing) {
+                return option;
+            }
+        }
+        return options.get(0);
+    }
+
+    private static String buildRoundVideoCameraTitle(boolean front, float zoomRatio) {
+        String baseTitle = LocaleController.getString(front ? R.string.VideoMessagesFrontCamera : R.string.VideoMessagesRearCamera);
+        if (front) {
+            return baseTitle;
+        }
+        String suffix;
+        if (zoomRatio <= 0.75f) {
+            suffix = LocaleController.getString(R.string.VideoMessagesCameraModuleUltraWide);
+        } else if (zoomRatio >= 1.75f) {
+            suffix = LocaleController.getString(R.string.VideoMessagesCameraModuleTelephoto);
+        } else if (Math.abs(zoomRatio - 1f) <= 0.25f) {
+            suffix = LocaleController.getString(R.string.VideoMessagesCameraModuleMain);
+        } else {
+            suffix = String.format(Locale.US, "%.1fx", zoomRatio);
+        }
+        return baseTitle + " · " + suffix;
+    }
+
+    private static int getRoundVideoModuleOrder(float zoomRatio) {
+        if (zoomRatio <= 0.75f) {
+            return 1;
+        }
+        if (Math.abs(zoomRatio - 1f) <= 0.25f) {
+            return 0;
+        }
+        if (zoomRatio >= 1.75f) {
+            return 2;
+        }
+        return 3;
+    }
+
+    private static float getEquivalentOrRepresentativeFocalLength(CameraCharacteristics characteristics) {
+        float equivalentFocalLength = getEquivalentFocalLength(characteristics);
+        if (equivalentFocalLength > 0f) {
+            return equivalentFocalLength;
+        }
+        return getRepresentativeFocalLength(characteristics);
+    }
+
+    private static String findBestDirectBackCameraId(CameraManager cameraManager, RoundVideoCameraOption option) throws Exception {
+        String bestCameraId = null;
+        float bestScore = Float.MAX_VALUE;
+        for (String id : cameraManager.getCameraIdList()) {
+            CameraCharacteristics characteristics = cameraManager.getCameraCharacteristics(id);
+            if (characteristics == null || isLogicalMultiCamera(characteristics)) {
+                continue;
+            }
+            Integer lensFacing = characteristics.get(CameraCharacteristics.LENS_FACING);
+            if (lensFacing == null || lensFacing != CameraCharacteristics.LENS_FACING_BACK) {
+                continue;
+            }
+            StreamConfigurationMap confMap = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
+            if (confMap == null || Build.VERSION.SDK_INT < Build.VERSION_CODES.M || confMap.getOutputSizes(SurfaceTexture.class) == null) {
+                continue;
+            }
+            float candidateEquivalentFocalLength = getEquivalentOrRepresentativeFocalLength(characteristics);
+            int candidateModuleOrder = getRoundVideoModuleOrder(candidateEquivalentFocalLength > 0f
+                    ? candidateEquivalentFocalLength / DEFAULT_MAIN_EQUIVALENT_FOCAL_LENGTH
+                    : 1f);
+            float modulePenalty = candidateModuleOrder == option.moduleOrder ? 0f : 1000f;
+            float focalPenalty = option.equivalentFocalLength > 0f && candidateEquivalentFocalLength > 0f
+                    ? Math.abs(candidateEquivalentFocalLength - option.equivalentFocalLength)
+                    : Math.abs(candidateModuleOrder - option.moduleOrder) * 100f;
+            float score = modulePenalty + focalPenalty + getPrimaryModuleScore(characteristics) * 0.01f;
+            if (bestCameraId == null || score < bestScore) {
+                bestCameraId = id;
+                bestScore = score;
+            }
+        }
+        return bestCameraId;
+    }
+
+    private static String findBestLogicalBackCameraId(CameraManager cameraManager, RoundVideoCameraOption option) throws Exception {
+        String bestCameraId = null;
+        float bestScore = Float.MAX_VALUE;
+        for (String id : cameraManager.getCameraIdList()) {
+            CameraCharacteristics characteristics = cameraManager.getCameraCharacteristics(id);
+            if (characteristics == null || !isLogicalMultiCamera(characteristics)) {
+                continue;
+            }
+            Integer lensFacing = characteristics.get(CameraCharacteristics.LENS_FACING);
+            if (lensFacing == null || lensFacing != CameraCharacteristics.LENS_FACING_BACK) {
+                continue;
+            }
+            Range<Float> zoomRatioRange = getZoomRatioRange(characteristics);
+            if (zoomRatioRange == null) {
+                continue;
+            }
+            float targetZoomRatio = getTargetZoomRatioForLogicalCamera(cameraManager, id, option);
+            float clampedZoomRatio = clampZoomRatio(characteristics, targetZoomRatio);
+            float score = Math.abs(targetZoomRatio - clampedZoomRatio) * 1000f - (zoomRatioRange.getUpper() - zoomRatioRange.getLower());
+            if (bestCameraId == null || score < bestScore) {
+                bestCameraId = id;
+                bestScore = score;
+            }
+        }
+        return bestCameraId;
+    }
+
+    private static float getTargetZoomRatioForLogicalCamera(CameraManager cameraManager, String logicalCameraId, RoundVideoCameraOption option) throws Exception {
+        if (option.equivalentFocalLength <= 0f) {
+            return Math.max(0.1f, option.startZoomRatio);
+        }
+        CameraCharacteristics logicalCharacteristics = cameraManager.getCameraCharacteristics(logicalCameraId);
+        float logicalMainEquivalentFocalLength = getLogicalMainEquivalentFocalLength(cameraManager, logicalCharacteristics);
+        if (logicalMainEquivalentFocalLength <= 0f) {
+            return Math.max(0.1f, option.startZoomRatio);
+        }
+        return Math.max(0.1f, option.equivalentFocalLength / logicalMainEquivalentFocalLength);
+    }
+
+    private static float getLogicalMainEquivalentFocalLength(CameraManager cameraManager, CameraCharacteristics logicalCharacteristics) throws Exception {
+        if (!isLogicalMultiCamera(logicalCharacteristics)) {
+            return DEFAULT_MAIN_EQUIVALENT_FOCAL_LENGTH;
+        }
+        float bestEquivalentFocalLength = DEFAULT_MAIN_EQUIVALENT_FOCAL_LENGTH;
+        Float bestScore = null;
+        for (String physicalId : logicalCharacteristics.getPhysicalCameraIds()) {
+            CameraCharacteristics physicalCharacteristics = cameraManager.getCameraCharacteristics(physicalId);
+            if (physicalCharacteristics == null) {
+                continue;
+            }
+            Integer lensFacing = physicalCharacteristics.get(CameraCharacteristics.LENS_FACING);
+            if (lensFacing == null || lensFacing != CameraCharacteristics.LENS_FACING_BACK) {
+                continue;
+            }
+            float equivalentFocalLength = getEquivalentOrRepresentativeFocalLength(physicalCharacteristics);
+            if (equivalentFocalLength <= 0f) {
+                continue;
+            }
+            float score = Math.abs(equivalentFocalLength - DEFAULT_MAIN_EQUIVALENT_FOCAL_LENGTH);
+            if (bestScore == null || score < bestScore) {
+                bestScore = score;
+                bestEquivalentFocalLength = equivalentFocalLength;
+            }
+        }
+        return bestEquivalentFocalLength;
+    }
+
+    private static Size getPreviewSize(CameraManager cameraManager, String cameraId, int viewWidth, int viewHeight) throws Exception {
+        CameraCharacteristics characteristics = cameraManager.getCameraCharacteristics(cameraId);
+        if (characteristics == null) {
+            return null;
+        }
+        StreamConfigurationMap confMap = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
+        if (confMap == null || Build.VERSION.SDK_INT < Build.VERSION_CODES.M || confMap.getOutputSizes(SurfaceTexture.class) == null) {
+            return null;
+        }
+        return chooseOptimalSize(confMap.getOutputSizes(SurfaceTexture.class), viewWidth, viewHeight, false);
+    }
+
+    private static boolean isLogicalMultiCamera(CameraCharacteristics characteristics) {
+        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.P
+                && hasCapability(characteristics, CameraCharacteristics.REQUEST_AVAILABLE_CAPABILITIES_LOGICAL_MULTI_CAMERA)
+                && characteristics.getPhysicalCameraIds() != null
+                && !characteristics.getPhysicalCameraIds().isEmpty();
+    }
+
+    private static boolean hasCapability(CameraCharacteristics characteristics, int capability) {
+        int[] capabilities = characteristics.get(CameraCharacteristics.REQUEST_AVAILABLE_CAPABILITIES);
+        if (capabilities == null) {
+            return false;
+        }
+        for (int currentCapability : capabilities) {
+            if (currentCapability == capability) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static float getAspectDifference(CameraCharacteristics characteristics, int viewWidth, int viewHeight) {
+        Size pixelSize = characteristics.get(CameraCharacteristics.SENSOR_INFO_PIXEL_ARRAY_SIZE);
+        if (pixelSize == null) {
+            return Float.MAX_VALUE;
+        }
+        float cameraAspectRatio = (float) pixelSize.getWidth() / pixelSize.getHeight();
+        if ((viewWidth / (float) viewHeight >= 1f) != (cameraAspectRatio >= 1f)) {
+            cameraAspectRatio = 1f / cameraAspectRatio;
+        }
+        return Math.abs((float) viewWidth / viewHeight - cameraAspectRatio);
+    }
+
+    private static double getSensorArea(CameraCharacteristics characteristics) {
+        SizeF physicalSize = characteristics.get(CameraCharacteristics.SENSOR_INFO_PHYSICAL_SIZE);
+        if (physicalSize != null) {
+            return physicalSize.getWidth() * physicalSize.getHeight();
+        }
+        Size pixelSize = characteristics.get(CameraCharacteristics.SENSOR_INFO_PIXEL_ARRAY_SIZE);
+        if (pixelSize != null) {
+            return (double) pixelSize.getWidth() * pixelSize.getHeight();
+        }
+        return 0;
+    }
+
+    private static float getPrimaryModuleScore(CameraCharacteristics characteristics) {
+        float equivalentFocalLength = getEquivalentFocalLength(characteristics);
+        if (equivalentFocalLength > 0f) {
+            return Math.abs(equivalentFocalLength - 26f);
+        }
+        float focalLength = getRepresentativeFocalLength(characteristics);
+        if (focalLength > 0f) {
+            return Math.abs(focalLength - 4.5f);
+        }
+        return Float.MAX_VALUE;
+    }
+
+    private static float getEquivalentFocalLength(CameraCharacteristics characteristics) {
+        float focalLength = getRepresentativeFocalLength(characteristics);
+        SizeF physicalSize = characteristics.get(CameraCharacteristics.SENSOR_INFO_PHYSICAL_SIZE);
+        if (focalLength <= 0f || physicalSize == null) {
+            return -1f;
+        }
+        double diagonal = Math.hypot(physicalSize.getWidth(), physicalSize.getHeight());
+        if (diagonal <= 0d) {
+            return -1f;
+        }
+        return (float) (focalLength * 43.266615305567875d / diagonal);
+    }
+
+    private static float getRepresentativeFocalLength(CameraCharacteristics characteristics) {
+        float[] focalLengths = characteristics.get(CameraCharacteristics.LENS_INFO_AVAILABLE_FOCAL_LENGTHS);
+        if (focalLengths == null || focalLengths.length == 0) {
+            return -1f;
+        }
+        float[] sorted = Arrays.copyOf(focalLengths, focalLengths.length);
+        Arrays.sort(sorted);
+        return sorted[sorted.length / 2];
+    }
+
+    private static class CameraSelection {
+        private final String cameraId;
+        private final Size previewSize;
+        private final float aspectDifference;
+        private final double sensorArea;
+        private final float primaryModuleScore;
+
+        private CameraSelection(String cameraId, Size previewSize, float aspectDifference, double sensorArea, float primaryModuleScore) {
+            this.cameraId = cameraId;
+            this.previewSize = previewSize;
+            this.aspectDifference = aspectDifference;
+            this.sensorArea = sensorArea;
+            this.primaryModuleScore = primaryModuleScore;
+        }
+    }
+
+    public static boolean isRoundVideoStabilizationSupported(boolean front) {
+        final Context context = ApplicationLoader.applicationContext;
+        if (context == null || Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
+            return false;
+        }
+        final CameraManager cameraManager = (CameraManager) context.getSystemService(Context.CAMERA_SERVICE);
+        if (cameraManager == null) {
+            return false;
+        }
+        try {
+            for (String id : cameraManager.getCameraIdList()) {
+                CameraCharacteristics characteristics = cameraManager.getCameraCharacteristics(id);
+                if (characteristics == null) {
+                    continue;
+                }
+                Integer lensFacing = characteristics.get(CameraCharacteristics.LENS_FACING);
+                if (lensFacing == null || lensFacing != (front ? CameraCharacteristics.LENS_FACING_FRONT : CameraCharacteristics.LENS_FACING_BACK)) {
+                    continue;
+                }
+                return getPreferredVideoStabilizationMode(characteristics) != VIDEO_STABILIZATION_OFF || isOpticalStabilizationSupported(characteristics);
+            }
+        } catch (Exception e) {
+            FileLog.e(e);
+        }
+        return false;
+    }
+
+    private Camera2Session(Context context, boolean isFront, String cameraId, String physicalCameraId, Size size) {
         thread = new HandlerThread("tg_camera2");
         thread.start();
         handler = new Handler(thread.getLooper());
@@ -187,15 +775,49 @@ public class Camera2Session {
 
         this.isFront = isFront;
         this.cameraId = cameraId;
+        this.physicalCameraId = physicalCameraId;
         this.previewSize = size;
         this.lastTime = System.currentTimeMillis();
         this.imageReader = ImageReader.newInstance(size.getWidth(), size.getHeight(), ImageFormat.JPEG, 1);
         cameraManager = (CameraManager) context.getSystemService(Context.CAMERA_SERVICE);
+        boolean zoomRatioSupported = false;
+        int preferredVideoStabilizationMode = VIDEO_STABILIZATION_OFF;
+        boolean opticalStabilizationSupported = false;
+        Range<Integer> preferredRecordingFpsRange = null;
+        Set<CaptureRequest.Key<?>> availablePhysicalRequestKeys = null;
+        float minZoom = 1f;
         try {
-            cameraCharacteristics = cameraManager.getCameraCharacteristics(cameraId);
-            sensorSize = cameraCharacteristics.get(CameraCharacteristics.SENSOR_INFO_ACTIVE_ARRAY_SIZE);
-            final Float value = cameraCharacteristics.get(CameraCharacteristics.SCALER_AVAILABLE_MAX_DIGITAL_ZOOM);
-            maxZoom = (value == null || value < 1f) ? 1f : value;
+            CameraCharacteristics openedCameraCharacteristics = cameraManager.getCameraCharacteristics(cameraId);
+            CameraCharacteristics zoomCameraCharacteristics = physicalCameraId != null ? cameraManager.getCameraCharacteristics(physicalCameraId) : openedCameraCharacteristics;
+            cameraCharacteristics = openedCameraCharacteristics;
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P && physicalCameraId != null) {
+                List<CaptureRequest.Key<?>> physicalRequestKeys = openedCameraCharacteristics.getAvailablePhysicalCameraRequestKeys();
+                if (physicalRequestKeys != null && !physicalRequestKeys.isEmpty()) {
+                    availablePhysicalRequestKeys = new HashSet<>(physicalRequestKeys);
+                }
+            }
+            sensorSize = zoomCameraCharacteristics.get(CameraCharacteristics.SENSOR_INFO_ACTIVE_ARRAY_SIZE);
+            Range<Float> zoomRatioRange = getZoomRatioRange(zoomCameraCharacteristics);
+            boolean physicalZoomRatioSupported = physicalCameraId != null
+                    && availablePhysicalRequestKeys != null
+                    && availablePhysicalRequestKeys.contains(CaptureRequest.CONTROL_ZOOM_RATIO);
+            if (zoomRatioRange != null && (physicalCameraId == null || physicalZoomRatioSupported)) {
+                zoomRatioSupported = true;
+                minZoom = Math.min(zoomRatioRange.getLower(), 1f);
+                maxZoom = Math.max(zoomRatioRange.getUpper(), 1f);
+            } else {
+                final Float value = zoomCameraCharacteristics.get(CameraCharacteristics.SCALER_AVAILABLE_MAX_DIGITAL_ZOOM);
+                maxZoom = (value == null || value < 1f) ? 1f : value;
+            }
+            preferredVideoStabilizationMode = getPreferredVideoStabilizationMode(openedCameraCharacteristics);
+            if (preferredVideoStabilizationMode == VIDEO_STABILIZATION_OFF && zoomCameraCharacteristics != openedCameraCharacteristics) {
+                preferredVideoStabilizationMode = getPreferredVideoStabilizationMode(zoomCameraCharacteristics);
+            }
+            opticalStabilizationSupported = isOpticalStabilizationSupported(openedCameraCharacteristics) || isOpticalStabilizationSupported(zoomCameraCharacteristics);
+            preferredRecordingFpsRange = getPreferredRecordingFpsRange(openedCameraCharacteristics);
+            if (preferredRecordingFpsRange == null && zoomCameraCharacteristics != openedCameraCharacteristics) {
+                preferredRecordingFpsRange = getPreferredRecordingFpsRange(zoomCameraCharacteristics);
+            }
             cameraManager.openCamera(cameraId, cameraStateCallback, handler);
         } catch (Exception e) {
             FileLog.e(e);
@@ -203,6 +825,12 @@ public class Camera2Session {
                 isError = true;
             });
         }
+        this.minZoom = minZoom;
+        this.zoomRatioSupported = zoomRatioSupported;
+        this.preferredVideoStabilizationMode = preferredVideoStabilizationMode;
+        this.opticalStabilizationSupported = opticalStabilizationSupported;
+        this.preferredRecordingFpsRange = preferredRecordingFpsRange;
+        this.availablePhysicalRequestKeys = availablePhysicalRequestKeys;
     }
 
     private Runnable doneCallback;
@@ -234,10 +862,21 @@ public class Camera2Session {
         surface = new Surface(surfaceTexture);
 
         try {
-            ArrayList<Surface> surfaces = new ArrayList<>();
-            surfaces.add(surface);
-            surfaces.add(imageReader.getSurface());
-            cameraDevice.createCaptureSession(surfaces, captureStateCallback, null);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P && physicalCameraId != null) {
+                ArrayList<OutputConfiguration> outputConfigurations = new ArrayList<>();
+                OutputConfiguration previewOutput = new OutputConfiguration(surface);
+                previewOutput.setPhysicalCameraId(physicalCameraId);
+                outputConfigurations.add(previewOutput);
+                OutputConfiguration imageOutput = new OutputConfiguration(imageReader.getSurface());
+                imageOutput.setPhysicalCameraId(physicalCameraId);
+                outputConfigurations.add(imageOutput);
+                cameraDevice.createCaptureSessionByOutputConfigurations(outputConfigurations, captureStateCallback, handler);
+            } else {
+                ArrayList<Surface> surfaces = new ArrayList<>();
+                surfaces.add(surface);
+                surfaces.add(imageReader.getSurface());
+                cameraDevice.createCaptureSession(surfaces, captureStateCallback, null);
+            }
         } catch (Exception e) {
             FileLog.e(e);
             AndroidUtilities.runOnUIThread(() -> {
@@ -341,11 +980,12 @@ public class Camera2Session {
     }
 
     private final Rect cropRegion = new Rect();
+    private boolean cropRegionApplied;
     public void setZoom(float value) {
         if (!isInitiated()) return;
         if (captureRequestBuilder == null || cameraDevice == null || sensorSize == null) return;
 
-        currentZoom = Utilities.clamp(value, maxZoom, 1f);
+        currentZoom = Utilities.clamp(value, maxZoom, minZoom);
         updateCaptureRequest();
 
         try {
@@ -375,8 +1015,7 @@ public class Camera2Session {
     }
 
     public float getMinZoom() {
-        // TODO: support wide zoom camera switching
-        return 1f;
+        return minZoom;
     }
 
     public int getPreviewWidth() {
@@ -452,6 +1091,13 @@ public class Camera2Session {
         }
     }
 
+    public void setStabilizationEnabled(boolean enabled) {
+        if (stabilizationEnabled != enabled) {
+            stabilizationEnabled = enabled;
+            updateCaptureRequest();
+        }
+    }
+
     private boolean scanningBarcode;
     public void setScanningBarcode(boolean scanning) {
         if (scanningBarcode != scanning) {
@@ -490,22 +1136,34 @@ public class Camera2Session {
             captureRequestBuilder.set(CaptureRequest.FLASH_MODE, flashing ? (recordingVideo ? CaptureRequest.FLASH_MODE_TORCH : CaptureRequest.FLASH_MODE_SINGLE) : CaptureRequest.FLASH_MODE_OFF);
 
             if (recordingVideo) {
-                captureRequestBuilder.set(CaptureRequest.CONTROL_AE_TARGET_FPS_RANGE, new Range<Integer>(30, 60));
+                if (preferredRecordingFpsRange != null) {
+                    captureRequestBuilder.set(CaptureRequest.CONTROL_AE_TARGET_FPS_RANGE, preferredRecordingFpsRange);
+                }
                 captureRequestBuilder.set(CaptureRequest.CONTROL_CAPTURE_INTENT, CaptureRequest.CONTROL_CAPTURE_INTENT_VIDEO_RECORD);
+                applyStabilization(captureRequestBuilder);
             }
 
-            if (sensorSize != null && Math.abs(currentZoom - 1f) >= 0.01f) {
-                final int centerX = sensorSize.width() / 2;
-                final int centerY = sensorSize.height() / 2;
-                final int deltaX = (int) ((0.5f * sensorSize.width()) / currentZoom);
-                final int deltaY = (int) ((0.5f * sensorSize.height()) / currentZoom);
-                cropRegion.set(
-                        centerX - deltaX,
-                        centerY - deltaY,
-                        centerX + deltaX,
-                        centerY + deltaY
-                );
-                captureRequestBuilder.set(CaptureRequest.SCALER_CROP_REGION, cropRegion);
+            if (zoomRatioSupported) {
+                setRequestKey(captureRequestBuilder, CaptureRequest.CONTROL_ZOOM_RATIO, currentZoom, true, false);
+            } else if (sensorSize != null) {
+                if (currentZoom > 1f && Math.abs(currentZoom - 1f) >= 0.01f) {
+                    final int centerX = sensorSize.width() / 2;
+                    final int centerY = sensorSize.height() / 2;
+                    final int deltaX = (int) ((0.5f * sensorSize.width()) / currentZoom);
+                    final int deltaY = (int) ((0.5f * sensorSize.height()) / currentZoom);
+                    cropRegion.set(
+                            centerX - deltaX,
+                            centerY - deltaY,
+                            centerX + deltaX,
+                            centerY + deltaY
+                    );
+                    cropRegionApplied = true;
+                    setRequestKey(captureRequestBuilder, CaptureRequest.SCALER_CROP_REGION, cropRegion, true, false);
+                } else if (cropRegionApplied) {
+                    cropRegion.set(sensorSize);
+                    cropRegionApplied = false;
+                    setRequestKey(captureRequestBuilder, CaptureRequest.SCALER_CROP_REGION, cropRegion, true, false);
+                }
             }
 
             captureRequestBuilder.addTarget(surface);
@@ -595,6 +1253,176 @@ public class Camera2Session {
         public int compare(Size lhs, Size rhs) {
             return Long.signum((long) lhs.getWidth() * lhs.getHeight() - (long) rhs.getWidth() * rhs.getHeight());
         }
+    }
+
+    private static Range<Float> getZoomRatioRange(CameraCharacteristics characteristics) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R || characteristics == null) {
+            return null;
+        }
+        return characteristics.get(CameraCharacteristics.CONTROL_ZOOM_RATIO_RANGE);
+    }
+
+    private static boolean isZoomRatioSupportedFor(CameraCharacteristics characteristics, float targetZoomRatio) {
+        Range<Float> zoomRatioRange = getZoomRatioRange(characteristics);
+        return zoomRatioRange != null
+                && zoomRatioRange.getLower() <= targetZoomRatio + 0.001f
+                && zoomRatioRange.getUpper() >= targetZoomRatio - 0.001f;
+    }
+
+    private static float clampZoomRatio(CameraCharacteristics characteristics, float targetZoomRatio) {
+        Range<Float> zoomRatioRange = getZoomRatioRange(characteristics);
+        if (zoomRatioRange == null) {
+            return Math.max(1f, targetZoomRatio);
+        }
+        return Utilities.clamp(targetZoomRatio, zoomRatioRange.getUpper(), zoomRatioRange.getLower());
+    }
+
+    public static class RoundVideoCameraOption {
+        public final String key;
+        public final String cameraId;
+        public final String logicalCameraId;
+        public final String directCameraId;
+        public final boolean front;
+        public final String title;
+        public final float startZoomRatio;
+        public final float equivalentFocalLength;
+        public final float aspectDifference;
+        public final double sensorArea;
+        public final int moduleOrder;
+
+        private RoundVideoCameraOption(String key, String cameraId, String logicalCameraId, String directCameraId, boolean front, String title, float startZoomRatio, float equivalentFocalLength, float aspectDifference, double sensorArea, int moduleOrder) {
+            this.key = key;
+            this.cameraId = cameraId;
+            this.logicalCameraId = logicalCameraId;
+            this.directCameraId = directCameraId;
+            this.front = front;
+            this.title = title;
+            this.startZoomRatio = startZoomRatio;
+            this.equivalentFocalLength = equivalentFocalLength;
+            this.aspectDifference = aspectDifference;
+            this.sensorArea = sensorArea;
+            this.moduleOrder = moduleOrder;
+        }
+
+        private RoundVideoCameraOption withDirectCameraId(String directCameraId) {
+            return new RoundVideoCameraOption(key, cameraId, logicalCameraId, directCameraId, front, title, startZoomRatio, equivalentFocalLength, aspectDifference, sensorArea, moduleOrder);
+        }
+
+        private RoundVideoCameraOption withTitle(String title) {
+            return new RoundVideoCameraOption(key, cameraId, logicalCameraId, directCameraId, front, title, startZoomRatio, equivalentFocalLength, aspectDifference, sensorArea, moduleOrder);
+        }
+    }
+
+    public static class RoundVideoCameraSelection {
+        public final String key;
+        public final String title;
+        public final boolean front;
+        public final String cameraId;
+        public final String physicalCameraId;
+        public final Size previewSize;
+        public final float initialZoom;
+
+        private RoundVideoCameraSelection(String key, String title, boolean front, String cameraId, String physicalCameraId, Size previewSize, float initialZoom) {
+            this.key = key;
+            this.title = title;
+            this.front = front;
+            this.cameraId = cameraId;
+            this.physicalCameraId = physicalCameraId;
+            this.previewSize = previewSize;
+            this.initialZoom = initialZoom;
+        }
+    }
+
+    private static int getPreferredVideoStabilizationMode(CameraCharacteristics characteristics) {
+        int[] modes = characteristics.get(CameraCharacteristics.CONTROL_AVAILABLE_VIDEO_STABILIZATION_MODES);
+        if (modes == null) {
+            return VIDEO_STABILIZATION_OFF;
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            for (int mode : modes) {
+                if (mode == CaptureRequest.CONTROL_VIDEO_STABILIZATION_MODE_PREVIEW_STABILIZATION) {
+                    return mode;
+                }
+            }
+        }
+        for (int mode : modes) {
+            if (mode == CaptureRequest.CONTROL_VIDEO_STABILIZATION_MODE_ON) {
+                return mode;
+            }
+        }
+        return VIDEO_STABILIZATION_OFF;
+    }
+
+    private static Range<Integer> getPreferredRecordingFpsRange(CameraCharacteristics characteristics) {
+        Range<Integer>[] ranges = characteristics.get(CameraCharacteristics.CONTROL_AE_AVAILABLE_TARGET_FPS_RANGES);
+        if (ranges == null || ranges.length == 0) {
+            return null;
+        }
+        Range<Integer> exact30 = null;
+        Range<Integer> upper30 = null;
+        Range<Integer> fallback = null;
+        for (Range<Integer> range : ranges) {
+            if (range == null) {
+                continue;
+            }
+            if (fallback == null
+                    || range.getUpper() < fallback.getUpper()
+                    || (range.getUpper().equals(fallback.getUpper()) && range.getLower() > fallback.getLower())) {
+                fallback = range;
+            }
+            if (range.getUpper() != ROUND_VIDEO_RECORD_FPS) {
+                continue;
+            }
+            if (range.getLower() == ROUND_VIDEO_RECORD_FPS) {
+                exact30 = range;
+                break;
+            }
+            if (upper30 == null || range.getLower() > upper30.getLower()) {
+                upper30 = range;
+            }
+        }
+        if (exact30 != null) {
+            return exact30;
+        }
+        if (upper30 != null) {
+            return upper30;
+        }
+        return fallback;
+    }
+
+    private static boolean isOpticalStabilizationSupported(CameraCharacteristics characteristics) {
+        int[] modes = characteristics.get(CameraCharacteristics.LENS_INFO_AVAILABLE_OPTICAL_STABILIZATION);
+        if (modes == null) {
+            return false;
+        }
+        for (int mode : modes) {
+            if (mode == CaptureRequest.LENS_OPTICAL_STABILIZATION_MODE_ON) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private void applyStabilization(CaptureRequest.Builder requestBuilder) {
+        if (stabilizationEnabled) {
+            if (preferredVideoStabilizationMode != VIDEO_STABILIZATION_OFF) {
+                setRequestKey(requestBuilder, CaptureRequest.CONTROL_VIDEO_STABILIZATION_MODE, preferredVideoStabilizationMode, true, true);
+            }
+            if (opticalStabilizationSupported) {
+                setRequestKey(requestBuilder, CaptureRequest.LENS_OPTICAL_STABILIZATION_MODE, CaptureRequest.LENS_OPTICAL_STABILIZATION_MODE_ON, true, false);
+            }
+        } else {
+            if (preferredVideoStabilizationMode != VIDEO_STABILIZATION_OFF) {
+                setRequestKey(requestBuilder, CaptureRequest.CONTROL_VIDEO_STABILIZATION_MODE, VIDEO_STABILIZATION_OFF, true, true);
+            }
+            if (opticalStabilizationSupported) {
+                setRequestKey(requestBuilder, CaptureRequest.LENS_OPTICAL_STABILIZATION_MODE, CaptureRequest.LENS_OPTICAL_STABILIZATION_MODE_OFF, true, false);
+            }
+        }
+    }
+
+    private <T> void setRequestKey(CaptureRequest.Builder requestBuilder, CaptureRequest.Key<T> key, T value, boolean preferPhysical, boolean alsoSetLogical) {
+        requestBuilder.set(key, value);
     }
 
 }

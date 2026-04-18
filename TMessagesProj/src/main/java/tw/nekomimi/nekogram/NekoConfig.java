@@ -42,6 +42,10 @@ public class NekoConfig {
     public static final int MARKDOWN_PARSER_TELEGRAM = 0;
     public static final int MARKDOWN_PARSER_NEKO = 1;
 
+    public static final int VIDEO_MESSAGES_RECORD_FROM_FRONT = 0;
+    public static final int VIDEO_MESSAGES_RECORD_FROM_REAR = 1;
+    public static final int VIDEO_MESSAGES_RECORD_FROM_ASK = 2;
+
     public static final int DRAWER_BACKGROUND_DEFAULT = 0;
     public static final int DRAWER_BACKGROUND_AVATAR = 1;
     public static final int DRAWER_BACKGROUND_BIG_AVATAR = 2;
@@ -108,6 +112,14 @@ public class NekoConfig {
     public static ConfigItem avatarBackgroundDarken = addConfig("DarkenAvatarBackground", configTypeBool, false);
     public static ConfigItem useSystemEmoji = addConfig("EmojiUseDefault", configTypeBool, false);
     public static ConfigItem rearVideoMessages = addConfig("RearVideoMessages", configTypeBool, false);
+    public static ConfigItem videoMessagesRecordFrom = addConfig("VideoMessagesRecordFrom", configTypeInt, VIDEO_MESSAGES_RECORD_FROM_FRONT);
+    public static ConfigItem videoMessagesStartCamera = addConfig("VideoMessagesStartCamera", configTypeString, "");
+    public static ConfigItem videoMessagesSeamlessSwitching = addConfig("VideoMessagesSeamlessSwitching", configTypeBool, false);
+    public static ConfigItem videoMessagesStabilization = addConfig("VideoMessagesStabilization", configTypeBool, true);
+    public static ConfigItem videoMessagesStabilizationFront = addConfig("VideoMessagesStabilizationFront", configTypeBool, true);
+    public static ConfigItem videoMessagesStabilizationRear = addConfig("VideoMessagesStabilizationRear", configTypeBool, true);
+    public static ConfigItem videoMessagesSaveZoomPosition = addConfig("VideoMessagesSaveZoomPosition", configTypeBool, false);
+    public static ConfigItem videoMessagesBlurCameraSwitch = addConfig("VideoMessagesBlurCameraSwitch", configTypeBool, false);
     public static ConfigItem hideAllTab = addConfig("HideAllTab", configTypeBool, false);
 
     public static ConfigItem sortByUnread = addConfig("sort_by_unread", configTypeBool, false);
@@ -149,7 +161,6 @@ public class NekoConfig {
     public static ConfigItem disableProximityEvents = addConfig("DisableProximityEvents", configTypeBool, false);
 
     public static ConfigItem ignoreContentRestrictions = addConfig("ignoreContentRestrictions", configTypeBool, true);
-    public static ConfigItem useChatAttachMediaMenu = addConfig("UseChatAttachEnterMenu", configTypeBool, false);
     public static ConfigItem disableLinkPreviewByDefault = addConfig("DisableLinkPreviewByDefault", configTypeBool, false);
     public static ConfigItem sendCommentAfterForward = addConfig("SendCommentAfterForward", configTypeBool, true);
     public static ConfigItem disableTrending = addConfig("DisableTrending", configTypeBool, true);
@@ -303,6 +314,16 @@ public class NekoConfig {
             if (preferences.contains("DisableSendReadStories")) {
                 sendReadStoriesPackets.setConfigBool(!preferences.getBoolean("DisableSendReadStories", true));
             }
+        }
+        if (preferences.contains(videoMessagesStabilization.getKey())
+                && !preferences.contains(videoMessagesStabilizationFront.getKey())
+                && !preferences.contains(videoMessagesStabilizationRear.getKey())) {
+            boolean enabled = preferences.getBoolean(videoMessagesStabilization.getKey(), true);
+            videoMessagesStabilizationFront.setConfigBool(enabled);
+            videoMessagesStabilizationRear.setConfigBool(enabled);
+        }
+        if (!preferences.contains(videoMessagesRecordFrom.getKey()) && preferences.contains(rearVideoMessages.getKey())) {
+            videoMessagesRecordFrom.setConfigInt(preferences.getBoolean(rearVideoMessages.getKey(), false) ? VIDEO_MESSAGES_RECORD_FROM_REAR : VIDEO_MESSAGES_RECORD_FROM_FRONT);
         }
         if (preferences.contains("disableSwipeToNextChannel") && !preferences.contains("disableSwipeToNextInForums")) {
             disableSwipeToNextInForums.setConfigBool(preferences.getBoolean("disableSwipeToNextChannel", true));

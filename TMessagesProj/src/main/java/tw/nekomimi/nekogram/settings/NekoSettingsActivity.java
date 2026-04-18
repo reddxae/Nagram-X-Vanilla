@@ -14,7 +14,6 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffColorFilter;
-import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Build;
@@ -65,7 +64,6 @@ import org.telegram.ui.Cells.TextSettingsCell;
 import org.telegram.ui.Components.EditTextBoldCursor;
 import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.RecyclerListView;
-import org.telegram.ui.Components.CombinedDrawable;
 import org.telegram.ui.DocumentSelectActivity;
 import org.telegram.ui.LaunchActivity;
 import org.telegram.ui.PeerColorActivity;
@@ -527,12 +525,10 @@ public class NekoSettingsActivity extends BaseFragment {
                                 cell.getTextView().setMaxLines(Integer.MAX_VALUE);
                                 cell.getTextView().setTextColor(getThemedColor(Theme.key_windowBackgroundWhiteGrayText3));
                                 cell.getTextView().setMovementMethod(null);
-                                cell.getTextView().setPadding(0, AndroidUtilities.dp(14), 0, AndroidUtilities.dp(14));
+                                cell.setTopPadding(14);
+                                cell.setBottomPadding(10);
                                 cell.setText(ApplicationLoader.applicationContext.getString(R.string.NagramVanillaAboutFooter, BuildConfig.VERSION_CODE));
-                                Drawable drawable = Theme.getThemedDrawable(getContext(), R.drawable.greydivider_bottom, getThemedColor(Theme.key_windowBackgroundGrayShadow));
-                                CombinedDrawable combinedDrawable = new CombinedDrawable(new ColorDrawable(Theme.getColor(Theme.key_windowBackgroundGray)), drawable);
-                                combinedDrawable.setFullsize(true);
-                                cell.setBackground(combinedDrawable);
+                                cell.setBackground(Theme.getThemedDrawable(getContext(), R.drawable.greydivider_bottom, getThemedColor(Theme.key_windowBackgroundGrayShadow)));
                             } else {
                                 cell.setBackground(null);
                             }

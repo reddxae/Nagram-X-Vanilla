@@ -2504,6 +2504,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 } else if (state == 1 || state == 3 || state == 4) {
                     instantCameraView.send(state, notify, scheduleDate, ttl, effectId, stars);
                 } else if (state == 2 || state == 5) {
+                    InstantCameraView.clearNextSessionStartFrontfaceOverride();
                     instantCameraView.cancel(state == 2);
                 }
             }
@@ -2634,6 +2635,11 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         @Override
         public void onKeyboardRequested() {
             checkAdjustResize();
+        }
+
+        @Override
+        public void onVideoMessageCameraPickerVisibilityChanged(View anchor, boolean visible) {
+            dimBehindView(anchor, true, visible);
         }
 
         @Override
@@ -13927,7 +13933,6 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         if (getParentActivity() == null || fragmentView == null || hide && voiceHintTextView == null || chatMode != 0 || chatActivityEnterView == null  || chatActivityEnterView.getAudioVideoButtonContainer() == null || chatActivityEnterView.getAudioVideoButtonContainer().getVisibility() != View.VISIBLE || isInPreviewMode()) {
             return;
         }
-        if (NekoConfig.useChatAttachMediaMenu.Bool()) return;
         if (voiceHintTextView == null) {
             SizeNotifierFrameLayout frameLayout = (SizeNotifierFrameLayout) fragmentView;
             int index = frameLayout.indexOfChild(chatActivityEnterView);
@@ -18675,6 +18680,26 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                         int r = Math.max(scrimView.getMeasuredWidth(), scrimView.getMeasuredHeight()) / 2;
                         canvas.drawCircle(r, r, r * 0.7f, actionBarBackgroundPaint);
                     }
+                    scrimView.draw(canvas);
+                    canvas.restoreToCount(c);
+
+                    if (scrimViewAlpha < 1f) {
+                        scrimPaint.setAlpha((int) (255 * scrimPaintAlpha * (1f - scrimViewAlpha)));
+                        canvas.drawRect(0, 0, getMeasuredWidth(), getMeasuredHeight(), scrimPaint);
+                    }
+                } else if (!(scrimView instanceof ChatMessageCell) && !(scrimView instanceof ChatActionCell) && scrimView.getParent() != chatListView) {
+                    int[] rootLocation = new int[2];
+                    scrimView.getLocationInWindow(AndroidUtilities.pointTmp2);
+                    getLocationInWindow(rootLocation);
+                    int scrimLeft = AndroidUtilities.pointTmp2[0] - rootLocation[0];
+                    int scrimTop = AndroidUtilities.pointTmp2[1] - rootLocation[1];
+                    int scrimRight = scrimLeft + scrimView.getMeasuredWidth();
+                    int scrimBottom = scrimTop + scrimView.getMeasuredHeight();
+                    int c = canvas.save();
+                    if (scrimViewAlpha < 1f) {
+                        canvas.saveLayerAlpha(scrimLeft, scrimTop, scrimRight, scrimBottom, (int) (255 * scrimViewAlpha), Canvas.ALL_SAVE_FLAG);
+                    }
+                    canvas.translate(scrimLeft, scrimTop);
                     scrimView.draw(canvas);
                     canvas.restoreToCount(c);
 

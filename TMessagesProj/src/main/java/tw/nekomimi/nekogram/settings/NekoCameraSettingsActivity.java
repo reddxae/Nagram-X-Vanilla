@@ -4,6 +4,8 @@ import static org.telegram.messenger.LocaleController.getString;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.os.Build;
+import android.text.TextUtils;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,8 +17,12 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import org.telegram.messenger.AndroidUtilities;
+import org.telegram.messenger.ApplicationLoader;
 import org.telegram.messenger.R;
+import org.telegram.messenger.SharedConfig;
+import org.telegram.messenger.camera.Camera2Session;
 import org.telegram.ui.ActionBar.ActionBar;
+import org.telegram.ui.ActionBar.ActionBarMenuSubItem;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.ActionBar.ThemeDescription;
 import org.telegram.ui.Cells.EmptyCell;
@@ -30,11 +36,14 @@ import org.telegram.ui.Components.BlurredRecyclerView;
 import org.telegram.ui.Components.CubicBezierInterpolator;
 import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.RecyclerListView;
+import org.telegram.ui.Stories.recorder.DualCameraView;
 
 import java.util.ArrayList;
 
 import kotlin.Unit;
+import tw.nekomimi.nekogram.NekoConfig;
 import tw.nekomimi.nekogram.config.CellGroup;
+import tw.nekomimi.nekogram.config.ConfigItem;
 import tw.nekomimi.nekogram.config.cell.AbstractConfigCell;
 import tw.nekomimi.nekogram.config.cell.ConfigCellCustom;
 import tw.nekomimi.nekogram.config.cell.ConfigCellHeader;
@@ -49,7 +58,15 @@ public class NekoCameraSettingsActivity extends BaseNekoXSettingsActivity {
     private static final int[] VIDEO_NOTE_RESOLUTION_VALUES = {128, 256, 384, 512, 640};
 
     private final CellGroup cellGroup = new CellGroup(this);
-    private final AbstractConfigCell headerCamera = cellGroup.appendCell(new ConfigCellHeader(getString(R.string.Camera)));
+    private final ArrayList<Camera2Session.RoundVideoCameraOption> startCameraOptions = new ArrayList<>();
+    private final AbstractConfigCell headerCamera = cellGroup.appendCell(new ConfigCellHeader(getString(R.string.SendMediaPermissionRound)));
+    private final AbstractConfigCell camera2ApiRow = cellGroup.appendCell(new Camera2ApiToggleCell());
+    private final AbstractConfigCell recordFromRow = cellGroup.appendCell(new RecordFromDropdownCell());
+    private final AbstractConfigCell startCameraRow = cellGroup.appendCell(new StartCameraDropdownCell());
+    private final AbstractConfigCell seamlessSwitchingRow = cellGroup.appendCell(new VideoMessagesToggleCell(NekoConfig.videoMessagesSeamlessSwitching, R.string.VideoMessagesSeamlessSwitching, ToggleType.SEAMLESS_SWITCHING));
+    private final AbstractConfigCell stabilizationRow = cellGroup.appendCell(new StabilizationDropdownCell());
+    private final AbstractConfigCell saveZoomPositionRow = cellGroup.appendCell(new VideoMessagesToggleCell(NekoConfig.videoMessagesSaveZoomPosition, R.string.VideoMessagesSaveZoomPosition, ToggleType.SAVE_ZOOM_POSITION));
+    private final AbstractConfigCell blurCameraSwitchRow = cellGroup.appendCell(new VideoMessagesToggleCell(NekoConfig.videoMessagesBlurCameraSwitch, R.string.VideoMessagesBlurCameraSwitch, ToggleType.BLUR_CAMERA_SWITCH));
     private final AbstractConfigCell cameraResolutionRow = cellGroup.appendCell(new ConfigCellCustom("CameraResolution", CellGroup.ITEM_TYPE_TEXT_SETTINGS_CELL, true));
     private final AbstractConfigCell cameraBitrateRow = cellGroup.appendCell(new ConfigCellCustom("CameraBitrate", CellGroup.ITEM_TYPE_TEXT_SETTINGS_CELL, true));
     private final AbstractConfigCell cameraVideoMessagesNoticeRow = cellGroup.appendCell(new AbstractConfigCell() {
@@ -122,7 +139,17 @@ public class NekoCameraSettingsActivity extends BaseNekoXSettingsActivity {
 
         listView.setOnItemClickListener((view, position, x, y) -> {
             AbstractConfigCell a = cellGroup.rows.get(position);
-            if (a instanceof ConfigCellCustom) {
+            if (a instanceof Camera2ApiToggleCell toggleCell) {
+                toggleCell.onClick((TextCheckCell) view);
+            } else if (a instanceof RecordFromDropdownCell dropdownCell) {
+                dropdownCell.onClick(view);
+            } else if (a instanceof StartCameraDropdownCell dropdownCell) {
+                dropdownCell.onClick(view);
+            } else if (a instanceof StabilizationDropdownCell dropdownCell) {
+                dropdownCell.onClick(view);
+            } else if (a instanceof VideoMessagesToggleCell toggleCell) {
+                toggleCell.onClick((TextCheckCell) view);
+            } else if (a instanceof ConfigCellCustom) {
                 if (position == cellGroup.rows.indexOf(cameraResolutionRow)) {
                     showVideoNoteValuePopup(view, VIDEO_NOTE_RESOLUTION_VALUES, false, value -> {
                         NaConfig.INSTANCE.getCameraVideoNoteResolution().setConfigInt(value);
@@ -156,6 +183,19 @@ public class NekoCameraSettingsActivity extends BaseNekoXSettingsActivity {
     @SuppressLint("NotifyDataSetChanged")
     @Override
     protected void updateRows() {
+        normalizeSelectedStartCamera();
+        normalizeStabilizationSelection();
+        if (listAdapter != null) {
+            listAdapter.notifyDataSetChanged();
+        }
+    }
+
+    @SuppressLint("NotifyDataSetChanged")
+    @Override
+    public void onResume() {
+        super.onResume();
+        normalizeSelectedStartCamera();
+        normalizeStabilizationSelection();
         if (listAdapter != null) {
             listAdapter.notifyDataSetChanged();
         }
@@ -190,10 +230,365 @@ public class NekoCameraSettingsActivity extends BaseNekoXSettingsActivity {
         themeDescriptions.add(new ThemeDescription(listView, ThemeDescription.FLAG_BACKGROUNDFILTER, new Class[]{ShadowSectionCell.class}, null, null, null, Theme.key_windowBackgroundGrayShadow));
         themeDescriptions.add(new ThemeDescription(listView, 0, new Class[]{TextSettingsCell.class}, new String[]{"textView"}, null, null, null, Theme.key_windowBackgroundWhiteBlackText));
         themeDescriptions.add(new ThemeDescription(listView, 0, new Class[]{TextSettingsCell.class}, new String[]{"valueTextView"}, null, null, null, Theme.key_windowBackgroundWhiteValueText));
+        themeDescriptions.add(new ThemeDescription(listView, 0, new Class[]{TextCheckCell.class}, new String[]{"textView"}, null, null, null, Theme.key_windowBackgroundWhiteBlackText));
+        themeDescriptions.add(new ThemeDescription(listView, 0, new Class[]{TextCheckCell.class}, new String[]{"valueTextView"}, null, null, null, Theme.key_windowBackgroundWhiteGrayText2));
+        themeDescriptions.add(new ThemeDescription(listView, 0, new Class[]{TextCheckCell.class}, new String[]{"checkBox"}, null, null, null, Theme.key_switchTrack));
+        themeDescriptions.add(new ThemeDescription(listView, 0, new Class[]{TextCheckCell.class}, new String[]{"checkBox"}, null, null, null, Theme.key_switchTrackChecked));
         themeDescriptions.add(new ThemeDescription(listView, 0, new Class[]{HeaderCell.class}, new String[]{"textView"}, null, null, null, Theme.key_windowBackgroundWhiteBlueHeader));
         themeDescriptions.add(new ThemeDescription(listView, 0, new Class[]{TextDetailSettingsCell.class}, new String[]{"textView"}, null, null, null, Theme.key_windowBackgroundWhiteBlackText));
         themeDescriptions.add(new ThemeDescription(listView, 0, new Class[]{TextDetailSettingsCell.class}, new String[]{"valueTextView"}, null, null, null, Theme.key_windowBackgroundWhiteGrayText2));
         return themeDescriptions;
+    }
+
+    private boolean isCamera2Enabled() {
+        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && SharedConfig.isUsingCamera2(currentAccount);
+    }
+
+    private void normalizeSelectedStartCamera() {
+        startCameraOptions.clear();
+        ArrayList<Camera2Session.RoundVideoCameraOption> allOptions = Camera2Session.getRoundVideoCameraOptions();
+        for (Camera2Session.RoundVideoCameraOption option : allOptions) {
+            if (!option.front) {
+                startCameraOptions.add(option);
+            }
+        }
+        if (startCameraOptions.isEmpty()) {
+            if (!TextUtils.isEmpty(NekoConfig.videoMessagesStartCamera.String())) {
+                NekoConfig.videoMessagesStartCamera.setConfigString("");
+            }
+            return;
+        }
+        if (findSelectedStartCameraOption() == null) {
+            NekoConfig.videoMessagesStartCamera.setConfigString(startCameraOptions.get(0).key);
+        }
+    }
+
+    private Camera2Session.RoundVideoCameraOption findSelectedStartCameraOption() {
+        String selectedKey = NekoConfig.videoMessagesStartCamera.String();
+        for (Camera2Session.RoundVideoCameraOption option : startCameraOptions) {
+            if (option.key.equals(selectedKey)) {
+                return option;
+            }
+        }
+        return null;
+    }
+
+    private boolean isStabilizationSupported(boolean front) {
+        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && Camera2Session.isRoundVideoStabilizationSupported(front);
+    }
+
+    private enum ToggleType {
+        SEAMLESS_SWITCHING,
+        SAVE_ZOOM_POSITION,
+        BLUR_CAMERA_SWITCH
+    }
+
+    private class RecordFromDropdownCell extends AbstractConfigCell {
+        @Override
+        public int getType() {
+            return CellGroup.ITEM_TYPE_TEXT_SETTINGS_CELL;
+        }
+
+        @Override
+        public boolean isEnabled() {
+            return true;
+        }
+
+        @Override
+        public void onBindViewHolder(RecyclerView.ViewHolder holder) {
+            TextSettingsCell cell = (TextSettingsCell) holder.itemView;
+            cell.setTextAndValue(getString(R.string.VideoMessagesRecordFrom), getRecordFromSummary(), cellGroup.needSetDivider(this));
+            cell.setEnabled(true, null);
+            cell.setAlpha(1.0f);
+        }
+
+        private void onClick(View anchor) {
+            PopupBuilder builder = new PopupBuilder(anchor);
+            ArrayList<String> items = new ArrayList<>(3);
+            items.add(getString(R.string.VideoMessagesFrontCamera));
+            items.add(getString(R.string.VideoMessagesRearCamera));
+            items.add(getString(R.string.VideoMessagesAlwaysAsk));
+            builder.setItems(items, (index, str) -> {
+                NekoConfig.videoMessagesRecordFrom.setConfigInt(index);
+                if (listAdapter != null) {
+                    listAdapter.notifyItemChanged(cellGroup.rows.indexOf(this));
+                }
+                return Unit.INSTANCE;
+            });
+            builder.show();
+        }
+    }
+
+    private class StartCameraDropdownCell extends AbstractConfigCell {
+        @Override
+        public int getType() {
+            return CellGroup.ITEM_TYPE_TEXT_SETTINGS_CELL;
+        }
+
+        @Override
+        public boolean isEnabled() {
+            return isCamera2Enabled() && !startCameraOptions.isEmpty();
+        }
+
+        @Override
+        public void onBindViewHolder(RecyclerView.ViewHolder holder) {
+            TextSettingsCell cell = (TextSettingsCell) holder.itemView;
+            cell.setTextAndValue(getString(R.string.VideoMessagesStartCamera), getStartCameraSummary(), cellGroup.needSetDivider(this));
+            cell.setEnabled(isEnabled(), null);
+            cell.setAlpha(isEnabled() ? 1.0f : 0.5f);
+        }
+
+        private void onClick(View anchor) {
+            if (!isEnabled()) {
+                return;
+            }
+            PopupBuilder builder = new PopupBuilder(anchor);
+            ArrayList<String> items = new ArrayList<>(startCameraOptions.size());
+            for (Camera2Session.RoundVideoCameraOption option : startCameraOptions) {
+                items.add(formatStartCameraOptionTitle(option.title));
+            }
+            builder.setItems(items, (index, str) -> {
+                NekoConfig.videoMessagesStartCamera.setConfigString(startCameraOptions.get(index).key);
+                if (listAdapter != null) {
+                    listAdapter.notifyItemChanged(cellGroup.rows.indexOf(this));
+                }
+                return Unit.INSTANCE;
+            });
+            builder.show();
+        }
+    }
+
+    private class Camera2ApiToggleCell extends AbstractConfigCell {
+        @Override
+        public int getType() {
+            return CellGroup.ITEM_TYPE_TEXT_CHECK;
+        }
+
+        @Override
+        public boolean isEnabled() {
+            return Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP;
+        }
+
+        @Override
+        public void onBindViewHolder(RecyclerView.ViewHolder holder) {
+            TextCheckCell cell = (TextCheckCell) holder.itemView;
+            cell.setTextAndCheck(getString(R.string.VideoMessagesCamera2Api), isCamera2Enabled(), cellGroup.needSetDivider(this), true);
+            cell.setEnabled(isEnabled(), null);
+        }
+
+        private void onClick(TextCheckCell cell) {
+            if (!isEnabled()) {
+                return;
+            }
+            SharedConfig.toggleUseCamera2(currentAccount);
+            cell.setChecked(isCamera2Enabled());
+            if (listAdapter != null) {
+                listAdapter.notifyDataSetChanged();
+            }
+        }
+    }
+
+    private class VideoMessagesToggleCell extends AbstractConfigCell {
+        private final ConfigItem bindConfig;
+        private final int titleResId;
+        private final ToggleType toggleType;
+
+        private VideoMessagesToggleCell(ConfigItem bindConfig, int titleResId, ToggleType toggleType) {
+            this.bindConfig = bindConfig;
+            this.titleResId = titleResId;
+            this.toggleType = toggleType;
+        }
+
+        @Override
+        public int getType() {
+            return CellGroup.ITEM_TYPE_TEXT_CHECK;
+        }
+
+        @Override
+        public boolean isEnabled() {
+            if (toggleType == ToggleType.SEAMLESS_SWITCHING && !isCamera2Enabled()) {
+                return false;
+            }
+            if (toggleType == ToggleType.SEAMLESS_SWITCHING) {
+                Context context = getParentActivity() != null ? getParentActivity() : ApplicationLoader.applicationContext;
+                return context != null && DualCameraView.roundDualAvailableStatic(context);
+            }
+            return true;
+        }
+
+        @Override
+        public void onBindViewHolder(RecyclerView.ViewHolder holder) {
+            TextCheckCell cell = (TextCheckCell) holder.itemView;
+            String subtitle = getSubtitle();
+            if (TextUtils.isEmpty(subtitle)) {
+                cell.setTextAndCheck(getString(titleResId), isEnabled() && bindConfig.Bool(), cellGroup.needSetDivider(this), true);
+            } else {
+                cell.setTextAndValueAndCheck(getString(titleResId), subtitle, isEnabled() && bindConfig.Bool(), true, cellGroup.needSetDivider(this), true);
+            }
+            cell.setEnabled(isEnabled(), null);
+        }
+
+        private void onClick(TextCheckCell cell) {
+            if (!isEnabled()) {
+                return;
+            }
+            boolean newValue = bindConfig.toggleConfigBool();
+            cell.setChecked(newValue);
+            cellGroup.runCallback(bindConfig.getKey(), newValue);
+        }
+
+        private String getSubtitle() {
+            if (toggleType == ToggleType.SEAMLESS_SWITCHING && !isCamera2Enabled()) {
+                return getString(R.string.VideoMessagesCamera2Required);
+            }
+            if (toggleType == ToggleType.SEAMLESS_SWITCHING) {
+                Context context = getParentActivity() != null ? getParentActivity() : ApplicationLoader.applicationContext;
+                if (context != null && !DualCameraView.roundDualAvailableStatic(context)) {
+                    return getString(R.string.VideoMessagesSeamlessSwitchingUnsupported);
+                }
+                return getString(R.string.VideoMessagesSeamlessSwitchingDescription);
+            }
+            if (toggleType == ToggleType.SAVE_ZOOM_POSITION) {
+                return getString(R.string.VideoMessagesSaveZoomPositionDescription);
+            }
+            if (toggleType == ToggleType.BLUR_CAMERA_SWITCH) {
+                return getString(R.string.VideoMessagesBlurCameraSwitchDescription);
+            }
+            return "";
+        }
+    }
+
+    private class StabilizationDropdownCell extends AbstractConfigCell {
+        private static final int FRONT_CAMERA_ID = 0;
+        private static final int REAR_CAMERA_ID = 1;
+
+        @Override
+        public int getType() {
+            return CellGroup.ITEM_TYPE_TEXT_DETAIL;
+        }
+
+        @Override
+        public boolean isEnabled() {
+            return isCamera2Enabled() && isAnyStabilizationSupported();
+        }
+
+        @Override
+        public void onBindViewHolder(RecyclerView.ViewHolder holder) {
+            TextDetailSettingsCell cell = (TextDetailSettingsCell) holder.itemView;
+            cell.setMultilineDetail(true);
+            cell.setTextAndValue(getString(R.string.VideoMessagesStabilization), getStabilizationSubtitle(), cellGroup.needSetDivider(this));
+            cell.setEnabled(isEnabled());
+            cell.setAlpha(isEnabled() ? 1.0f : 0.5f);
+        }
+
+        private void onClick(View anchor) {
+            if (!isEnabled()) {
+                return;
+            }
+            showStabilizationPopup(anchor);
+        }
+
+        private void showStabilizationPopup(View anchor) {
+            PopupBuilder builder = new PopupBuilder(anchor);
+            ActionBarMenuSubItem frontItem = builder.addSubItem(FRONT_CAMERA_ID, 0, null, getString(R.string.VideoMessagesFrontCamera), false, true);
+            ActionBarMenuSubItem rearItem = builder.addSubItem(REAR_CAMERA_ID, 0, null, getString(R.string.VideoMessagesRearCamera), false, true);
+            updateStabilizationMenuItem(frontItem, true);
+            updateStabilizationMenuItem(rearItem, false);
+            builder.setDelegate(id -> {
+                if (id == FRONT_CAMERA_ID) {
+                    toggleStabilizationCamera(true);
+                    updateStabilizationMenuItem(frontItem, true);
+                } else if (id == REAR_CAMERA_ID) {
+                    toggleStabilizationCamera(false);
+                    updateStabilizationMenuItem(rearItem, false);
+                }
+                if (listAdapter != null) {
+                    listAdapter.notifyItemChanged(cellGroup.rows.indexOf(stabilizationRow));
+                }
+            });
+            builder.show();
+        }
+    }
+
+    private void updateStabilizationMenuItem(ActionBarMenuSubItem item, boolean front) {
+        boolean supported = isStabilizationSupported(front);
+        item.setChecked(isStabilizationEnabledForCamera(front));
+        item.setEnabled(supported);
+        item.setAlpha(supported ? 1.0f : 0.5f);
+    }
+
+    private void toggleStabilizationCamera(boolean front) {
+        if (!isStabilizationSupported(front)) {
+            return;
+        }
+        ConfigItem config = getStabilizationConfig(front);
+        config.setConfigBool(!config.Bool());
+    }
+
+    private ConfigItem getStabilizationConfig(boolean front) {
+        return front ? NekoConfig.videoMessagesStabilizationFront : NekoConfig.videoMessagesStabilizationRear;
+    }
+
+    private boolean isAnyStabilizationSupported() {
+        return isStabilizationSupported(true) || isStabilizationSupported(false);
+    }
+
+    private boolean isStabilizationEnabledForCamera(boolean front) {
+        return isStabilizationSupported(front) && getStabilizationConfig(front).Bool();
+    }
+
+    private void normalizeStabilizationSelection() {
+        if (!isStabilizationSupported(true) && NekoConfig.videoMessagesStabilizationFront.Bool()) {
+            NekoConfig.videoMessagesStabilizationFront.setConfigBool(false);
+        }
+        if (!isStabilizationSupported(false) && NekoConfig.videoMessagesStabilizationRear.Bool()) {
+            NekoConfig.videoMessagesStabilizationRear.setConfigBool(false);
+        }
+    }
+
+    private String getStabilizationSubtitle() {
+        if (!isCamera2Enabled()) {
+            return getString(R.string.VideoMessagesCamera2Required);
+        }
+        if (!isAnyStabilizationSupported()) {
+            return getString(R.string.VideoMessagesStabilizationUnsupported);
+        }
+        return getString(R.string.VideoMessagesTapToChooseCamera) + "\n" + getString(R.string.VideoMessagesStabilizationDescription);
+    }
+
+    private String getRecordFromSummary() {
+        int mode = NekoConfig.videoMessagesRecordFrom.Int();
+        if (mode == NekoConfig.VIDEO_MESSAGES_RECORD_FROM_REAR) {
+            return getString(R.string.VideoMessagesRearCamera);
+        } else if (mode == NekoConfig.VIDEO_MESSAGES_RECORD_FROM_ASK) {
+            return getString(R.string.VideoMessagesAlwaysAsk);
+        }
+        return getString(R.string.VideoMessagesFrontCamera);
+    }
+
+    private String getStartCameraSummary() {
+        if (!isCamera2Enabled()) {
+            return getString(R.string.VideoMessagesCamera2Required);
+        }
+        Camera2Session.RoundVideoCameraOption selectedOption = findSelectedStartCameraOption();
+        if (selectedOption != null) {
+            return formatStartCameraOptionTitle(selectedOption.title);
+        }
+        if (!startCameraOptions.isEmpty()) {
+            return formatStartCameraOptionTitle(startCameraOptions.get(0).title);
+        }
+        return getString(R.string.VideoMessagesStartCameraUnavailable);
+    }
+
+    private String formatStartCameraOptionTitle(String title) {
+        if (TextUtils.isEmpty(title)) {
+            return "";
+        }
+        int separatorIndex = title.indexOf(" · ");
+        if (separatorIndex >= 0 && separatorIndex + 3 < title.length()) {
+            return title.substring(separatorIndex + 3);
+        }
+        return title;
     }
 
     private void showVideoNoteValuePopup(View view, int[] values, boolean bitrate, ValueConsumer onSelected) {
@@ -270,6 +665,10 @@ public class NekoCameraSettingsActivity extends BaseNekoXSettingsActivity {
                     break;
                 case CellGroup.ITEM_TYPE_TEXT_SETTINGS_CELL:
                     view = new TextSettingsCell(mContext);
+                    view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
+                    break;
+                case CellGroup.ITEM_TYPE_TEXT_CHECK:
+                    view = new TextCheckCell(mContext);
                     view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
                     break;
                 case CellGroup.ITEM_TYPE_HEADER:

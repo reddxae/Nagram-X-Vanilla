@@ -180,8 +180,6 @@
     <string name="ChatAttachEnterMenuRecordAudio">Record Audio</string>
     <string name="ChatAttachEnterMenuDisableLinkPreview">Disable Link Preview</string>
     <string name="ChatAttachEnterMenuEnableLinkPreview">Enable Link Preview</string>
-    <string name="UseChatAttachEnterMenu">Use Input Menu</string>
-    <string name="UseChatAttachEnterMenuNotice">Change the record button to an input menu, and add a link preview switch.</string>
     <string name="DisableLinkPreviewByDefault">Disable Link Preview by Default</string>
     <string name="CustomApi">Custom API</string>
     <string name="UseCustomApiNotice">Log in using the custom API, if you are unable to register or log in, this may help.\n\nNote: FCM will not work if you are using a custom API.</string>

@@ -177,8 +177,6 @@
     <string name="ChatAttachEnterMenuRecordAudio">Записати аудіо</string>
     <string name="ChatAttachEnterMenuDisableLinkPreview">Без прев’ю посилань</string>
     <string name="ChatAttachEnterMenuEnableLinkPreview">З прев’ю посилань</string>
-    <string name="UseChatAttachEnterMenu">Використовувати меню надсилання</string>
-    <string name="UseChatAttachEnterMenuNotice">Кнопка надсилання буде замінена на розширене меню.</string>
     <string name="DisableLinkPreviewByDefault">Вимкнути попередній перегляд посилань за замовчуванням</string>
     <string name="CustomApi">Користувацький API</string>
     <string name="UseCustomApiNotice">Увійдіть за допомогою користувацького API. Якщо ви не можете зареєструватися або увійти, це може допомогти.\n\nПримітка: FCM не працюватиме, якщо ви використовуєте користувацький API.</string>

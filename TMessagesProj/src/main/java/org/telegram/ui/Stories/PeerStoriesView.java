@@ -2916,6 +2916,7 @@ public class PeerStoriesView extends SizeNotifierFrameLayout implements Notifica
                     } else if (state == 1 || state == 3 || state == 4) {
                         instantCameraView.send(state, notify, scheduleDate, ttl, effectId, stars);
                     } else if (state == 2 || state == 5) {
+                        InstantCameraView.clearNextSessionStartFrontfaceOverride();
                         instantCameraView.cancel(state == 2);
                     }
                 }

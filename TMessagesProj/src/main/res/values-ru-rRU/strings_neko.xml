@@ -177,8 +177,6 @@
     <string name="ChatAttachEnterMenuRecordAudio">Аудиосообщение</string>
     <string name="ChatAttachEnterMenuDisableLinkPreview">Без предпросмотра</string>
     <string name="ChatAttachEnterMenuEnableLinkPreview">С предпросмотром</string>
-    <string name="UseChatAttachEnterMenu">Использовать меню отправки</string>
-    <string name="UseChatAttachEnterMenuNotice">Кнопка отправки будет заменена на расширенное меню.</string>
     <string name="DisableLinkPreviewByDefault">Отправлять ссылки без предпросмотра</string>
     <string name="CustomApi">Выбрать API</string>
     <string name="UseCustomApiNotice">Войдите в систему, используя пользовательский API. Если вы не можете зарегистрироваться или войти в систему, это может помочь.\n\nПримечание: FCM не будет работать, если вы используете пользовательский API.</string>

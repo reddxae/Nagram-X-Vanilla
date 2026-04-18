@@ -4865,7 +4865,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                                 BuildVars.DEBUG_PRIVATE_VERSION ? SharedConfig.photoViewerBlur ? "do not blur in photoviewer" : "blur in photoviewer" : null,
                                 !SharedConfig.payByInvoice ? getString(R.string.DebugMenuEnableInvoicePayment) : getString(R.string.DebugMenuDisableInvoicePayment),
                                 BuildVars.DEBUG_PRIVATE_VERSION ? "Update Attach Bots" : null,
-                                !SharedConfig.isUsingCamera2(currentAccount) ? getString(R.string.DebugMenuUseCamera2Api) : getString(R.string.DebugMenuUseOldCamera1Api),
+                                null,
                                 BuildVars.DEBUG_VERSION ? "Clear Mini Apps Permissions and Files" : null,
                                 BuildVars.DEBUG_PRIVATE_VERSION ? "Clear all login tokens" : null,
                                 SharedConfig.canBlurChat() && Build.VERSION.SDK_INT >= 31 ? SharedConfig.useNewBlur ? getString(R.string.DebugMenuUseCpuBlur) : getString(R.string.DebugMenuUseNewGpuBlur) : null,
@@ -5146,32 +5146,30 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                                 SharedConfig.togglePaymentByInvoice();
                             } else if (which == 27) { // Update Attach Bots
                                 getMediaDataController().loadAttachMenuBots(false, true);
-                            } else if (which == 28) { // Use Camera 2 API
-                                SharedConfig.toggleUseCamera2(currentAccount);
-                            } else if (which == 29) { // Clear mini Apps permissions and files
+                            } else if (which == 28) { // Clear mini Apps permissions and files
                                 BotBiometry.clear();
                                 BotLocation.clear();
                                 BotDownloads.clear();
                                 SetupEmojiStatusSheet.clear();
-                            } else if (which == 30) { // Clear all login tokens
+                            } else if (which == 29) { // Clear all login tokens
                                 AuthTokensHelper.clearLogInTokens();
-                            } else if (which == 31) { // Back to cpu blur / use new gpu blur
+                            } else if (which == 30) { // Back to cpu blur / use new gpu blur
                                 SharedConfig.toggleUseNewBlur();
-                            } else if (which == 32) { // Adaptive browser colors
+                            } else if (which == 31) { // Adaptive browser colors
                                 SharedConfig.toggleBrowserAdaptableColors();
-                            } else if (which == 33) { // Debug video qualities
+                            } else if (which == 32) { // Debug video qualities
                                 SharedConfig.toggleDebugVideoQualities();
-                            } else if (which == 34) {
+                            } else if (which == 33) {
                                 SharedConfig.toggleUseSystemBoldFont();
                                 if (getUndoView() == null) {
                                     undoView = new UndoView(context, null, false, resourcesProvider);
                                 }
                                 undoView.showWithAction(0, UndoView.ACTION_NEED_RESTART, null, null);
-                            } else if (which == 35) {
+                            } else if (which == 34) {
                                 MessagesController.getInstance(currentAccount).loadAppConfig(true);
-                            } else if (which == 36) {
+                            } else if (which == 35) {
                                 SharedConfig.toggleForceForumTabs();
-                            } else if (which == 37) {
+                            } else if (which == 36) {
                                 FileLog.getInstance().dumpMemory(true);
                             }
                         });
