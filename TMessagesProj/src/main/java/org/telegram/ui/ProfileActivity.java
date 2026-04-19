@@ -4655,66 +4655,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
             } else if (position == setAvatarRow) {
                 onWriteButtonClick();
             } else if (position == versionRow) {
-                TextInfoPrivacyCell cell = (TextInfoPrivacyCell) view;
-
-                BottomBuilder builder = new BottomBuilder(getParentActivity());
-                String message = cell.getTextView().getText().toString();
-                builder.addTitle(message);
-                String finalMessage = message;
-                builder.addItem(getString(R.string.Copy), R.drawable.msg_copy, (it) -> {
-                    AndroidUtilities.addToClipboard(finalMessage);
-                    AlertUtil.showToast(getString(R.string.TextCopied));
-                    return Unit.INSTANCE;
-                });
-                builder.addItem(BuildVars.LOGS_ENABLED ? getString(R.string.DebugMenuDisableLogs) : getString(R.string.DebugMenuEnableLogs), R.drawable.baseline_bug_report_24, (it) -> {
-                    AndroidUtil.toggleLogs();
-                    updateListAnimated(false);
-                    return Unit.INSTANCE;
-                });
-
-                builder.addItem(getString(R.string.CheckUpdate), R.drawable.msg_search,
-                        (it) -> {
-                            AlertUtil.showToast(getString(R.string.NotYetAvailableNax));
-                            return Unit.INSTANCE;
-                        });
-
-                String currentChannel = " - ";
-                switch (NaConfig.INSTANCE.getAutoUpdateChannel().Int()) {
-                    case UpdateHelper.UPDATE_OFF:
-                        currentChannel += getString(R.string.AutoCheckUpdateOFF);
-                        break;
-                    case UpdateHelper.UPDATE_CHANNEL_RELEASE:
-                        currentChannel += getString(R.string.AutoCheckUpdateRelease);
-                        break;
-                    case UpdateHelper.UPDATE_CHANNEL_BETA:
-                        currentChannel += getString( R.string.AutoCheckUpdateBeta);
-                        break;
-                }
-
-                builder.addItem(getString(R.string.AutoCheckUpdateSwitch) + currentChannel, R.drawable.sync_outline_28, (it) -> {
-                    BottomBuilder switchBuilder = new BottomBuilder(getParentActivity());
-                    switchBuilder.addTitle(getString(R.string.AutoCheckUpdateSwitch));
-                    switchBuilder.addRadioItem(getString(R.string.AutoCheckUpdateOFF), NaConfig.INSTANCE.getAutoUpdateChannel().Int() == UpdateHelper.UPDATE_OFF, (radioButtonCell) -> {
-                        NaConfig.INSTANCE.getAutoUpdateChannel().setConfigInt(UpdateHelper.UPDATE_OFF);
-                        switchBuilder.doRadioCheck(radioButtonCell);
-                        AndroidUtilities.runOnUIThread(() -> {
-                            switchBuilder.dismiss();
-                            UpdateHelper.cleanAppUpdate();
-                        }, 500);
-                        return Unit.INSTANCE;
-                    });
-                    switchBuilder.addRadioItem(getString(R.string.AutoCheckUpdateRelease), NaConfig.INSTANCE.getAutoUpdateChannel().Int() == UpdateHelper.UPDATE_CHANNEL_RELEASE, (radioButtonCell) -> {
-                        AlertUtil.showToast(getString(R.string.NotYetAvailableNax));
-                        return Unit.INSTANCE;
-                    });
-                    switchBuilder.addRadioItem(getString(R.string.AutoCheckUpdateBeta), NaConfig.INSTANCE.getAutoUpdateChannel().Int() == UpdateHelper.UPDATE_CHANNEL_BETA, (radioButtonCell) -> {
-                        AlertUtil.showToast(getString(R.string.NotYetAvailableNax));
-                        return Unit.INSTANCE;
-                    });
-                    showDialog(switchBuilder.create());
-                    return Unit.INSTANCE;
-                });
-                builder.show();
+                return;
             } else if (position == premiumRow) {
                 presentFragment(new PremiumPreviewFragment("settings"));
             } else if (position == starsRow) {

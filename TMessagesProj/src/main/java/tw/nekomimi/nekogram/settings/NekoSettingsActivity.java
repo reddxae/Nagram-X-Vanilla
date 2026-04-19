@@ -45,6 +45,7 @@ import org.json.JSONObject;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.ApplicationLoader;
 import org.telegram.messenger.BuildConfig;
+import org.telegram.messenger.BuildVars;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.R;
@@ -90,8 +91,11 @@ import tw.nekomimi.nekogram.helpers.ChatNameHelper;
 import tw.nekomimi.nekogram.helpers.PasscodeHelper;
 import tw.nekomimi.nekogram.helpers.SettingsHelper;
 import tw.nekomimi.nekogram.helpers.SettingsSearchResult;
+import tw.nekomimi.nekogram.helpers.remote.UpdateHelper;
+import tw.nekomimi.nekogram.ui.BottomBuilder;
 import tw.nekomimi.nekogram.ui.cells.HeaderCell;
 import tw.nekomimi.nekogram.utils.AlertUtil;
+import tw.nekomimi.nekogram.utils.AndroidUtil;
 import tw.nekomimi.nekogram.utils.FileUtil;
 import tw.nekomimi.nekogram.utils.GsonUtil;
 import tw.nekomimi.nekogram.utils.ShareUtil;
@@ -466,6 +470,9 @@ public class NekoSettingsActivity extends BaseFragment {
 
                 @Override
                 public boolean isEnabled(RecyclerView.ViewHolder holder) {
+                    if (holder.getAdapterPosition() == aboutClientInfoRow) {
+                        return true;
+                    }
                     int type = holder.getItemViewType();
                     return type == VIEW_TYPE_TEXT || type == VIEW_TYPE_TEXT_LINK;
                 }
@@ -591,6 +598,9 @@ public class NekoSettingsActivity extends BaseFragment {
                     backupSettings();
                 } else if (position == appRestartRow) {
                     AppRestartHelper.triggerRebirth(context, new Intent(context, LaunchActivity.class));
+                } else if (position == aboutClientInfoRow) {
+                    TextInfoPrivacyCell cell = (TextInfoPrivacyCell) view;
+                    showVersionBottomSheet(cell.getTextView().getText().toString());
                 }
             });
 
@@ -638,6 +648,65 @@ public class NekoSettingsActivity extends BaseFragment {
             ((MarginLayoutParams) listView.getLayoutParams()).topMargin = actionBarHeight;
             super.onMeasure(widthMeasureSpec, heightMeasureSpec);
         }
+    }
+
+    private void showVersionBottomSheet(String message) {
+        Context context = getParentActivity();
+        if (context == null) return;
+
+        BottomBuilder builder = new BottomBuilder(context);
+        builder.addTitle(message);
+        builder.addItem(getString(R.string.Copy), R.drawable.msg_copy, it -> {
+            AndroidUtilities.addToClipboard(message);
+            AlertUtil.showToast(getString(R.string.TextCopied));
+            return kotlin.Unit.INSTANCE;
+        });
+        builder.addItem(BuildVars.LOGS_ENABLED ? getString(R.string.DebugMenuDisableLogs) : getString(R.string.DebugMenuEnableLogs), R.drawable.baseline_bug_report_24, it -> {
+            AndroidUtil.toggleLogs();
+            return kotlin.Unit.INSTANCE;
+        });
+        builder.addItem(getString(R.string.CheckUpdate), R.drawable.msg_search, it -> {
+            AlertUtil.showToast(getString(R.string.NotYetAvailableNax));
+            return kotlin.Unit.INSTANCE;
+        });
+
+        String currentChannel = " - ";
+        switch (NaConfig.INSTANCE.getAutoUpdateChannel().Int()) {
+            case UpdateHelper.UPDATE_OFF:
+                currentChannel += getString(R.string.AutoCheckUpdateOFF);
+                break;
+            case UpdateHelper.UPDATE_CHANNEL_RELEASE:
+                currentChannel += getString(R.string.AutoCheckUpdateRelease);
+                break;
+            case UpdateHelper.UPDATE_CHANNEL_BETA:
+                currentChannel += getString(R.string.AutoCheckUpdateBeta);
+                break;
+        }
+
+        builder.addItem(getString(R.string.AutoCheckUpdateSwitch) + currentChannel, R.drawable.sync_outline_28, it -> {
+            BottomBuilder switchBuilder = new BottomBuilder(context);
+            switchBuilder.addTitle(getString(R.string.AutoCheckUpdateSwitch));
+            switchBuilder.addRadioItem(getString(R.string.AutoCheckUpdateOFF), NaConfig.INSTANCE.getAutoUpdateChannel().Int() == UpdateHelper.UPDATE_OFF, radioButtonCell -> {
+                NaConfig.INSTANCE.getAutoUpdateChannel().setConfigInt(UpdateHelper.UPDATE_OFF);
+                switchBuilder.doRadioCheck(radioButtonCell);
+                AndroidUtilities.runOnUIThread(() -> {
+                    switchBuilder.dismiss();
+                    UpdateHelper.cleanAppUpdate();
+                }, 500);
+                return kotlin.Unit.INSTANCE;
+            });
+            switchBuilder.addRadioItem(getString(R.string.AutoCheckUpdateRelease), NaConfig.INSTANCE.getAutoUpdateChannel().Int() == UpdateHelper.UPDATE_CHANNEL_RELEASE, radioButtonCell -> {
+                AlertUtil.showToast(getString(R.string.NotYetAvailableNax));
+                return kotlin.Unit.INSTANCE;
+            });
+            switchBuilder.addRadioItem(getString(R.string.AutoCheckUpdateBeta), NaConfig.INSTANCE.getAutoUpdateChannel().Int() == UpdateHelper.UPDATE_CHANNEL_BETA, radioButtonCell -> {
+                AlertUtil.showToast(getString(R.string.NotYetAvailableNax));
+                return kotlin.Unit.INSTANCE;
+            });
+            showDialog(switchBuilder.create());
+            return kotlin.Unit.INSTANCE;
+        });
+        showDialog(builder.create());
     }
 
     private void backupSettings() {
