@@ -233,6 +233,12 @@ object NaConfig {
             ConfigItem.configTypeBool,
             false
         )
+    val proxyDisabledByVpn =
+        addConfig(
+            "ProxyDisabledByVpn",
+            ConfigItem.configTypeBool,
+            false
+        )
     val disableEmojiDrawLimit =
         addConfig(
             "DisableEmojiDrawLimit",

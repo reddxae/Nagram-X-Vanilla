@@ -46,9 +46,39 @@ import org.telegram.messenger.browser.Browser
 import tw.nekomimi.nekogram.ui.BottomBuilder
 import tw.nekomimi.nekogram.utils.AlertUtil.showToast
 import java.io.File
+import xyz.nextalone.nagram.NaConfig
 
 
 object ProxyUtil {
+
+    @JvmStatic
+    @JvmOverloads
+    fun syncProxyStateWithVpn(vpn: Boolean = isVPNEnabled()): Boolean {
+        if (!NaConfig.disableProxyWhenVpnEnabled.Bool()) {
+            if (NaConfig.proxyDisabledByVpn.Bool()) {
+                NaConfig.proxyDisabledByVpn.setConfigBool(false)
+            }
+            return false
+        }
+
+        if (vpn) {
+            if (SharedConfig.isProxyEnabled()) {
+                NaConfig.proxyDisabledByVpn.setConfigBool(true)
+                SharedConfig.setProxyEnable(false)
+                return true
+            }
+            return false
+        }
+
+        if (NaConfig.proxyDisabledByVpn.Bool()) {
+            NaConfig.proxyDisabledByVpn.setConfigBool(false)
+            if (SharedConfig.currentProxy != null) {
+                SharedConfig.setProxyEnable(true)
+                return true
+            }
+        }
+        return false
+    }
 
     @JvmStatic
     fun isVPNEnabled(): Boolean {
@@ -73,17 +103,7 @@ object ProxyUtil {
                     val networkCapabilities =
                         connectivityManager.getNetworkCapabilities(network) ?: return
                     val vpn = networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_VPN)
-                    if (!vpn) {
-                        if (SharedConfig.currentProxy == null) {
-                            if (!SharedConfig.proxyList.isEmpty()) {
-                                SharedConfig.setCurrentProxy(SharedConfig.proxyList[0])
-                            } else {
-                                return
-                            }
-                        }
-                    }
-                    if ((SharedConfig.isProxyEnabled() && vpn) || (!SharedConfig.isProxyEnabled() && !vpn)) {
-                        SharedConfig.setProxyEnable(!vpn)
+                    if (syncProxyStateWithVpn(vpn)) {
                         AndroidUtilities.runOnUIThread(Runnable {
                             NotificationCenter.getGlobalInstance()
                                 .postNotificationName(NotificationCenter.proxySettingsChanged)
