@@ -8,8 +8,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.CountDownTimer;
-import android.text.SpannableString;
 import android.text.TextUtils;
 import android.util.Base64;
 import android.view.Gravity;
@@ -29,7 +27,6 @@ import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParseException;
-import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
 import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
@@ -37,7 +34,6 @@ import com.google.gson.JsonSerializer;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.BuildConfig;
 import org.telegram.messenger.ChatObject;
-import org.telegram.messenger.CodeHighlighting;
 import org.telegram.messenger.ContactsController;
 import org.telegram.messenger.FileLoader;
 import org.telegram.messenger.FileLog;
@@ -80,7 +76,6 @@ public class MessageDetailsActivity extends BaseFragment implements Notification
     public static final Gson gson = new GsonBuilder()
             .registerTypeHierarchyAdapter(byte[].class, new ByteArrayToBase64TypeAdapter())
             .setExclusionStrategies(new CustomExclusionStrategy()).create();
-    public static final Gson prettyGson = new GsonBuilder().setPrettyPrinting().create();
     private final MessageObject messageObject;
     private final MessageObject.GroupedMessages messageGroup;
     private RecyclerListView listView;
@@ -115,7 +110,6 @@ public class MessageDetailsActivity extends BaseFragment implements Notification
     private int languageRow;
     private int buttonsRow;
     private int emptyRow;
-    private int jsonTextRow;
     private int exportRow;
     private int endRow;
 
@@ -364,7 +358,6 @@ public class MessageDetailsActivity extends BaseFragment implements Notification
         languageRow = TextUtils.isEmpty(MessageHelper.getMessagePlainText(messageObject, messageGroup)) ? -1 : rowCount++;
         buttonsRow = messageObject.messageOwner.reply_markup instanceof TLRPC.TL_replyInlineMarkup ? rowCount++ : -1;
         emptyRow = rowCount++;
-        jsonTextRow = rowCount++;
         exportRow = rowCount++;
         endRow = rowCount++;
         if (listAdapter != null) {
@@ -591,26 +584,6 @@ public class MessageDetailsActivity extends BaseFragment implements Notification
                         }
                     } else if (position == buttonsRow) {
                         textCell.setTextAndValue("Buttons", gson.toJson(messageObject.messageOwner.reply_markup), divider);
-                    } else if (position == jsonTextRow) {
-                        try {
-                            String jsonTempString = gson.toJson(messageObject.messageOwner);
-                            JsonElement jsonElement = JsonParser.parseString(jsonTempString);
-                            String jsonString = prettyGson.toJson(jsonElement);
-                            final SpannableString[] sb = new SpannableString[1];
-                            new CountDownTimer(300, 100) {
-                                @Override
-                                public void onTick(long millisUntilFinished) {
-                                    sb[0] = CodeHighlighting.getHighlighted(jsonString, "json");
-                                }
-
-                                @Override
-                                public void onFinish() {
-                                    textCell.setTextAndValue("JSON", sb[0], divider);
-                                }
-                            }.start();
-                        } catch (Exception e) {
-                            FileLog.e(e);
-                        }
                     }
                     break;
                 }

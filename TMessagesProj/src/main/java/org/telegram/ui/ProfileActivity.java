@@ -17551,15 +17551,21 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
         return builder;
     }
 
+    private CharSequence formatBoldMonospaceId(long id) {
+        SpannableStringBuilder builder = new SpannableStringBuilder(String.valueOf(id));
+        builder.setSpan(new TypefaceSpan(Typeface.create(Typeface.MONOSPACE, Typeface.BOLD)), 0, builder.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        return builder;
+    }
+
     private void showIdDcBottomSheet() {
         long id = getId(true);
         long idForLink = getId(false);
         int dc = getDc();
         BottomBuilder builder = new BottomBuilder(getParentActivity());
         if (userId != 0) {
-            builder.addTitle(formatMonospaceId(id), ProfileDateHelper.getUserTime(id));
+            builder.addTitle(formatBoldMonospaceId(id), ProfileDateHelper.getUserTime(id));
         } else {
-            builder.addTitle(formatMonospaceId(id));
+            builder.addTitle(formatBoldMonospaceId(id));
         }
         builder.addItem(getString(R.string.Copy), R.drawable.msg_copy, __ -> {
             AlertUtil.copyAndAlert(id + "", this);
