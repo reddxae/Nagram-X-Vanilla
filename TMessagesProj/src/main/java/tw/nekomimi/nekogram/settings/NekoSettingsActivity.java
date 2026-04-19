@@ -507,7 +507,7 @@ public class NekoSettingsActivity extends BaseFragment {
                             } else if (position == importSettingsRow) {
                                 textCell.setTextAndIcon(getString(R.string.ImportSettings), R.drawable.msg_customize, true);
                             } else if (position == exportSettingsRow) {
-                                textCell.setTextAndIcon(getString(R.string.BackupSettings), R.drawable.msg_instant_link, true);
+                                textCell.setTextAndIcon(getString(R.string.BackupSettings), R.drawable.msg_shareout, true);
                             } else if (position == resetSettingsRow) {
                                 textCell.setTextAndIcon(getString(R.string.ResetSettings), R.drawable.msg_reset, true);
                             } else if (position == datacenterStatusRow) {
