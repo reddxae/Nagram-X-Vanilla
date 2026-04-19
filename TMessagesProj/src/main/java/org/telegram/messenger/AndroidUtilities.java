@@ -2308,10 +2308,7 @@ public class AndroidUtilities {
     public static Typeface getTypeface(String assetPath) {
         return typefaceCache.computeIfAbsent(assetPath, path -> {
             try {
-                if (NekoConfig.typeface.Bool()) {
-                    return TypefaceHelper.createTypeface(path);
-                }
-                return TypefaceHelper.createTypefaceFromAsset(path);
+                return TypefaceHelper.createTypeface(path);
             } catch (Exception e) {
                 FileLog.e("Could not get typeface '" + assetPath + "' because " + e.getMessage());
                 return null;

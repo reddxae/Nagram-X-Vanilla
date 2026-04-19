@@ -108,7 +108,7 @@ public class HeaderCell extends LinearLayout {
     // NekoX: BottomSheet BigTitle, move big title from constructor to here
     public HeaderCell setBigTitle(boolean enabled) {
         if (enabled) {
-            textView.setTypeface(AndroidUtilities.getTypeface("fonts/mw_bold.ttf"));
+            textView.setTypeface(AndroidUtilities.bold());
         } else {
             textView.setTypeface(AndroidUtilities.getTypeface("fonts/rmedium.ttf"));
         }

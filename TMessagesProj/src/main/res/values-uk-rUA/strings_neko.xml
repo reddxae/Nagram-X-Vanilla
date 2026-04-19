@@ -15,7 +15,6 @@
     <string name="NameOrder">Порядок імен</string>
     <string name="FirstLast">Ім\'я Прізвище</string>
     <string name="LastFirst">Прізвище Ім\'я</string>
-    <string name="TypefaceUseDefault">Використовувати системний шрифт</string>
     <string name="NoQuoteForward">Переслати без автора</string>
     <string name="Repeat">Повторити</string>
     <string name="AddToSavedMessages">Зберегти</string>

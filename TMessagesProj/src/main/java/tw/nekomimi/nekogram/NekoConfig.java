@@ -82,7 +82,6 @@ public class NekoConfig {
     public static ConfigItem ignoreBlocked = addConfig("IgnoreBlocked", configTypeBool, false);
     public static ConfigItem tabletMode = addConfig("TabletMode", configTypeInt, 0);
 
-    public static ConfigItem typeface = addConfig("TypefaceUseDefault", configTypeBool, false);
     public static ConfigItem nameOrder = addConfig("NameOrder", configTypeInt, 1);
     public static ConfigItem mapPreviewProvider = addConfig("MapPreviewProvider", configTypeInt, 0);
     public static ConfigItem forceBlurInChat = addConfig("forceBlurInChat", configTypeBool, false);
