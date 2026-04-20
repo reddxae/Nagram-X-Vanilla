@@ -18,7 +18,14 @@ An important paradigm of this client is No Cringe. You won't find any epic rippl
 - Hiding stickers/emoji/GIF panel on scroll with "Hide keyboard on Scroll" enabled
 - Keep Send as channel available when its hidden; just hold emoji button
 - Separate "Disable Swipe to Next..." for Channels and Forums
+- Use Camera2 API for Video Messages with enhanced implementation
+  - Seamless Switching option
+  - Stabilization option
+  - Option to choose default rear camera from modules available
+- Option to start Video Messages recording with Rear Camera by default or ask before recording
+- Option to save the zoom position until you change it manually in Video Messages
 - Option to disable "Gooey" avatar animation
+- Replicate iOS-like camera switching style with blurred fade-in effect in Video Messages 
 - "Disable Avatar Blur" feature will UI with pre-12.0.0 profile behaviour (kind of)
 - Hide Direct Share button everywhere with "Hide Share Button Next to Post"
 - Icons for Attachments Tabs
