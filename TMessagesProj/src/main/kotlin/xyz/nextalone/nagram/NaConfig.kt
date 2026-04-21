@@ -9,7 +9,6 @@ import androidx.core.net.toUri
 import org.telegram.messenger.AndroidUtilities
 import org.telegram.messenger.ApplicationLoader
 import org.telegram.messenger.BuildVars
-import org.telegram.messenger.LocaleController.getString
 import org.telegram.messenger.R
 import tw.nekomimi.nekogram.NekoConfig
 import tw.nekomimi.nekogram.config.ConfigItem
@@ -157,9 +156,7 @@ object NaConfig {
         addConfig(
             "CustomTitle",
             ConfigItem.configTypeString,
-            getString(
-                R.string.NagramX
-            )
+            ""
         )
     val dateOfForwardedMsg =
         addConfig(
@@ -567,6 +564,15 @@ object NaConfig {
             ConfigItem.configTypeInt,
             1
         )
+
+    fun getResolvedCustomTitle(): String {
+        val titleOverride = customTitle.String()
+        return if (titleOverride.isEmpty()) {
+            checkNotNull(ApplicationLoader.applicationContext).getString(R.string.NagramX)
+        } else {
+            titleOverride
+        }
+    }
 
     // NagramX
     val enableSaveDeletedMessages =
