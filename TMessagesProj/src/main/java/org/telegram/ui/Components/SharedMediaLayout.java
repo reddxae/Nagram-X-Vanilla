@@ -10858,7 +10858,7 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
             case TAB_GIFTS -> R.drawable.gift;
             case TAB_COMMON_GROUPS, TAB_GROUPUSERS -> R.drawable.filter_group;
             case TAB_PHOTOVIDEO -> R.drawable.msg_media_gallery;
-            case TAB_RECOMMENDED_CHANNELS -> R.drawable.msg_filled_menu_channels;
+            case TAB_RECOMMENDED_CHANNELS -> dialog_id > 0 ? R.drawable.msg_folders_bots : R.drawable.msg_filled_menu_channels;
             case TAB_SAVED_DIALOGS, TAB_SAVED_MESSAGES -> R.drawable.baseline_bookmark_24;
             case TAB_FILES -> R.drawable.baseline_insert_drive_file_16;
             case TAB_LINKS -> R.drawable.story_link;
