@@ -71,6 +71,7 @@ import tw.nekomimi.nekogram.helpers.MessageHelper;
 import tw.nekomimi.nekogram.helpers.TimeStringHelper;
 
 public class ChatAvatarContainer extends FrameLayout implements NotificationCenter.NotificationCenterDelegate {
+    private static final int RELATIVE_ONLINE_TIME_LIMIT_SECONDS = 6 * 60 * 60;
 
     public boolean allowDrawStories;
     private Integer storiesForceState;
@@ -1181,6 +1182,12 @@ public class ChatAvatarContainer extends FrameLayout implements NotificationCent
                 } else {
                     isOnline[0] = false;
                     newStatus = LocaleController.formatUserStatus(currentAccount, user, isOnline, allowShorterStatus ? statusMadeShorter : null);
+                    if (!isOnline[0]) {
+                        String relativeStatus = formatRelativeOnlineStatus(user);
+                        if (relativeStatus != null) {
+                            newStatus = relativeStatus;
+                        }
+                    }
                     useOnlineColor = isOnline[0];
                 }
                 newSubtitle = newStatus;
@@ -1326,6 +1333,28 @@ public class ChatAvatarContainer extends FrameLayout implements NotificationCent
             }
         }
         return newSubtitle;
+    }
+
+    private String formatRelativeOnlineStatus(TLRPC.User user) {
+        if (!NaConfig.INSTANCE.getRelativeOnlineTime().Bool() || user == null || user.status == null || user.status.expires <= 0) {
+            return null;
+        }
+        int diff = ConnectionsManager.getInstance(currentAccount).getCurrentTime() - user.status.expires;
+        if (diff < 0 || diff > RELATIVE_ONLINE_TIME_LIMIT_SECONDS) {
+            return null;
+        }
+        String relativeTime;
+        if (diff < 60) {
+            relativeTime = LocaleController.getString(R.string.LessMinuteAgo);
+        } else if (diff < 60 * 60) {
+            relativeTime = LocaleController.formatPluralString("MinutesAgo", Math.max(1, diff / 60));
+        } else {
+            relativeTime = LocaleController.formatPluralString("HoursAgo", Math.max(1, diff / (60 * 60)));
+        }
+        if (TextUtils.isEmpty(relativeTime) || relativeTime.startsWith("LOC_ERR")) {
+            return null;
+        }
+        return LocaleController.formatString(R.string.LastSeenFormatted, relativeTime);
     }
 
     private static CharSequence createTopPanelCountWithIcon(CharSequence countText, CharSequence secondaryText) {

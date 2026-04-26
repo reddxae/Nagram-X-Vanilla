@@ -75,6 +75,17 @@
     <string name="DisableFlagSecure">Отключить FLAG_SECURE</string>
     <string name="DisableFlagSecureNotice">Разрешает делать скриншоты на экранах, где они обычно заблокированы.</string>
     <string name="CenterActionBarTitleType">Заголовок по центру в настройках</string>
+    <string name="RelativeOnlineTime">Относительное время онлайна</string>
+    <string name="LastSeenFormatted">был(а) %1$s</string>
+    <string name="LessMinuteAgo">только что</string>
+    <string name="MinutesAgo_one">%1$d минуту назад</string>
+    <string name="MinutesAgo_few">%1$d минуты назад</string>
+    <string name="MinutesAgo_many">%1$d минут назад</string>
+    <string name="MinutesAgo_other">%1$d минут назад</string>
+    <string name="HoursAgo_one">%d час назад</string>
+    <string name="HoursAgo_few">%d часа назад</string>
+    <string name="HoursAgo_many">%d часов назад</string>
+    <string name="HoursAgo_other">%d часов назад</string>
     <string name="ShowQuickReplyInBotCommands">Показывать кнопку быстрого ответа в поле ввода</string>
     <string name="PushServiceType">Тип сервиса уведомлений</string>
     <string name="PushServiceTypeInApp">В приложении</string>

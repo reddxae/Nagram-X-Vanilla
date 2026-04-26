@@ -72,6 +72,17 @@
     <string name="DisableFlagSecure">Вимкнути FLAG_SECURE</string>
     <string name="DisableFlagSecureNotice">Дозволяє робити знімки екрана там, де їх зазвичай заблоковано.</string>
     <string name="CenterActionBarTitleType">Заголовок по центру в налаштуваннях</string>
+    <string name="RelativeOnlineTime">Відносний час онлайну</string>
+    <string name="LastSeenFormatted">був(-ла) %1$s</string>
+    <string name="LessMinuteAgo">щойно</string>
+    <string name="MinutesAgo_one">%1$d хвилину тому</string>
+    <string name="MinutesAgo_few">%1$d хвилини тому</string>
+    <string name="MinutesAgo_many">%1$d хвилин тому</string>
+    <string name="MinutesAgo_other">%1$d хвилини тому</string>
+    <string name="HoursAgo_one">%d годину тому</string>
+    <string name="HoursAgo_few">%d години тому</string>
+    <string name="HoursAgo_many">%d годин тому</string>
+    <string name="HoursAgo_other">%d години тому</string>
     <string name="ShowQuickReplyInBotCommands">Показувати швидку відповідь у командах бота</string>
     <string name="PushServiceType">Служба Push-сповіщень</string>
     <string name="PushServiceTypeInApp">У застосунку</string>

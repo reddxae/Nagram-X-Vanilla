@@ -111,6 +111,7 @@ public class NekoAppearanceSettingsActivity extends BaseNekoXSettingsActivity im
     // General
     private final AbstractConfigCell headerGeneral = cellGroup.appendCell(new ConfigCellHeader(getString(R.string.General)));
     private final AbstractConfigCell centerActionBarTitleRow = cellGroup.appendCell(new ConfigCellTextCheck(NaConfig.INSTANCE.getCenterActionBarTitle(), null, getString(R.string.CenterActionBarTitleType)));
+    private final AbstractConfigCell relativeOnlineTimeRow = cellGroup.appendCell(new ConfigCellTextCheck(NaConfig.INSTANCE.getRelativeOnlineTime()));
     private final AbstractConfigCell tabsTitleTypeRow = cellGroup.appendCell(new ConfigCellSelectBox(null, NekoConfig.tabsTitleType, new String[]{
             getString(R.string.TabTitleTypeText),
             getString(R.string.TabTitleTypeIcon),
@@ -452,6 +453,8 @@ public class NekoAppearanceSettingsActivity extends BaseNekoXSettingsActivity im
                 NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.reloadInterface);
             } else if (key.equals(NaConfig.INSTANCE.getCenterActionBarTitle().getKey())) {
                 animateActionBarUpdate(this);
+            } else if (key.equals(NaConfig.INSTANCE.getRelativeOnlineTime().getKey())) {
+                NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.reloadInterface);
             } else if (key.equals(NaConfig.INSTANCE.getHideDividers().getKey())) {
                 restartTooltip.showWithAction(0, UndoView.ACTION_NEED_RESTART, null, null);
             } else if (key.equals(NaConfig.INSTANCE.getCustomTitleUserName().getKey())) {

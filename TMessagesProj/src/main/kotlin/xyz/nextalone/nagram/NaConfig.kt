@@ -396,6 +396,12 @@ object NaConfig {
             ConfigItem.configTypeBool,
             false
         )
+    val relativeOnlineTime =
+        addConfig(
+            "RelativeOnlineTime",
+            ConfigItem.configTypeBool,
+            false
+        )
     val showQuickReplyInBotCommands =
         addConfig(
             "ShowQuickReplyInBotCommands",
