@@ -1136,7 +1136,7 @@ public class ChatAvatarContainer extends FrameLayout implements NotificationCent
                             count = topic.totalMessagesCount;
                         }
                         if (count > 0) {
-                            newSubtitle = LocaleController.formatPluralString("messages", count, count);
+                            newSubtitle = LocaleController.formatPluralStringComma("messages", count, count);
                         } else {
                             newSubtitle = LocaleController.formatString(R.string.TopicProfileStatus, ForumUtilities.getMonoForumTitle(currentAccount, chat));
                         }
@@ -1152,7 +1152,7 @@ public class ChatAvatarContainer extends FrameLayout implements NotificationCent
                     count = topic.totalMessagesCount - 1;
                 }
                 if (count > 0) {
-                    newSubtitle = LocaleController.formatPluralString("messages", count, count);
+                    newSubtitle = LocaleController.formatPluralStringComma("messages", count, count);
                 } else {
                     newSubtitle = LocaleController.formatString(R.string.TopicProfileStatus, chat.title);
                 }

@@ -630,8 +630,8 @@ public class ReactionsLayoutInBubble {
                     button.animationType = ANIMATION_TYPE_MOVE;
 
                     if (button.count != lastButton.count && button.counterDrawable != null) {
-                        button.counterDrawable.setCount(lastButton.count, false);
-                        button.counterDrawable.setCount(button.count, true);
+                        button.setCounterCount(lastButton.count, false);
+                        button.setCounterCount(button.count, true);
                     }
                     if (button.avatarsDrawable != null || lastButton.avatarsDrawable != null) {
                         if (button.avatarsDrawable == null) {
@@ -752,7 +752,7 @@ public class ReactionsLayoutInBubble {
 
     private static CharSequence formatReactionCount(int count, boolean expanded) {
         if (shouldDisableNumberRoundingForReactions()) {
-            return String.valueOf(count);
+            return LocaleController.formatNumber(count, ',');
         }
         return expanded ? LocaleController.formatNumber(count, ',') : AndroidUtilities.formatWholeNumber(count, 0);
     }
@@ -959,8 +959,7 @@ public class ReactionsLayoutInBubble {
             if (hasName) {
                 textDrawable.setText(Emoji.replaceEmoji(name, textDrawable.getPaint().getFontMetricsInt(), false), !LocaleController.isRTL);
                 if (drawTextWithCounter()) {
-                    countText = Integer.toString(reactionCount.count);
-                    counterDrawable.setCount(count, false);
+                    setCounterCount(count, false);
                 } else {
                     countText = "";
                     counterDrawable.setCount(0, false);
@@ -969,11 +968,16 @@ public class ReactionsLayoutInBubble {
                 if (textDrawable != null) {
                     textDrawable.setText("", false);
                 }
-                countText = Integer.toString(reactionCount.count);
-                counterDrawable.setCount(count, false);
+                setCounterCount(count, false);
             }
             counterDrawable.setType(CounterView.CounterDrawable.TYPE_CHAT_REACTIONS);
             counterDrawable.gravity = Gravity.LEFT;
+        }
+
+        public void setCounterCount(int count, boolean animated) {
+            CharSequence text = formatReactionCount(count, false);
+            countText = text.toString();
+            counterDrawable.setText(text, animated, count, false);
         }
 
         private final RectF bounds = new RectF(), rect2 = new RectF();

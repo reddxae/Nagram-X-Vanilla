@@ -847,8 +847,7 @@ public class SearchTagsList extends BlurredFrameLayout implements NotificationCe
             } else if (reactionButton.textDrawable != null) {
                 reactionButton.textDrawable.setText("", !newReactionButton);
             }
-            reactionButton.countText = Integer.toString(item.count);
-            reactionButton.counterDrawable.setCount(item.count, !newReactionButton);
+            reactionButton.setCounterCount(item.count, !newReactionButton);
             if (reactionButton.counterDrawable != null && (reactionButton.count > 0 || reactionButton.hasName)) {
                 reactionButton.width += reactionButton.counterDrawable.getCurrentWidth() + dp(reactionButton.hasName ? 4 : 0) + reactionButton.textDrawable.getAnimateToWidth();
             }
