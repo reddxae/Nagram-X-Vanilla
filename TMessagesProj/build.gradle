@@ -178,12 +178,11 @@ android {
 
     applicationVariants.configureEach { variant ->
         variant.outputs.configureEach { output ->
-            String gramName = 'NagramX'
-            String first = String.format('%s-v%s(%s)', gramName, versionName, versionCode)
-            String name = outputFileName.replace('TMessagesProj', first)
-            name = name.replace('-release', '')
-            name = name.replace('-staging', '')
-            outputFileName = name
+            String architecture = output.getFilter(com.android.build.OutputFile.ABI)
+            if (architecture == null || architecture.trim().isEmpty()) {
+                architecture = 'universal'
+            }
+            outputFileName = String.format('Vanilla-%s-%s-%s.apk', versionName, versionCode, architecture)
         }
     }
 
