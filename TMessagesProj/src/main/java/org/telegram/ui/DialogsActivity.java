@@ -5648,6 +5648,9 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
     }
 
     public boolean isStarsSubscriptionHintVisible() {
+        if (NaConfig.INSTANCE.getDisableSuggestionView().Bool()) {
+            return false;
+        }
         if (folderId == 0) {
             if (MessagesController.getInstance(currentAccount).pendingSuggestions.contains("STARS_SUBSCRIPTION_LOW_BALANCE")) {
                 StarsController c = StarsController.getInstance(currentAccount);
@@ -5961,6 +5964,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
             } catch (Exception e) {}
             dialogsHintCell.clear();
         }
+        boolean hideProfileSettingsSuggestions = NaConfig.INSTANCE.getDisableSuggestionView().Bool();
         if (isInPreviewMode()) {
             dialogsHintCellVisible = false;
             dialogsHintCell.setVisibility(View.GONE);
@@ -5988,7 +5992,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                 true
             );
             updateAuthHintCellVisibility(false);
-        } else if (folderId == 0 && getMessagesController().pendingSuggestions.contains("PREMIUM_GRACE") && !NekoConfig.disableTrending.Bool()) {
+        } else if (folderId == 0 && !hideProfileSettingsSuggestions && getMessagesController().pendingSuggestions.contains("PREMIUM_GRACE") && !NekoConfig.disableTrending.Bool()) {
             dialogsHintCellVisible = true;
             dialogsHintCell.setVisibility(View.VISIBLE);
             dialogsHintCell.setCompact(true);
@@ -6004,7 +6008,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                 updateDialogsHint();
             });
             updateAuthHintCellVisibility(false);
-        } else if (folderId == 0 && getMessagesController().customPendingSuggestion != null && !NekoConfig.disableTrending.Bool()) {
+        } else if (folderId == 0 && !hideProfileSettingsSuggestions && getMessagesController().customPendingSuggestion != null && !NekoConfig.disableTrending.Bool()) {
             final TLRPC.TL_pendingSuggestion suggestion = getMessagesController().customPendingSuggestion;
             dialogsHintCellVisible = true;
             dialogsHintCell.setVisibility(View.VISIBLE);
@@ -6116,6 +6120,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
             StarsController.getInstance(currentAccount).loadStarGifts();
         } else if (
             folderId == 0 &&
+            !hideProfileSettingsSuggestions &&
             MessagesController.getInstance(currentAccount).pendingSuggestions.contains("BIRTHDAY_SETUP") &&
             getMessagesController().getUserFull(getUserConfig().getClientUserId()) != null &&
             getMessagesController().getUserFull(getUserConfig().getClientUserId()).birthday == null
@@ -6281,7 +6286,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                     LocaleController.getString(R.string.ClearStorageHintMessage)
             );
             updateAuthHintCellVisibility(false);
-        } else if (folderId == 0 && getUserConfig().getCurrentUser() != null && (getUserConfig().getCurrentUser().photo == null || getUserConfig().getCurrentUser().photo instanceof TLRPC.TL_userProfilePhotoEmpty) && MessagesController.getInstance(currentAccount).pendingSuggestions.contains("USERPIC_SETUP")) {
+        } else if (folderId == 0 && !hideProfileSettingsSuggestions && getUserConfig().getCurrentUser() != null && (getUserConfig().getCurrentUser().photo == null || getUserConfig().getCurrentUser().photo instanceof TLRPC.TL_userProfilePhotoEmpty) && MessagesController.getInstance(currentAccount).pendingSuggestions.contains("USERPIC_SETUP")) {
             dialogsHintCellVisible = true;
             dialogsHintCell.setVisibility(View.VISIBLE);
             dialogsHintCell.setOnClickListener(v -> {
@@ -6308,7 +6313,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
             });
             dialogsHintCell.setCompact(false);
             updateAuthHintCellVisibility(false);
-        } else if (folderId == 0 && ApplicationLoader.applicationLoaderInstance != null) {
+        } else if (folderId == 0 && !hideProfileSettingsSuggestions && ApplicationLoader.applicationLoaderInstance != null) {
             boolean found = false;
             String foundSuggestion = null;
             CharSequence[] output = new CharSequence[2];
@@ -11107,7 +11112,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
     private String showingSuggestion;
 
     private void showNextSupportedSuggestion() {
-        if (showingSuggestion != null) {
+        if (showingSuggestion != null || NaConfig.INSTANCE.getDisableSuggestionView().Bool()) {
             return;
         }
         for (String suggestion : getMessagesController().pendingSuggestions) {

@@ -3354,7 +3354,12 @@ public class MessagesController extends BaseController implements NotificationCe
                 }
                 case "pending_suggestions": {
                     if (NaConfig.INSTANCE.getDisableSuggestionView().Bool()) {
-                        pendingSuggestions = new HashSet<>();
+                        if (!pendingSuggestions.isEmpty()) {
+                            pendingSuggestions = new HashSet<>();
+                            editor.putStringSet("pendingSuggestions", pendingSuggestions);
+                            getNotificationCenter().postNotificationName(NotificationCenter.newSuggestionsAvailable);
+                            changed = true;
+                        }
                         break;
                     }
                     HashSet<String> newSuggestions = new HashSet<>();
@@ -10581,9 +10586,9 @@ public class MessagesController extends BaseController implements NotificationCe
                             removePromoDialog();
                         }
                         promoDialog = dialogs_dict.get(did);
-                        pendingSuggestions = new HashSet<>(res.pending_suggestions);
+                        pendingSuggestions = NaConfig.INSTANCE.getDisableSuggestionView().Bool() ? new HashSet<>() : new HashSet<>(res.pending_suggestions);
                         dismissedSuggestions = new HashSet<>(res.dismissed_suggestions);
-                        customPendingSuggestion = res.custom_pending_suggestion;
+                        customPendingSuggestion = NaConfig.INSTANCE.getDisableSuggestionView().Bool() ? null : res.custom_pending_suggestion;
                         getNotificationCenter().postNotificationName(NotificationCenter.newSuggestionsAvailable);
 
                         if (promoDialog != null) {
