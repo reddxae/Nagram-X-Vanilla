@@ -127,6 +127,8 @@
     <string name="AppIconGoogle">Google</string>
     <string name="Nagram">Telegram</string>
     <string name="HideGiftButtonInProfiles">Приховати кнопку подарунка в профілях</string>
+    <string name="MoveGiftsToTheLastTab">Перемістити подарунки на останню вкладку</string>
+    <string name="HideSendAGift">Приховати Send a Gift</string>
     <string name="PushServiceTypeFCM">Google FCM</string>
     <string name="PushServiceTypeUnified">Unified Push</string>
     <string name="PushServiceTypeMicroG">microG</string>

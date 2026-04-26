@@ -169,6 +169,8 @@ public class NekoConfig {
     public static ConfigItem hideGroupSticker = addConfig("hideGroupSticker", configTypeBool, false);
     public static ConfigItem rememberAllBackMessages = addConfig("rememberAllBackMessages", configTypeBool, false);
     public static ConfigItem hideGiftButtonInProfiles = addConfig("HideGiftButtonInProfiles", configTypeBool, false);
+    public static ConfigItem moveGiftsToTheLastTab = addConfig("MoveGiftsToTheLastTab", configTypeBool, false);
+    public static ConfigItem hideSendAGift = addConfig("HideSendAGift", configTypeBool, false);
     public static ConfigItem hideSendAsChannel = addConfig("hideSendAsChannel", configTypeBool, false);
     public static ConfigItem showSpoilersDirectly = addConfig("showSpoilersDirectly", configTypeBool, false);
 

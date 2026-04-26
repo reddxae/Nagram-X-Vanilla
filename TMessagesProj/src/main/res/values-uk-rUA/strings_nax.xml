@@ -10,6 +10,10 @@
     <string name="ClearMessageDatabaseNotification">База повідомлень очищена</string>
     <string name="CustomDeletedMark">Підпис для видалених повідомлень</string>
     <string name="HidePremiumSection">Приховати \"Преміум\" в налаштуваннях</string>
+    <string name="Premium">Premium</string>
+    <string name="Annoyances">Подразники</string>
+    <string name="Connections">Підключення</string>
+    <string name="ChatFolders">Теки чатів</string>
     <string name="HideHelpSection">Приховати \"Допомога\" в налаштуваннях</string>
     <string name="ProviderLLMTranslator">AI Перекладач</string>
     <string name="LlmApiUrl">API URL</string>

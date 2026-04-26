@@ -11,6 +11,10 @@
     <string name="ClearMessageDatabaseNotification">Message database cleared.</string>
     <string name="CustomDeletedMark">Custom Deleted Mark</string>
     <string name="HidePremiumSection">Hide Premium in Settings</string>
+    <string name="Premium">Premium</string>
+    <string name="Annoyances">Annoyances</string>
+    <string name="Connections">Connections</string>
+    <string name="ChatFolders">Chat Folders</string>
     <string name="HideHelpSection">Hide Help in Settings</string>
     <string name="ProviderLLMTranslator">AI Translator</string>
     <string name="LlmApiUrl">API URL</string>
@@ -222,6 +226,8 @@
     <string name="PremiumItemVideoAvatar">Animated Avatars</string>
     <string name="PremiumItemCustomWallpaper">Custom Wallpapers</string>
     <string name="PremiumItemRatingInProfiles">Star Rating in Profiles</string>
+    <string name="PremiumItemGiftsInUserProfiles">Gifts in User Profiles</string>
+    <string name="PremiumItemGiftsInChannelProfiles">Gifts in Channel Profiles</string>
     <string name="TranslationTargetApp">Follow App</string>
     <string name="DisableAvatarTapToSwitch">Disable Cycling Avatars by Tapping</string>
     <string name="SaveDeletedExclusionMenu">Save Deleted</string>

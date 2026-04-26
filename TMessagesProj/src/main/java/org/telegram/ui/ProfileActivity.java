@@ -3702,7 +3702,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
         int initialTab = -1;
         if (openCommonChats) {
             initialTab = SharedMediaLayout.TAB_COMMON_GROUPS;
-        } else if (openGifts && (userInfo != null && userInfo.stargifts_count > 0 || chatInfo != null && chatInfo.stargifts_count > 0)) {
+        } else if (openGifts && hasVisibleGiftsTab()) {
             initialTab = SharedMediaLayout.TAB_GIFTS;
             openedGifts = true;
         } else if (openSimilar) {
@@ -8670,6 +8670,18 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
         return NaConfig.INSTANCE.getPremiumItemRatingInProfiles().Bool();
     }
 
+    private boolean isGiftsTabEnabledForCurrentProfile() {
+        return getDialogId() > 0 ? NaConfig.INSTANCE.getPremiumItemGiftsInUserProfiles().Bool() : NaConfig.INSTANCE.getPremiumItemGiftsInChannelProfiles().Bool();
+    }
+
+    private boolean hasVisibleGiftsTab() {
+        return isGiftsTabEnabledForCurrentProfile() && (userInfo != null && userInfo.stargifts_count > 0 || chatInfo != null && chatInfo.stargifts_count > 0);
+    }
+
+    private boolean isGiftContextMenuActionVisible(boolean giftAvailable) {
+        return giftAvailable && !NekoConfig.hideSendAGift.Bool();
+    }
+
     private TL_stars.Tl_starsRating getVisibleStarRating() {
         return isProfileRatingVisible() && userInfo != null ? userInfo.stars_rating : null;
     }
@@ -9759,7 +9771,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                 }
                 if (chatId != 0) {
                     boolean gift = !BuildVars.IS_BILLING_UNAVAILABLE && !getMessagesController().premiumPurchaseBlocked() && chatInfo != null && chatInfo.stargifts_available;
-                    otherItem.setSubItemShown(gift_premium, gift);
+                    otherItem.setSubItemShown(gift_premium, isGiftContextMenuActionVisible(gift));
                     if (actionsView != null) {
                         actionsView.set(ProfileActionsView.KEY_GIFT, gift && !NekoConfig.hideGiftButtonInProfiles.Bool());
                     }
@@ -9927,6 +9939,10 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
             }
         } else if (id == NotificationCenter.reloadInterface) {
             updateListAnimated(false);
+            if (sharedMediaLayout != null) {
+                sharedMediaLayout.updateTabs(false);
+            }
+            createActionBarMenu(false);
         } else if (id == NotificationCenter.newSuggestionsAvailable) {
             final int prevRow1 = passwordSuggestionRow;
             final int prevRow2 = phoneSuggestionRow;
@@ -10865,7 +10881,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
         fetchUsersFromChannelInfo();
         if (chatId != 0) {
             boolean gift = !BuildVars.IS_BILLING_UNAVAILABLE && !getMessagesController().premiumPurchaseBlocked() && chatInfo != null && chatInfo.stargifts_available;
-            otherItem.setSubItemShown(gift_premium, gift);
+            otherItem.setSubItemShown(gift_premium, isGiftContextMenuActionVisible(gift));
             if (actionsView != null) {
                 actionsView.set(ProfileActionsView.KEY_GIFT, gift && !NekoConfig.hideGiftButtonInProfiles.Bool());
             }
@@ -11109,7 +11125,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
         if (!hasMedia && userInfo != null && userInfo.bot_info != null) {
             hasMedia = userInfo.bot_info.has_preview_medias;
         }
-        if (!hasMedia && (userInfo != null && userInfo.stargifts_count > 0 || chatInfo != null && chatInfo.stargifts_count > 0)) {
+        if (!hasMedia && hasVisibleGiftsTab()) {
             hasMedia = true;
         }
         if (!hasMedia && chatInfo != null) {
@@ -12708,6 +12724,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                     if (!BuildVars.IS_BILLING_UNAVAILABLE && !user.self && !user.bot && !MessagesController.isSupportUser(user) && !getMessagesController().premiumPurchaseBlocked()) {
                         StarsController.getInstance(currentAccount).loadStarGifts();
                         otherItem.addSubItem(gift_premium, R.drawable.msg_gift_premium, LocaleController.getString(R.string.ProfileSendAGift));
+                        otherItem.setSubItemShown(gift_premium, isGiftContextMenuActionVisible(true));
                         giftAction = true;
                     }
                     otherItem.addSubItem(start_secret_chat, R.drawable.msg_secret, LocaleController.getString(R.string.StartEncryptedChat));
@@ -12790,7 +12807,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                     if (!BuildVars.IS_BILLING_UNAVAILABLE && !getMessagesController().premiumPurchaseBlocked()) {
                         StarsController.getInstance(currentAccount).loadStarGifts();
                         otherItem.addSubItem(gift_premium, R.drawable.msg_gift_premium, LocaleController.getString(R.string.ProfileSendAGiftToChannel));
-                        otherItem.setSubItemShown(gift_premium, chatInfo != null && chatInfo.stargifts_available);
+                        otherItem.setSubItemShown(gift_premium, isGiftContextMenuActionVisible(chatInfo != null && chatInfo.stargifts_available));
                         giftAction = true;
                     }
                     if (chatInfo != null && chatInfo.linked_chat_id != 0) {

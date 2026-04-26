@@ -10,6 +10,10 @@
     <string name="ClearMessageDatabaseNotification">База данных сообщений очищена.</string>
     <string name="CustomDeletedMark">Подпись для удалённых сообщений</string>
     <string name="HidePremiumSection">Скрыть «Premium» в настройках</string>
+    <string name="Premium">Premium</string>
+    <string name="Annoyances">Раздражители</string>
+    <string name="Connections">Подключения</string>
+    <string name="ChatFolders">Папки чатов</string>
     <string name="HideHelpSection">Скрыть «Помощь» в настройках</string>
     <string name="ProviderLLMTranslator">ИИ</string>
     <string name="LlmApiUrl">API URL</string>

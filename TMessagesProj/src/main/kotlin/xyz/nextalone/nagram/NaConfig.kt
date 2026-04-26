@@ -1290,6 +1290,18 @@ object NaConfig {
             ConfigItem.configTypeBool,
             true
         )
+    val premiumItemGiftsInUserProfiles =
+        addConfig(
+            "PremiumItemGiftsInUserProfiles",
+            ConfigItem.configTypeBool,
+            true
+        )
+    val premiumItemGiftsInChannelProfiles =
+        addConfig(
+            "PremiumItemGiftsInChannelProfiles",
+            ConfigItem.configTypeBool,
+            true
+        )
     val markdownParser =
         addConfig(
             "MarkdownParser",

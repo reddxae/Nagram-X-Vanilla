@@ -53,6 +53,8 @@
     <string name="ShowFullAbout">Always Expand Chat Description</string>
     <string name="TypeMessageHintUseGroupName">Use Group Name as Hint Text</string>
     <string name="HideGiftButtonInProfiles">Hide Gift Button in Profiles</string>
+    <string name="MoveGiftsToTheLastTab">Move Gifts to the Last Tab</string>
+    <string name="HideSendAGift">Hide Send a Gift</string>
     <string name="HideBotButtonInInputField">Hide Bot Button in Input Field</string>
     <string name="ShowSendAsUnderMessageHint">Show Sender Under Message Hint</string>
     <string name="CheckAllForum">Add Forum</string>

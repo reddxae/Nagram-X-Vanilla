@@ -715,7 +715,7 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
     private ReactionsLayoutInBubble.VisibleReaction searchingReaction;
 
     private int[] hasMedia;
-    private int initialTab;
+    private int initialTab = -1;
 
     private SparseArray<MessageObject>[] selectedFiles = new SparseArray[]{new SparseArray<>(), new SparseArray<>()};
     private int cantDeleteMessagesCount;
@@ -1515,6 +1515,8 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
         int[] mediaCount = preloader.getLastMediaCount();
         topicId = sharedMediaPreloader.topicId;
         hasMedia = new int[]{mediaCount[0], mediaCount[1], mediaCount[2], mediaCount[3], mediaCount[4], mediaCount[5], topicId == 0 ? commonGroupsCount : 0};
+        info = chatInfo;
+        this.userInfo = userInfo;
         final TLRPC.ProfileTab main_tab;
         if (userInfo != null) {
             main_tab = userInfo.main_tab;
@@ -1523,7 +1525,7 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
         } else {
             main_tab = null;
         }
-        if (initialTab == TAB_GIFTS || initialTab == TAB_RECOMMENDED_CHANNELS || initialTab == TAB_SAVED_DIALOGS || initialTab == TAB_COMMON_GROUPS) {
+        if ((initialTab == TAB_GIFTS && isGiftsTabEnabledForCurrentProfile()) || initialTab == TAB_RECOMMENDED_CHANNELS || initialTab == TAB_SAVED_DIALOGS || initialTab == TAB_COMMON_GROUPS) {
             this.initialTab = initialTab;
         } else if (user != null && user.bot && user.bot_has_main_app && user.bot_can_edit) {
             this.initialTab = TAB_BOT_PREVIEWS;
@@ -1531,8 +1533,10 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
             this.initialTab = TAB_STORIES;
         } else if (main_tab instanceof TLRPC.TL_profileTabPosts && (userInfo != null && userInfo.stories_pinned_available || chatInfo != null && chatInfo.stories_pinned_available || isStoriesView())) {
             this.initialTab = TAB_STORIES;
-        } else if (main_tab instanceof TLRPC.TL_profileTabGifts && (userInfo != null && userInfo.stargifts_count > 0 || chatInfo != null && chatInfo.stargifts_count > 0)) {
-            this.initialTab = TAB_GIFTS;
+        } else if (main_tab instanceof TLRPC.TL_profileTabGifts && hasVisibleGiftsTab()) {
+            if (!shouldMoveGiftsTabToEnd()) {
+                this.initialTab = TAB_GIFTS;
+            }
         } else if (main_tab instanceof TLRPC.TL_profileTabFiles && (hasMedia[1] == -1 || hasMedia[1] > 0)) {
             this.initialTab = TAB_FILES;
         } else if (main_tab instanceof TLRPC.TL_profileTabGifs && (hasMedia[5] == -1 || hasMedia[5] > 0)) {
@@ -1545,8 +1549,10 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
             this.initialTab = TAB_VOICE;
         } else if (!NaConfig.INSTANCE.getDisableStories().Bool() && (userInfo != null && userInfo.stories_pinned_available || chatInfo != null && chatInfo.stories_pinned_available || isStoriesView())) {
             this.initialTab = getInitialTab();
-        } else if (userInfo != null && userInfo.stargifts_count > 0 || chatInfo != null && chatInfo.stargifts_count > 0) {
-            this.initialTab = TAB_GIFTS;
+        } else if (hasVisibleGiftsTab()) {
+            if (!shouldMoveGiftsTabToEnd()) {
+                this.initialTab = TAB_GIFTS;
+            }
         } else if (initialTab != -1 && topicId == 0) {
             this.initialTab = initialTab;
         } else {
@@ -1558,8 +1564,6 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
             }
         }
         onTabProgress(initialTab);
-        info = chatInfo;
-        this.userInfo = userInfo;
         if (info != null) {
             mergeDialogId = -info.migrated_from_chat_id;
         }
@@ -3533,6 +3537,27 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
     protected boolean includeStories() {
         return !NaConfig.INSTANCE.getDisableStories().Bool();
 //        return true;
+    }
+
+    private boolean isGiftsTabEnabledForCurrentProfile() {
+        return dialog_id > 0 ? NaConfig.INSTANCE.getPremiumItemGiftsInUserProfiles().Bool() : NaConfig.INSTANCE.getPremiumItemGiftsInChannelProfiles().Bool();
+    }
+
+    private boolean hasVisibleGiftsTab() {
+        return isGiftsTabEnabledForCurrentProfile() && (userInfo != null && userInfo.stargifts_count > 0 || info != null && info.stargifts_count > 0);
+    }
+
+    private boolean shouldMoveGiftsTabToEnd() {
+        return NekoConfig.moveGiftsToTheLastTab.Bool() && hasVisibleGiftsTab();
+    }
+
+    private static void moveAttachmentTabToEnd(ArrayList<Pair<Integer, CharSequence>> tabs, int tabId) {
+        for (int i = 0; i < tabs.size(); ++i) {
+            if (tabs.get(i).first == tabId) {
+                tabs.add(tabs.remove(i));
+                return;
+            }
+        }
     }
 
     protected boolean includeSavedDialogs() {
@@ -6485,7 +6510,7 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
         boolean hasBotPreviews = user != null && user.bot && !user.bot_can_edit && (userInfo != null && userInfo.bot_info != null && userInfo.bot_info.has_preview_medias) && !hasEditBotPreviews;
         boolean hasStories = (DialogObject.isUserDialog(dialog_id) || DialogObject.isChatDialog(dialog_id)) && !DialogObject.isEncryptedDialog(dialog_id) && (userInfo != null && userInfo.stories_pinned_available || info != null && info.stories_pinned_available || isStoriesView()) && includeStories();
         hasStories = !NaConfig.INSTANCE.getDisableStories().Bool() && hasStories;
-        boolean hasGifts = giftsContainer != null && (userInfo != null && userInfo.stargifts_count > 0 || info != null && info.stargifts_count > 0);
+        boolean hasGifts = hasVisibleGiftsTab();
         final TLRPC.ProfileTab main_tab = info != null ? info.main_tab : userInfo != null ? userInfo.main_tab : null;
         int changed = 0;
         if (wasReordering != scrollSlidingTextTabStrip.isReordering()) {
@@ -6726,6 +6751,9 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
                 };
                 final boolean isChannel = info instanceof TLRPC.TL_channelFull;
                 for (int i = 0; i < 15; ++i) {
+                    if (i == TAB_GIFTS && !isGiftsTabEnabledForCurrentProfile()) {
+                        continue;
+                    }
                     if (getTab(i, isChannel) != null && !has.run(i)) {
                         addAttachmentTab(tabs, tabContentDescriptions, i, getTabName(i));
                     }
@@ -6744,6 +6772,9 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
                     final Pair<Integer, CharSequence> tab = tabs.remove(index);
                     tabs.add(0, tab);
                 }
+            }
+            if (shouldMoveGiftsTabToEnd()) {
+                moveAttachmentTabToEnd(tabs, TAB_GIFTS);
             }
             if (!tabs.isEmpty()) {
                 firstTab = tabs.get(0).first;
@@ -10797,7 +10828,9 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
 
     private AttachmentTabIconStyle getAttachmentTabIconStyle(int iconResId, boolean iconOnly) {
         float spanSizeDp = iconOnly ? ATTACHMENT_TAB_ICON_ONLY_SPAN_DP : ATTACHMENT_TAB_ICON_MIXED_SPAN_DP;
-        AttachmentTabIconSpec spec = getAttachmentTabIconSpec(iconResId);
+        AttachmentTabIconSpec spec = iconOnly && iconResId == R.drawable.msg_folders_bots
+                ? new AttachmentTabIconSpec(72f, 4f, 10f, 70f, 62f, 1f, 1.30f)
+                : getAttachmentTabIconSpec(iconResId);
         if (spec == null) {
             float layoutWidthDp = iconOnly ? ATTACHMENT_TAB_ICON_ONLY_LAYOUT_WIDTH_DP : spanSizeDp;
             return new AttachmentTabIconStyle(Math.round(spanSizeDp), 1f, layoutWidthDp, 0f, 0f);
