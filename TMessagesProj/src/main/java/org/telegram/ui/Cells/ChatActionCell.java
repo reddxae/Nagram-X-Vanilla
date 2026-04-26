@@ -1692,7 +1692,7 @@ public class ChatActionCell extends BaseCell implements DownloadController.FileD
             int imageSize = getImageSize(messageObject);
             float y;
             if (isNewStyleButtonLayout()) {
-                y = textY + textHeight + dp(4) + (imageSize > 0 ? (dp(16) * 2 + imageSize) : dp(16)) + (giftPremiumText == null ? 0 : giftPremiumText.layout.getHeight() + dp(4));
+                y = textY + textHeight + dp(4) + (imageSize > 0 ? (getNewStyleImagePaddingTop() + getNewStyleImagePaddingBottom() + imageSize) : getNewStyleImagePaddingTop()) + (giftPremiumText == null ? 0 : giftPremiumText.layout.getHeight() + dp(4));
             } else {
                 y = textY + textHeight + giftRectSize * 0.075f + imageSize + dp(4) + (giftPremiumText == null ? 0 : giftPremiumText.layout.getHeight() + dp(4));
             }
@@ -1764,7 +1764,7 @@ public class ChatActionCell extends BaseCell implements DownloadController.FileD
             if (isNewStyleButtonLayout()) {
                 exactlyHeight = textY + textHeight + dp(4);
                 backgroundRectHeight = 0;
-                backgroundRectHeight += (imageSize > 0 ? (dp(16) * 2 + imageSize) : dp(16));
+                backgroundRectHeight += (imageSize > 0 ? (getNewStyleImagePaddingTop() + getNewStyleImagePaddingBottom() + imageSize) : getNewStyleImagePaddingTop());
                 if (giftPremiumSubtitleLayout != null) {
                     backgroundRectHeight += giftPremiumSubtitleLayout.getHeight() + dp(10);
                 }
@@ -1772,6 +1772,7 @@ public class ChatActionCell extends BaseCell implements DownloadController.FileD
                     backgroundRectHeight += dp(16 + 8);
                 }
                 backgroundRectHeight += giftTextHeight;
+                backgroundRectHeight += getSuggestedPhotoButtonSpacing();
                 float rectX = (previousWidth - giftPremiumButtonWidth) / 2f;
                 if (giftPremiumButtonLayout != null) {
                     backgroundButtonTop = exactlyHeight + backgroundRectHeight + dp(10);
@@ -2407,6 +2408,22 @@ public class ChatActionCell extends BaseCell implements DownloadController.FileD
         return maxWidth;
     }
 
+    private int getSuggestedPhotoButtonSpacing() {
+        return currentMessageObject != null && currentMessageObject.type == MessageObject.TYPE_SUGGEST_PHOTO ? dp(12) : 0;
+    }
+
+    private int getSuggestedPhotoTextOffset() {
+        return currentMessageObject != null && currentMessageObject.type == MessageObject.TYPE_SUGGEST_PHOTO ? dp(6) : 0;
+    }
+
+    private int getNewStyleImagePaddingTop() {
+        return dp(16);
+    }
+
+    private int getNewStyleImagePaddingBottom() {
+        return currentMessageObject != null && currentMessageObject.type == MessageObject.TYPE_SUGGEST_PHOTO ? dp(8) : dp(16);
+    }
+
     public boolean showingCancelButton() {
         return radialProgress != null && radialProgress.getIcon() == MediaActionDrawable.ICON_CANCEL;
     }
@@ -2427,7 +2444,7 @@ public class ChatActionCell extends BaseCell implements DownloadController.FileD
             stickerSize = giftRectSize - dp(106);
             if (isNewStyleButtonLayout()) {
                 imageSize = getImageSize(messageObject);
-                int top = textY + textHeight + dp(4) + dp(16);
+                int top = textY + textHeight + dp(4) + getNewStyleImagePaddingTop();
                 float x = (previousWidth - imageSize) / 2f;
                 float y = top;
                 if (messageObject.isStoryMention()) {
@@ -2610,7 +2627,7 @@ public class ChatActionCell extends BaseCell implements DownloadController.FileD
             float y;
             if (isNewStyleButtonLayout()) {
                 float top = backgroundRect != null ? backgroundRect.top : (textY + textHeight + dp(4));
-                y = top + (imageSize > 0 ? (dp(16) * 2 + imageSize) : dp(16));
+                y = top + (imageSize > 0 ? (getNewStyleImagePaddingTop() + getNewStyleImagePaddingBottom() + imageSize) : getNewStyleImagePaddingTop());
             } else {
                 y = textY + textHeight + giftRectSize * 0.075f + (messageObject.type == MessageObject.TYPE_SUGGEST_PHOTO ? imageSize : stickerSize) + dp(4);
                 if (messageObject.type == MessageObject.TYPE_SUGGEST_PHOTO) {
@@ -2666,8 +2683,9 @@ public class ChatActionCell extends BaseCell implements DownloadController.FileD
             if (messageObject.type == MessageObject.TYPE_GIFT_PREMIUM) {
                 y += dp(2);
             }
+            final float textDrawY = y - getSuggestedPhotoTextOffset();
             canvas.save();
-            canvas.translate(x, y);
+            canvas.translate(x, textDrawY);
             if (messageObject.type == MessageObject.TYPE_ACTION_WALLPAPER) {
                 if (radialProgress.getTransitionProgress() != 1f || radialProgress.getIcon() != MediaActionDrawable.ICON_NONE) {
                     if (settingWallpaperLayout == null) {
@@ -2710,7 +2728,7 @@ public class ChatActionCell extends BaseCell implements DownloadController.FileD
                             canvas.scale(s, s, giftRectSize / 2f, giftPremiumText.layout.getHeight() / 2f);
                             canvas.translate((giftRectSize - giftPremiumText.layout.getWidth()) / 2f, 0);
                             giftPremiumText.x = x + (giftRectSize - giftPremiumText.layout.getWidth()) / 2f;
-                            giftPremiumText.y = y;
+                            giftPremiumText.y = textDrawY;
                             SpoilerEffect.renderWithRipple(this, false, giftTextPaint.getColor(), 0, giftPremiumText.patchedLayout, 1, giftPremiumText.layout, giftPremiumText.spoilers, canvas, false);
                             AnimatedEmojiSpan.drawAnimatedEmojis(canvas, giftPremiumText.layout, giftPremiumText.emoji, 0, null, 0, 0, 0, 1f, getAdaptiveEmojiColorFilter(giftTextPaint.getColor()));
                             canvas.restore();
@@ -2750,7 +2768,7 @@ public class ChatActionCell extends BaseCell implements DownloadController.FileD
                     canvas.save();
                     canvas.translate((giftRectSize - giftPremiumText.layout.getWidth()) / 2f, 0);
                     giftPremiumText.x = x + (giftRectSize - giftPremiumText.layout.getWidth()) / 2f;
-                    giftPremiumText.y = y;
+                    giftPremiumText.y = textDrawY;
                     SpoilerEffect.renderWithRipple(this, false, giftTextPaint.getColor(), 0, giftPremiumText.patchedLayout, 1, giftPremiumText.layout, giftPremiumText.spoilers, canvas, false);
                     AnimatedEmojiSpan.drawAnimatedEmojis(canvas, giftPremiumText.layout, giftPremiumText.emoji, 0, null, 0, 0, 0, 1f, getAdaptiveEmojiColorFilter(giftTextPaint.getColor()));
                     canvas.restore();
@@ -2766,7 +2784,7 @@ public class ChatActionCell extends BaseCell implements DownloadController.FileD
                 }
                 canvas.translate((giftRectSize - dp(16) - giftPremiumText.layout.getWidth()) / 2f, 0);
                 giftPremiumText.x = x + (giftRectSize - dp(16) - giftPremiumText.layout.getWidth()) / 2f;
-                giftPremiumText.y = y;
+                giftPremiumText.y = textDrawY;
                 SpoilerEffect.renderWithRipple(this, false, giftPremiumText.paint.getColor(), 0, giftPremiumText.patchedLayout, 1, giftPremiumText.layout, giftPremiumText.spoilers, canvas, false);
                 AnimatedEmojiSpan.drawAnimatedEmojis(canvas, giftPremiumText.layout, giftPremiumText.emoji, 0, null, 0, 0, 0, 1f, getAdaptiveEmojiColorFilter(giftTextPaint.getColor()));
                 if (expanded < 1 && giftPremiumTextMore != null) {
@@ -2802,6 +2820,7 @@ public class ChatActionCell extends BaseCell implements DownloadController.FileD
             if (giftPremiumText != null) {
                 y += AndroidUtilities.lerp(giftPremiumTextCollapsedHeight, giftPremiumText.layout.getHeight(), expanded);
             }
+            y += getSuggestedPhotoButtonSpacing();
             int buttonH = giftPremiumButtonLayout != null ? giftPremiumButtonLayout.getHeight() : 0;
             y += (getHeight() - y - buttonH - dp(8)) / 2f;
 

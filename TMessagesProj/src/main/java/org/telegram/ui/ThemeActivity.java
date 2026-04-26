@@ -2497,7 +2497,7 @@ public class ThemeActivity extends BaseFragment implements NotificationCenter.No
                         } else {
                             value = getString("DistanceUnitsMiles", R.string.DistanceUnitsMiles);
                         }
-                        cell.setTextAndValue(getString("DistanceUnits", R.string.DistanceUnits), value, updateDistance, true);
+                        cell.setTextAndValue(getString("DistanceUnits", R.string.DistanceUnits), value, updateDistance, false);
                         updateDistance = false;
                     } else if (position == searchEngineRow) {
                         cell.setTextAndValue(getString(R.string.SearchEngine), SearchEngine.getCurrent().name, updateSearchEngine, false);

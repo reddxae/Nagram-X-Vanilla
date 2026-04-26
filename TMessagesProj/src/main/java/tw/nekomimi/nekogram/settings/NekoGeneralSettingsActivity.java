@@ -58,6 +58,7 @@ import org.telegram.ui.Components.UndoView;
 import java.util.ArrayList;
 import java.util.Locale;
 
+import kotlin.Unit;
 import tw.nekomimi.nekogram.NekoConfig;
 import tw.nekomimi.nekogram.config.CellGroup;
 import tw.nekomimi.nekogram.config.cell.AbstractConfigCell;
@@ -73,6 +74,7 @@ import tw.nekomimi.nekogram.config.cell.ConfigCellTextInput;
 import tw.nekomimi.nekogram.config.cell.ConfigCellTextInput2;
 import tw.nekomimi.nekogram.ui.cells.DrawerProfilePreviewCell;
 import tw.nekomimi.nekogram.ui.cells.HeaderCell;
+import tw.nekomimi.nekogram.ui.PopupBuilder;
 import tw.nekomimi.nekogram.utils.AndroidUtil;
 import xyz.nextalone.nagram.NaConfig;
 
@@ -95,7 +97,41 @@ public class NekoGeneralSettingsActivity extends BaseNekoXSettingsActivity {
     // Drawer
     private final AbstractConfigCell headerDrawer = cellGroup.appendCell(new ConfigCellHeader(getString(R.string.Drawer)));
     private final AbstractConfigCell profilePreviewRow = cellGroup.appendCell(new ConfigCellDrawerProfilePreview());
-    private final AbstractConfigCell largeAvatarInDrawerRow = cellGroup.appendCell(new ConfigCellSelectBox(null, NekoConfig.largeAvatarInDrawer, getString(R.string.valuesLargeAvatarInDrawer), null));
+    private final AbstractConfigCell largeAvatarInDrawerRow = cellGroup.appendCell(new ConfigCellSelectBox(null, NekoConfig.largeAvatarInDrawer, null, null) {
+        @Override
+        public void onBindViewHolder(RecyclerView.ViewHolder holder) {
+            TextSettingsCell cell = (TextSettingsCell) holder.itemView;
+            String[] options = getDrawerBackgroundOptions();
+            int displayType = getDisplayDrawerBackgroundType(NekoConfig.largeAvatarInDrawer.Int());
+            String valueText = displayType >= 0 && displayType < options.length ? options[displayType] : "";
+            cell.setTextAndValueAndDescription(getString(R.string.AvatarAsBackground), valueText, null, false, cellGroup.needSetDivider(this), true);
+        }
+
+        @Override
+        public void onClick(View view) {
+            Context context = getParentActivity();
+            if (context == null) {
+                return;
+            }
+            String[] options = getDrawerBackgroundOptions();
+            PopupBuilder builder = new PopupBuilder(view);
+            builder.setItems(options, (which, value) -> {
+                int storedType = getStoredDrawerBackgroundType(which);
+                NekoConfig.largeAvatarInDrawer.setConfigInt(storedType);
+
+                if (cellGroup.listAdapter != null) {
+                    cellGroup.listAdapter.notifyItemChanged(cellGroup.rows.indexOf(this));
+                }
+                if (cellGroup.thisFragment != null) {
+                    cellGroup.thisFragment.getParentLayout().rebuildAllFragmentViews(false, false);
+                }
+
+                cellGroup.runCallback(NekoConfig.largeAvatarInDrawer.getKey(), storedType);
+                return Unit.INSTANCE;
+            });
+            builder.show();
+        }
+    });
     private final AbstractConfigCell avatarBackgroundBlurRow = cellGroup.appendCell(new ConfigCellTextCheck(NekoConfig.avatarBackgroundBlur));
     private final AbstractConfigCell avatarBackgroundDarkenRow = cellGroup.appendCell(new ConfigCellTextCheck(NekoConfig.avatarBackgroundDarken));
     private final AbstractConfigCell hidePhoneRow = cellGroup.appendCell(new ConfigCellTextCheck(NekoConfig.hidePhone));
@@ -127,8 +163,8 @@ public class NekoGeneralSettingsActivity extends BaseNekoXSettingsActivity {
             getString(R.string.Quality144),
     }, null));
     private final AbstractConfigCell dnsTypeRow = cellGroup.appendCell(new ConfigCellSelectBox(null, NekoConfig.dnsType, new String[]{
-            getString(R.string.MapPreviewProviderTelegram),
-            getString(R.string.NagramX),
+            getString(R.string.DnsTypeTelegram),
+            getString(R.string.DnsTypeBuiltInDoH),
             getString(R.string.DnsTypeSystem),
             getString(R.string.CustomDoH),
     }, null));
@@ -146,7 +182,13 @@ public class NekoGeneralSettingsActivity extends BaseNekoXSettingsActivity {
             getString(R.string.TabTitleTypeText),
             getString(R.string.TabTitleTypeIcon),
             getString(R.string.TabTitleTypeMix)
-    }, getString(R.string.ShowOnChatsTabsNotice), null));
+    }, getString(R.string.ShowOnChatsTabsNotice), null) {
+        @Override
+        public void onBindViewHolder(RecyclerView.ViewHolder holder) {
+            super.onBindViewHolder(holder);
+            ((TextSettingsCell) holder.itemView).setValueSpacingDp(18);
+        }
+    });
     private final AbstractConfigCell tabStyleRow = cellGroup.appendCell(new ConfigCellSelectBox("TabStyle", NaConfig.INSTANCE.getTabStyle(), new String[]{
             getString(R.string.Default),
             getString(R.string.TabStylePure),
@@ -242,7 +284,7 @@ public class NekoGeneralSettingsActivity extends BaseNekoXSettingsActivity {
             add(new ConfigCellTextCheckIcon(NaConfig.INSTANCE.getDrawerItemCalls(), getString(R.string.Calls), R.drawable.msg_calls));
             add(new ConfigCellTextCheckIcon(NaConfig.INSTANCE.getDrawerItemSaved(), getString(R.string.SavedMessages), R.drawable.msg_saved));
             add(new ConfigCellTextCheckIcon(NaConfig.INSTANCE.getDrawerItemSettings(), getString(R.string.Settings), R.drawable.msg_settings_old, true));
-            add(new ConfigCellTextCheckIcon(NaConfig.INSTANCE.getDrawerItemNSettings(), getString(R.string.NekoSettings), R.drawable.msg_settings));
+            add(new ConfigCellTextCheckIcon(NaConfig.INSTANCE.getDrawerItemNSettings(), getString(R.string.NekoSettings), R.drawable.menu_profile_colors));
             add(new ConfigCellTextCheckIcon(NaConfig.INSTANCE.getDrawerItemBrowser(), getString(R.string.InappBrowser), R.drawable.web_browser));
             add(new ConfigCellTextCheckIcon(NaConfig.INSTANCE.getDrawerItemQrLogin(), getString(R.string.ImportLogin), R.drawable.msg_qrcode));
             add(new ConfigCellTextCheckIcon(NaConfig.INSTANCE.getDrawerItemSessions(), getString(R.string.Devices), R.drawable.msg2_devices, true));
@@ -304,6 +346,7 @@ public class NekoGeneralSettingsActivity extends BaseNekoXSettingsActivity {
     private final AbstractConfigCell dividerAutoDownload = cellGroup.appendCell(new ConfigCellDivider());
 
     public NekoGeneralSettingsActivity() {
+        normalizeDrawerBackgroundType();
         if (!shouldShowPersian()) {
             cellGroup.rows.remove(usePersianCalendarRow);
             cellGroup.rows.remove(displayPersianCalendarByLatinRow);
@@ -545,7 +588,7 @@ public class NekoGeneralSettingsActivity extends BaseNekoXSettingsActivity {
 
     @Override
     public int getDrawable() {
-        return R.drawable.msg_theme;
+        return R.drawable.msg_settings;
     }
 
     @Override
@@ -812,6 +855,32 @@ public class NekoGeneralSettingsActivity extends BaseNekoXSettingsActivity {
                 listAdapter.notifyItemRemoved(customDoHRowIndex);
             }
         }
+    }
+
+    private void normalizeDrawerBackgroundType() {
+        if (NekoConfig.largeAvatarInDrawer.Int() == NekoConfig.DRAWER_BACKGROUND_BIG_AVATAR) {
+            NekoConfig.largeAvatarInDrawer.setConfigInt(NekoConfig.DRAWER_BACKGROUND_AVATAR);
+        }
+    }
+
+    private int getDisplayDrawerBackgroundType(int storedType) {
+        if (storedType == NekoConfig.DRAWER_BACKGROUND_BIG_AVATAR) {
+            return 1;
+        } else if (storedType == NekoConfig.DRAWER_BACKGROUND_WALLPAPER) {
+            return 2;
+        }
+        return storedType;
+    }
+
+    private int getStoredDrawerBackgroundType(int displayType) {
+        if (displayType == 2) {
+            return NekoConfig.DRAWER_BACKGROUND_WALLPAPER;
+        }
+        return displayType;
+    }
+
+    private String[] getDrawerBackgroundOptions() {
+        return getString(R.string.valuesLargeAvatarInDrawer).split("\n");
     }
 
     private boolean shouldShowPersian() {

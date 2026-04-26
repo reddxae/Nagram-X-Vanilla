@@ -1144,7 +1144,7 @@ public class PrivacySettingsActivity extends BaseFragment implements Notificatio
                         textCell.setTextAndValue(getString("DeleteAccountIfAwayFor3", R.string.DeleteAccountIfAwayFor3), value, deleteAccountUpdate, false);
                         deleteAccountUpdate = false;
                     } else if (position == paymentsClearRow) {
-                        textCell.setText(getString("PrivacyPaymentsClear", R.string.PrivacyPaymentsClear), true);
+                        textCell.setText(getString("PrivacyPaymentsClear", R.string.PrivacyPaymentsClear), botsBiometryRow != -1 || webSessionsRow != -1);
                     } else if (position == botsBiometryRow) {
                         textCell.setText(getString(R.string.PrivacyBiometryBotsButton), true);
                     } else if (position == secretMapRow) {

@@ -32,6 +32,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -50,6 +51,7 @@ import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.R;
 import org.telegram.messenger.SendMessagesHelper;
+import org.telegram.messenger.Utilities;
 import org.telegram.ui.ActionBar.ActionBar;
 import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.BaseFragment;
@@ -68,6 +70,7 @@ import org.telegram.ui.Components.RecyclerListView;
 import org.telegram.ui.DocumentSelectActivity;
 import org.telegram.ui.LaunchActivity;
 import org.telegram.ui.PeerColorActivity;
+import org.telegram.ui.ProfileActivity;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -99,6 +102,7 @@ import tw.nekomimi.nekogram.utils.AndroidUtil;
 import tw.nekomimi.nekogram.utils.FileUtil;
 import tw.nekomimi.nekogram.utils.GsonUtil;
 import tw.nekomimi.nekogram.utils.ShareUtil;
+import xyz.nextalone.nagram.NaConfig;
 
 public class NekoSettingsActivity extends BaseFragment {
     private FrameLayout contentView;
@@ -172,10 +176,10 @@ public class NekoSettingsActivity extends BaseFragment {
         titleView.setText(getString(R.string.NekoSettings));
         titleView.setTextColor(Color.WHITE);
         titleView.setTextSize(20);
-        titleView.setGravity(Gravity.CENTER);
         titleView.setTypeface(AndroidUtilities.bold());
         titleView.setScrollNonFitText(true);
         actionBarContainer.addView(titleView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER, 72, 0, 72, 0));
+        updateTitleViewLayout();
 
         searchButton = new ImageView(context);
         searchButton.setScaleType(ImageView.ScaleType.CENTER);
@@ -188,6 +192,28 @@ public class NekoSettingsActivity extends BaseFragment {
         fragmentView = contentView = frameLayout;
 
         return contentView;
+    }
+
+    private void updateTitleViewLayout() {
+        if (titleView == null) {
+            return;
+        }
+        final boolean centered = NaConfig.INSTANCE.getCenterActionBarTitle().Bool();
+        final int gravity = centered ? Gravity.CENTER : ((LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT) | Gravity.CENTER_VERTICAL);
+        titleView.setGravity(gravity);
+        FrameLayout.LayoutParams layoutParams = (FrameLayout.LayoutParams) titleView.getLayoutParams();
+        if (layoutParams != null) {
+            layoutParams.gravity = gravity;
+            layoutParams.leftMargin = dp(72);
+            layoutParams.rightMargin = dp(72);
+            titleView.setLayoutParams(layoutParams);
+        }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        updateTitleViewLayout();
     }
 
     /** @noinspection SizeReplaceableByIsEmpty*/
@@ -420,7 +446,10 @@ public class NekoSettingsActivity extends BaseFragment {
         private int backupsBottomRow = -1;
         private int otherHeaderRow = -1;
         private int datacenterStatusRow = -1;
-        private int appRestartRow = -1;
+        private int otherBottomRow = -1;
+        private int debugHeaderRow = -1;
+        private int sendLogsRow = -1;
+        private int clearLogsRow = -1;
         private int aboutClientInfoRow = -1;
         private int actionBarHeight;
 
@@ -488,11 +517,13 @@ public class NekoSettingsActivity extends BaseFragment {
                                 headerCell.setText(getString(R.string.Backups));
                             } else if (position == otherHeaderRow) {
                                 headerCell.setText(getString(R.string.Other));
+                            } else if (position == debugHeaderRow) {
+                                headerCell.setText(getString(R.string.SettingsDebug));
                             }
                             break;
                         }
                         case VIEW_TYPE_BOTTOM: {
-                            if (position == configureBottomRow || position == backupsBottomRow) {
+                            if (position == configureBottomRow || position == backupsBottomRow || position == otherBottomRow) {
                                 holder.itemView.setBackground(Theme.getThemedDrawable(getContext(), R.drawable.greydivider, Theme.key_windowBackgroundGrayShadow));
                             }
                             break;
@@ -504,23 +535,25 @@ public class NekoSettingsActivity extends BaseFragment {
                             } else if (position == cameraRow) {
                                 textCell.setTextAndIcon(getString(R.string.Camera), R.drawable.msg_camera, true);
                             } else if (position == generalRow) {
-                                textCell.setTextAndIcon(getString(R.string.General), R.drawable.msg_theme, true);
+                                textCell.setTextAndIcon(getString(R.string.General), R.drawable.msg_settings, true);
                             } else if (position == translatorRow) {
                                 textCell.setTextAndIcon(getString(R.string.TranslatorSettings), R.drawable.ic_translate, true);
                             } else if (position == passcodeRow) {
                                 textCell.setTextAndIcon(getString(R.string.PasscodeNeko), R.drawable.msg_permissions, true);
                             } else if (position == experimentRow) {
-                                textCell.setTextAndIcon(getString(R.string.Experimental), R.drawable.msg_fave, true);
+                                textCell.setTextAndIcon(getString(R.string.Experimental), R.drawable.msg_fave, false);
                             } else if (position == importSettingsRow) {
                                 textCell.setTextAndIcon(getString(R.string.ImportSettings), R.drawable.msg_customize, true);
                             } else if (position == exportSettingsRow) {
                                 textCell.setTextAndIcon(getString(R.string.BackupSettings), R.drawable.msg_shareout, true);
                             } else if (position == resetSettingsRow) {
-                                textCell.setTextAndIcon(getString(R.string.ResetSettings), R.drawable.msg_reset, true);
+                                textCell.setTextAndIcon(getString(R.string.ResetSettings), R.drawable.msg_reset, false);
                             } else if (position == datacenterStatusRow) {
-                                textCell.setTextAndIcon(getString(R.string.DatacenterStatus), R.drawable.web_browser, true);
-                            } else if (position == appRestartRow) {
-                                textCell.setTextAndIcon(getString(R.string.RestartApp), R.drawable.msg_retry, false);
+                                textCell.setTextAndIcon(getString(R.string.DatacenterStatus), R.drawable.web_browser, false);
+                            } else if (position == sendLogsRow) {
+                                textCell.setTextAndIcon(getString(R.string.DebugSendLogs), R.drawable.ic_upward, true);
+                            } else if (position == clearLogsRow) {
+                                textCell.setTextAndIcon(getString(R.string.DebugClearLogs), R.drawable.msg_clear, false);
                             }
                             break;
                         }
@@ -546,14 +579,15 @@ public class NekoSettingsActivity extends BaseFragment {
 
                 @Override
                 public int getItemViewType(int position) {
-                    if (position == configureBottomRow || position == backupsBottomRow) {
+                    if (position == configureBottomRow || position == backupsBottomRow || position == otherBottomRow) {
                         return VIEW_TYPE_BOTTOM;
                     } else if (position == aboutClientInfoRow) {
                         return VIEW_TYPE_INFO;
-                    } else if (position == configureHeaderRow || position == backupsHeaderRow || position == otherHeaderRow) {
+                    } else if (position == configureHeaderRow || position == backupsHeaderRow || position == otherHeaderRow || position == debugHeaderRow) {
                         return VIEW_TYPE_HEADER;
                     } else if (position == chatRow || position == cameraRow || position == generalRow || position == passcodeRow || position == experimentRow || position == translatorRow ||
-                                position == importSettingsRow || position == exportSettingsRow || position == resetSettingsRow || position == datacenterStatusRow || position == appRestartRow) {
+                                position == importSettingsRow || position == exportSettingsRow || position == resetSettingsRow || position == datacenterStatusRow ||
+                                position == sendLogsRow || position == clearLogsRow) {
                         return VIEW_TYPE_TEXT;
                     }
                     return VIEW_TYPE_INFO;
@@ -574,6 +608,19 @@ public class NekoSettingsActivity extends BaseFragment {
                     presentFragment(new NekoTranslatorSettingsActivity());
                 } else if (position == datacenterStatusRow) {
                     presentFragment(new DatacenterActivity(0));
+                } else if (position == sendLogsRow) {
+                    ProfileActivity.sendLogs(getParentActivity(), false);
+                } else if (position == clearLogsRow) {
+                    AlertDialog pro = AlertUtil.showProgress(getParentActivity());
+                    pro.show();
+                    Utilities.globalQueue.postRunnable(() -> {
+                        FileUtil.delete(AndroidUtilities.getLogsDir());
+                        try {
+                            Thread.sleep(100L);
+                        } catch (InterruptedException ignored) {
+                        }
+                        AndroidUtilities.runOnUIThread(pro::dismiss);
+                    });
                 } else if (position == importSettingsRow) {
                     if (Build.VERSION.SDK_INT >= 33) {
                         openFilePicker();
@@ -596,8 +643,6 @@ public class NekoSettingsActivity extends BaseFragment {
                             });
                 } else if (position == exportSettingsRow) {
                     backupSettings();
-                } else if (position == appRestartRow) {
-                    AppRestartHelper.triggerRebirth(context, new Intent(context, LaunchActivity.class));
                 } else if (position == aboutClientInfoRow) {
                     TextInfoPrivacyCell cell = (TextInfoPrivacyCell) view;
                     showVersionBottomSheet(cell.getTextView().getText().toString());
@@ -630,8 +675,23 @@ public class NekoSettingsActivity extends BaseFragment {
             backupsBottomRow = rowCount++;
             otherHeaderRow = rowCount++;
             datacenterStatusRow = rowCount++;
-            appRestartRow = rowCount++;
+            if (BuildVars.LOGS_ENABLED) {
+                otherBottomRow = rowCount++;
+                debugHeaderRow = rowCount++;
+                sendLogsRow = rowCount++;
+                clearLogsRow = rowCount++;
+            } else {
+                otherBottomRow = -1;
+                debugHeaderRow = -1;
+                sendLogsRow = -1;
+                clearLogsRow = -1;
+            }
             aboutClientInfoRow = rowCount++;
+        }
+
+        private void rebuildRows() {
+            updateRows();
+            listAdapter.notifyDataSetChanged();
         }
 
         @Override
@@ -656,19 +716,18 @@ public class NekoSettingsActivity extends BaseFragment {
 
         BottomBuilder builder = new BottomBuilder(context);
         builder.addTitle(message);
-        builder.addItem(getString(R.string.Copy), R.drawable.msg_copy, it -> {
-            AndroidUtilities.addToClipboard(message);
-            AlertUtil.showToast(getString(R.string.TextCopied));
-            return kotlin.Unit.INSTANCE;
-        });
         builder.addItem(BuildVars.LOGS_ENABLED ? getString(R.string.DebugMenuDisableLogs) : getString(R.string.DebugMenuEnableLogs), R.drawable.baseline_bug_report_24, it -> {
             AndroidUtil.toggleLogs();
+            if (page != null) {
+                page.rebuildRows();
+            }
             return kotlin.Unit.INSTANCE;
         });
-        builder.addItem(getString(R.string.CheckUpdate), R.drawable.msg_search, it -> {
+        TextCell checkUpdatesCell = builder.addItem(getString(R.string.CheckUpdate), R.drawable.update, it -> {
             AlertUtil.showToast(getString(R.string.NotYetAvailableNax));
             return kotlin.Unit.INSTANCE;
         });
+        normalizeBottomSheetIcon(checkUpdatesCell, R.drawable.update);
 
         String currentChannel = " - ";
         switch (NaConfig.INSTANCE.getAutoUpdateChannel().Int()) {
@@ -683,7 +742,7 @@ public class NekoSettingsActivity extends BaseFragment {
                 break;
         }
 
-        builder.addItem(getString(R.string.AutoCheckUpdateSwitch) + currentChannel, R.drawable.sync_outline_28, it -> {
+        TextCell updateChannelCell = builder.addItem(getString(R.string.AutoCheckUpdateSwitch) + currentChannel, R.drawable.update_black_24, it -> {
             BottomBuilder switchBuilder = new BottomBuilder(context);
             switchBuilder.addTitle(getString(R.string.AutoCheckUpdateSwitch));
             switchBuilder.addRadioItem(getString(R.string.AutoCheckUpdateOFF), NaConfig.INSTANCE.getAutoUpdateChannel().Int() == UpdateHelper.UPDATE_OFF, radioButtonCell -> {
@@ -706,7 +765,39 @@ public class NekoSettingsActivity extends BaseFragment {
             showDialog(switchBuilder.create());
             return kotlin.Unit.INSTANCE;
         });
+        normalizeBottomSheetIcon(updateChannelCell, R.drawable.update_black_24);
+        builder.addItem(getString(R.string.RestartApp), R.drawable.sync_outline_28, it -> {
+            AppRestartHelper.triggerRebirth(context, new Intent(context, LaunchActivity.class));
+            return kotlin.Unit.INSTANCE;
+        });
         showDialog(builder.create());
+    }
+
+    private void normalizeBottomSheetIcon(TextCell cell, int resId) {
+        if (cell == null) {
+            return;
+        }
+        Drawable drawable = ContextCompat.getDrawable(cell.getContext(), resId);
+        if (drawable == null) {
+            return;
+        }
+        drawable = drawable.mutate();
+        drawable.setColorFilter(new PorterDuffColorFilter(Theme.getColor(Theme.key_dialogIcon), PorterDuff.Mode.SRC_IN));
+        cell.imageView.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
+        cell.imageView.setTag(null);
+        cell.imageView.clearColorFilter();
+        cell.imageView.setImageDrawable(drawable);
+        cell.imageView.setColorFilter(new PorterDuffColorFilter(Theme.getColor(Theme.key_dialogIcon), PorterDuff.Mode.SRC_IN));
+        cell.imageView.setTranslationX(0);
+        cell.imageView.setTranslationY(0);
+        ViewGroup.LayoutParams params = cell.imageView.getLayoutParams();
+        if (params != null) {
+            int size = AndroidUtilities.dp(24);
+            params.width = size;
+            params.height = size;
+            cell.imageView.setLayoutParams(params);
+        }
+        cell.imageView.setPadding(0, AndroidUtilities.dp(7), 0, 0);
     }
 
     private void backupSettings() {

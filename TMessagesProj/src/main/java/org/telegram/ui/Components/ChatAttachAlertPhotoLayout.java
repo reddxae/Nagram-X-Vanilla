@@ -2917,6 +2917,9 @@ public class ChatAttachAlertPhotoLayout extends ChatAttachAlert.AttachAlertLayou
                             cameraView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
                         }
                     }
+                    if (NekoConfig.disableInstantCamera.Bool()) {
+                        hideCamera(true);
+                    }
                 }
             });
             animatorSet.start();
@@ -2946,6 +2949,9 @@ public class ChatAttachAlertPhotoLayout extends ChatAttachAlert.AttachAlertLayou
                 if (Build.VERSION.SDK_INT >= 21) {
                     cameraView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
                 }
+            }
+            if (NekoConfig.disableInstantCamera.Bool()) {
+                hideCamera(true);
             }
         }
         if (cameraView != null) {

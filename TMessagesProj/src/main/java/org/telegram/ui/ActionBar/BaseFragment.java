@@ -1173,6 +1173,10 @@ public abstract class BaseFragment {
         return ColorUtils.calculateLuminance(color) > 0.7f;
     }
 
+    public boolean shouldCenterActionBarTitle() {
+        return NaConfig.INSTANCE.getCenterActionBarTitle().Bool();
+    }
+
     public void drawOverlay(Canvas canvas, View parent) {
 
     }

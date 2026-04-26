@@ -857,8 +857,8 @@ public class ConnectionsManager extends BaseController {
                 }
                 lastDnsRequestTime = System.currentTimeMillis();
 
-                if (NekoConfig.dnsType.Int() == NekoConfig.DNS_TYPE_NAX || NekoConfig.dnsType.Int() == NekoConfig.DNS_TYPE_CUSTOM_DOH) {
-                    FileLog.d("start custom dns txt task");
+                if (NekoConfig.dnsType.Int() == NekoConfig.DNS_TYPE_NAX || NekoConfig.dnsType.Int() == NekoConfig.DNS_TYPE_CUSTOM_DOH || NekoConfig.dnsType.Int() == NekoConfig.DNS_TYPE_SYSTEM) {
+                    FileLog.d("start selected dns txt task");
                     DnsTxtLoadTask task = new DnsTxtLoadTask(currentAccount);
                     task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, null, null, null);
                     currentTask = task;
@@ -1559,11 +1559,7 @@ public class ConnectionsManager extends BaseController {
                 if (result != null) {
                     native_applyDnsConfig(currentAccount, result.address, AccountInstance.getInstance(currentAccount).getUserConfig().getClientPhone(), responseDate);
                 } else {
-                    FileLog.d("failed to get custom dns txt result");
-                    FileLog.d("start google task");
-                    GoogleDnsLoadTask task = new GoogleDnsLoadTask(currentAccount);
-                    task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, null, null, null);
-                    currentTask = task;
+                    FileLog.d("failed to get selected dns txt result");
                 }
             });
         }

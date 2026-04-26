@@ -15,7 +15,6 @@
     <string name="NameOrder">Порядок імен</string>
     <string name="FirstLast">Ім\'я Прізвище</string>
     <string name="LastFirst">Прізвище Ім\'я</string>
-    <string name="NoQuoteForward">Переслати без автора</string>
     <string name="Repeat">Повторити</string>
     <string name="AddToSavedMessages">Зберегти</string>
     <string name="CreateMention">Згадати</string>
@@ -62,7 +61,6 @@
     <string name="UserRestrictionsSendStickers2">Надіслати наліпки</string>
     <string name="UserRestrictionsSendGifs">Надсилати GIF</string>
     <string name="CheckAllAdministrated">Додати керовані чати</string>
-    <string name="RearVideoMessages">Задня камера у відеоповідомленнях</string>
     <string name="HideAllTab">Приховати вкладку «Усі чати»</string>
     <string name="HideAllTabAbout">Довге натискання на заголовок у списку чатів показує Всі чати.</string>
     <string name="TabTitleType">Показувати на вкладках</string>
@@ -256,7 +254,7 @@
     <string name="useCustomEmojiInvalid">Недійсний набір емодзі.</string>
     <string name="repeatConfirm">Запитувати перед повтором</string>
     <string name="repeatConfirmText">Ви хочете повторити повідомлення?</string>
-    <string name="valuesLargeAvatarInDrawer">Типовий\nАватар\nВеликий Аватар\nШпалери</string>
+    <string name="valuesLargeAvatarInDrawer">Типовий\nАватар\nШпалери</string>
     <string name="rememberAllBackMessages">Запам’ятати всі натиснуті відповіді</string>
     <string name="DisableInstantCamera">Приховати прев\'ю з камери на панелі «Прикріпити»</string>
     <string name="showSeconds">Показувати час у секундах</string>

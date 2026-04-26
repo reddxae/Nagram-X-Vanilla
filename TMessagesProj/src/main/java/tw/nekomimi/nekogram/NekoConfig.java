@@ -69,7 +69,6 @@ public class NekoConfig {
     public static final ArrayList<DatacenterInfo> datacenterInfos = new ArrayList<>(5);
 
     // Configs
-    public static ConfigItem configMigrated = addConfig("ConfigMigrated", configTypeBool, false);
     public static ConfigItem largeAvatarInDrawer = addConfig("AvatarAsBackground", configTypeInt, DRAWER_BACKGROUND_WALLPAPER);
     public static ConfigItem useCustomEmoji = addConfig("useCustomEmoji", configTypeBool, false);
     public static ConfigItem repeatConfirm = addConfig("repeatConfirm", configTypeBool, true);
@@ -86,7 +85,7 @@ public class NekoConfig {
     public static ConfigItem mapPreviewProvider = addConfig("MapPreviewProvider", configTypeInt, 0);
     public static ConfigItem forceBlurInChat = addConfig("forceBlurInChat", configTypeBool, false);
     public static ConfigItem chatBlueAlphaValue = addConfig("forceBlurInChatAlphaValue", configTypeInt, 127);
-    public static ConfigItem hideProxySponsorChannel = addConfig("HideProxySponsorChannel", configTypeBool, false);
+    public static ConfigItem hideProxySponsorChannel = addConfig("HideProxySponsorChannel", configTypeBool, true);
     public static ConfigItem showAddToSavedMessages = addConfig("showAddToSavedMessages", configTypeBool, true);
     public static ConfigItem showReport = addConfig("showReport", configTypeBool, false);
     public static ConfigItem showViewHistory = addConfig("showViewHistory", configTypeBool, true);
@@ -110,11 +109,9 @@ public class NekoConfig {
     public static ConfigItem avatarBackgroundBlur = addConfig("BlurAvatarBackground", configTypeBool, false);
     public static ConfigItem avatarBackgroundDarken = addConfig("DarkenAvatarBackground", configTypeBool, false);
     public static ConfigItem useSystemEmoji = addConfig("EmojiUseDefault", configTypeBool, false);
-    public static ConfigItem rearVideoMessages = addConfig("RearVideoMessages", configTypeBool, false);
     public static ConfigItem videoMessagesRecordFrom = addConfig("VideoMessagesRecordFrom", configTypeInt, VIDEO_MESSAGES_RECORD_FROM_FRONT);
     public static ConfigItem videoMessagesStartCamera = addConfig("VideoMessagesStartCamera", configTypeString, "");
     public static ConfigItem videoMessagesSeamlessSwitching = addConfig("VideoMessagesSeamlessSwitching", configTypeBool, false);
-    public static ConfigItem videoMessagesStabilization = addConfig("VideoMessagesStabilization", configTypeBool, true);
     public static ConfigItem videoMessagesStabilizationFront = addConfig("VideoMessagesStabilizationFront", configTypeBool, true);
     public static ConfigItem videoMessagesStabilizationRear = addConfig("VideoMessagesStabilizationRear", configTypeBool, true);
     public static ConfigItem videoMessagesSaveZoomPosition = addConfig("VideoMessagesSaveZoomPosition", configTypeBool, false);
@@ -128,8 +125,6 @@ public class NekoConfig {
 
     public static ConfigItem disableSystemAccount = addConfig("DisableSystemAccount", configTypeBool, false);
     public static ConfigItem skipOpenLinkConfirm = addConfig("SkipOpenLinkConfirm", configTypeBool, false);
-
-    public static ConfigItem showIdAndDc = addConfig("ShowIdAndDc", configTypeBool, true);
 
     public static ConfigItem cachePath = addConfig("cache_path", configTypeString, "");
     public static ConfigItem customSavePath = addConfig("customSavePath", configTypeString, "Telegram");
@@ -147,7 +142,7 @@ public class NekoConfig {
     public static ConfigItem askBeforeCall = addConfig("AskBeforeCalling", configTypeBool, true);
     public static ConfigItem disableNumberRounding = addConfig("DisableNumberRounding", configTypeBool, false);
 
-    public static ConfigItem dnsType = addConfig("DnsType", configTypeInt, DNS_TYPE_DEFAULT);
+    public static ConfigItem dnsType = addConfig("DnsType", configTypeInt, DNS_TYPE_SYSTEM);
     public static ConfigItem customDoH = addConfig("CustomDoH", configTypeString, "");
     public static ConfigItem hideProxyByDefault = addConfig("HideProxyByDefault", configTypeBool, true);
     public static ConfigItem useProxyItem = addConfig("UseProxyItem", configTypeBool, true);
@@ -216,7 +211,6 @@ public class NekoConfig {
 
     static {
         loadConfig(false);
-        checkMigration();
     }
 
     public static ConfigItem addConfig(String k, int t, Object d) {
@@ -301,32 +295,6 @@ public class NekoConfig {
 
     public static boolean fixDriftingForGoogleMaps() {
         return !useOSMDroidMap.Bool() && mapDriftingFixForGoogleMaps.Bool();
-    }
-
-    public static void checkMigration() {
-        if (!configMigrated.Bool()) {
-            configMigrated.setConfigBool(true);
-
-            if (preferences.contains("DisableChatAction")) {
-                sendUploadProgress.setConfigBool(!preferences.getBoolean("DisableChatAction", true));
-            }
-            if (preferences.contains("DisableSendReadStories")) {
-                sendReadStoriesPackets.setConfigBool(!preferences.getBoolean("DisableSendReadStories", true));
-            }
-        }
-        if (preferences.contains(videoMessagesStabilization.getKey())
-                && !preferences.contains(videoMessagesStabilizationFront.getKey())
-                && !preferences.contains(videoMessagesStabilizationRear.getKey())) {
-            boolean enabled = preferences.getBoolean(videoMessagesStabilization.getKey(), true);
-            videoMessagesStabilizationFront.setConfigBool(enabled);
-            videoMessagesStabilizationRear.setConfigBool(enabled);
-        }
-        if (!preferences.contains(videoMessagesRecordFrom.getKey()) && preferences.contains(rearVideoMessages.getKey())) {
-            videoMessagesRecordFrom.setConfigInt(preferences.getBoolean(rearVideoMessages.getKey(), false) ? VIDEO_MESSAGES_RECORD_FROM_REAR : VIDEO_MESSAGES_RECORD_FROM_FRONT);
-        }
-        if (preferences.contains("disableSwipeToNextChannel") && !preferences.contains("disableSwipeToNextInForums")) {
-            disableSwipeToNextInForums.setConfigBool(preferences.getBoolean("disableSwipeToNextChannel", true));
-        }
     }
 
     // --- Ghost Mode ---

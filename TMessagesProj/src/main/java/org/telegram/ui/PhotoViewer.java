@@ -2152,7 +2152,6 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
     private final static int gallery_menu_send_forward = 201;
     private final static int gallery_menu_copy = 202;
     private final static int gallery_menu_set_photo = 203;
-    private final static int gallery_menu_send_noquote = 204;
 
     private static DecelerateInterpolator decelerateInterpolator;
     private static Paint progressPaint;
@@ -5236,7 +5235,7 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
                         ads.stop();
                         ads = null;
                     }
-                } else if (id == gallery_menu_send || id == gallery_menu_send_forward || id == gallery_menu_send_noquote) {
+                } else if (id == gallery_menu_send || id == gallery_menu_send_forward) {
                     if (currentMessageObject == null || !(parentActivity instanceof LaunchActivity)) {
                         return;
                     }
@@ -5258,7 +5257,7 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
                     }
 
                     if (isChannel && msgs.size() <= 1) {
-                        showForward(msgs, id == gallery_menu_send_noquote);
+                        showForward(msgs);
                     } else if (msgs.size() > 1) {
                         boolean photos = true;
                         for (int i = 0; i < msgs.size(); ++i) {
@@ -5275,10 +5274,10 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
                                 .setNegativeButton((photos ? getString("ThisPhoto", R.string.ThisPhoto) : getString("ThisMedia", R.string.ThisMedia)), (di, a) -> {
                                     ArrayList<MessageObject> singleMessage = new ArrayList<>(1);
                                     singleMessage.add(currentMessageObject);
-                                    showForward(singleMessage, id == gallery_menu_send_noquote);
+                                    showForward(singleMessage);
                                 })
                                 .setPositiveButton(photos ? LocaleController.formatPluralString("AllNPhotos", msgs.size()) : LocaleController.formatPluralString("AllNMedia", msgs.size()), (di, a) -> {
-                                    showForward(msgs, id == gallery_menu_send_noquote);
+                                    showForward(msgs);
                                 })
                                 .setNeutralButton(getString("Cancel", R.string.Cancel), (di, a) -> {
                                     di.dismiss();
@@ -5310,7 +5309,7 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
                                     if (message != null) {
                                         SendMessagesHelper.getInstance(currentAccount).sendMessage(SendMessagesHelper.SendMessageParams.of(message.toString(), did, null, null, null, true, null, null, null, !NaConfig.INSTANCE.getSilentMessageByDefault().Bool(), 0, null, false));
                                     }
-                                    SendMessagesHelper.getInstance(currentAccount).sendMessage(fmessages, did, id == gallery_menu_send_noquote, false, !NaConfig.INSTANCE.getSilentMessageByDefault().Bool(), 0, 0);
+                                    SendMessagesHelper.getInstance(currentAccount).sendMessage(fmessages, did, false, false, !NaConfig.INSTANCE.getSilentMessageByDefault().Bool(), 0, 0);
                                 }
                                 fragment1.finishFragment();
                                 if (parentChatActivityFinal != null) {
@@ -5327,9 +5326,6 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
                                 MessagesStorage.TopicKey topicKey = dids.get(0);
                                 long did = topicKey.dialogId;
                                 Bundle args1 = new Bundle();
-                                if (id == gallery_menu_send_noquote) {
-                                    args1.putBoolean("forward_noquote", true);
-                                }
                                 args1.putBoolean("scrollToTopOnResume", true);
                                 if (DialogObject.isEncryptedDialog(did)) {
                                     args1.putInt("enc_id", DialogObject.getEncryptedChatId(did));
@@ -5997,7 +5993,6 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
         menuItem.addSubItem(gallery_menu_showinchat, R.drawable.msg_message, getString(R.string.ShowInChat)).setColors(0xfffafafa, 0xfffafafa);
         menuItem.addSubItem(gallery_menu_reply, R.drawable.menu_reply, getString(R.string.Reply)).setColors(0xfffafafa, 0xfffafafa);
         if (NaConfig.INSTANCE.getMediaViewerMenuItemForward().Bool()) menuItem.addSubItem(gallery_menu_send_forward, R.drawable.msg_forward, getString(R.string.Forward)).setColors(0xfffafafa, 0xfffafafa);
-        if (NaConfig.INSTANCE.getMediaViewerMenuItemNoQuoteForward().Bool()) menuItem.addSubItem(gallery_menu_send_noquote, R.drawable.msg_forward_noquote, getString(R.string.NoQuoteForward)).setColors(0xfffafafa, 0xfffafafa);
         menuItem.addSubItem(gallery_menu_report, R.drawable.msg_report, getString(R.string.ReportProfilePhoto)).setColors(0xfffafafa, 0xfffafafa);
         menuItem.addSubItem(gallery_menu_share, R.drawable.msg_shareout, getString(R.string.ShareFile)).setColors(0xfffafafa, 0xfffafafa);
         menuItem.addSubItem(gallery_menu_masks2, R.drawable.msg_sticker, getString(R.string.ShowStickers)).setColors(0xfffafafa, 0xfffafafa);
@@ -8496,7 +8491,7 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
         }
     }
 
-    private void showForward(ArrayList<MessageObject> fmessages, boolean noQuote) {
+    private void showForward(ArrayList<MessageObject> fmessages) {
         Bundle args = new Bundle();
         args.putBoolean("onlySelect", true);
         args.putInt("dialogsType", 3);
@@ -8509,7 +8504,7 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
                     if (message != null) {
                         SendMessagesHelper.getInstance(currentAccount).sendMessage(message.toString(), did, null, null, null, true, null, null, null, notify, scheduleDate, null, false);
                     }
-                    SendMessagesHelper.getInstance(currentAccount).sendMessage(fmessages, did, noQuote, false, notify, scheduleDate, 0);
+                    SendMessagesHelper.getInstance(currentAccount).sendMessage(fmessages, did, false, false, notify, scheduleDate, 0);
                 }
                 fragment1.finishFragment();
                 if (parentChatActivityFinal != null) {
@@ -8525,7 +8520,6 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
                 MessagesStorage.TopicKey topicKey = dids.get(0);
                 long did = topicKey.dialogId;
                 Bundle args1 = new Bundle();
-                args1.putBoolean("forward_noquote", noQuote);
                 args1.putBoolean("scrollToTopOnResume", true);
                 if (DialogObject.isEncryptedDialog(did)) {
                     args1.putInt("enc_id", DialogObject.getEncryptedChatId(did));
@@ -14191,7 +14185,6 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
             currentVideoSpeed = 1.0f;
 
             menuItem.hideSubItem(gallery_menu_send_forward);
-            menuItem.hideSubItem(gallery_menu_send_noquote);
         }
         setMenuItemIcon(false, true);
 
@@ -14913,7 +14906,6 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
                 galleryButton.setVisibility(View.GONE);
                 galleryGap.setVisibility(View.GONE);
                 menuItem.hideSubItem(gallery_menu_send_forward);
-                menuItem.hideSubItem(gallery_menu_send_noquote);
                 menuItem.hideSubItem(gallery_menu_share);
                 menuItem.hideSubItem(gallery_menu_copy);
                 menuItem.hideSubItem(gallery_menu_set_photo);
@@ -14927,7 +14919,6 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
                 menuItem.showSubItem(gallery_menu_share);
                 menuItem.showSubItem(gallery_menu_scan);
                 menuItem.setSubItemVisibility(gallery_menu_send_forward, !noforwards && centerTitle);
-                menuItem.setSubItemVisibility(gallery_menu_send_noquote, !noforwards);
             }
             groupedPhotosListView.fillList();
         } else if (!secureDocuments.isEmpty()) {

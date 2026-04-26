@@ -5,10 +5,10 @@
     <string name="CombineMessage">Combine Messages</string>
     <string name="TextStyle">Text Style</string>
     <string name="NoiseSuppressAndVoiceEnhance">Voice Enhancements</string>
-    <string name="RepeatAsCopy">Repost as Copy</string>
+    <string name="RepeatAsCopy">Repost as copy</string>
     <string name="DoubleTapAction">Double Tap Actions</string>
-    <string name="SendReactions">Send Reactions</string>
-    <string name="ShowReactions">Show Reactions</string>
+    <string name="SendReactions">Send reactions</string>
+    <string name="ShowReactions">Show reactions</string>
     <string name="CustomTitle">Custom Title on Chats Page</string>
     <string name="CustomTitleHint">Leave blank to use Telegram</string>
     <string name="CreateMono">Create Monospace</string>
@@ -37,7 +37,6 @@
     <string name="CustomChannelLabel">Custom Channel Label</string>
     <string name="AlwaysShowDownloadIcon">Always Show Download Icon</string>
     <string name="HideTitle">Hide Title</string>
-    <string name="IgnoreUnreadCount">Hide Unread Counter</string>
     <string name="SendWithoutMarkdown">Send without Markdown</string>
     <string name="SendAsEmoji">Send as Emoji</string>
     <string name="CustomArtworkApi">Custom Artwork API</string>
@@ -74,6 +73,7 @@
     <string name="DisableClickCommandToSend">Ask Before Sending Bot Command</string>
     <string name="DisableDialogsFloatingButton">Hide Floating Button</string>
     <string name="DisableFlagSecure">Disable FLAG_SECURE</string>
+    <string name="DisableFlagSecureNotice">Permits screenshots on screens that normally block them.</string>
     <string name="CenterActionBarTitleType">Use Centered Title in Settings</string>
     <string name="ShowQuickReplyInBotCommands">Show Quick Reply in Bot Commands</string>
     <string name="PushServiceType">Push Service Type</string>

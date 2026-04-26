@@ -11210,16 +11210,11 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                     faqRow = rowCount++;
                     policyRow = rowCount++;
                 }
-                if (BuildVars.LOGS_ENABLED) {
-                    helpSectionCell = rowCount++;
-                    debugHeaderRow = rowCount++;
-                }
-                if (BuildVars.LOGS_ENABLED) {
-                    sendLogsRow = rowCount++;
-                    sendLastLogsRow = -1;
-                    // disable send last logs
-                    clearLogsRow = rowCount++;
-                }
+                helpSectionCell = -1;
+                debugHeaderRow = -1;
+                sendLogsRow = -1;
+                sendLastLogsRow = -1;
+                clearLogsRow = -1;
                 // na: disable switch backend button
                 if (BuildVars.DEBUG_VERSION && false) {
                     switchBackendRow = rowCount++;
@@ -11927,7 +11922,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
             } else {
                 isOnline[0] = false;
                 newString2 = LocaleController.formatUserStatus(currentAccount, user, isOnline, shortStatus ? new boolean[1] : null);
-                hiddenStatusButton = user != null && !isOnline[0] && !getUserConfig().isPremium() && user.status != null && (user.status instanceof TLRPC.TL_userStatusRecently || user.status instanceof TLRPC.TL_userStatusLastMonth || user.status instanceof TLRPC.TL_userStatusLastWeek) && user.status.by_me;
+                hiddenStatusButton = false;
                 if (onlineTextView[1] != null && !mediaHeaderVisible) {
                     int key = isOnline[0] && peerColor == null ? Theme.key_profile_status : Theme.key_avatar_subtitleInProfileBlue;
                     onlineTextView[1].setTag(key);
@@ -14410,7 +14405,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                     } else if (position == stickersRow) {
                         textCell.setTextAndIcon(LocaleController.getString(R.string.StickersName), R.drawable.msg_sticker, true);
                     } else if (position == nekoRow) {
-                        textCell.setTextAndIcon(getString(R.string.NekoSettings), R.drawable.msg_settings, false);
+                        textCell.setTextAndIcon(getString(R.string.NekoSettings), R.drawable.menu_profile_colors, false);
                     } else if (position == liteModeRow) {
                         textCell.setTextAndIcon(LocaleController.getString(R.string.PowerUsage), R.drawable.msg2_battery, true);
                     } else if (position == questionRow) {

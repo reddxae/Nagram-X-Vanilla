@@ -123,12 +123,6 @@ object NaConfig {
             ConfigItem.configTypeBool,
             false
         )
-    val showNoQuoteForward =
-        addConfig(
-            "NoQuoteForward",
-            ConfigItem.configTypeBool,
-            false
-        )
     val showRepeatAsCopy =
         addConfig(
             "RepeatAsCopy",
@@ -1020,12 +1014,6 @@ object NaConfig {
             ConfigItem.configTypeBool,
             true
         )
-    val mediaViewerMenuItemNoQuoteForward =
-        addConfig(
-            "MediaViewerMenuItemNoQuoteForward",
-            ConfigItem.configTypeBool,
-            true
-        )
     val mediaViewerMenuItemCopyPhoto =
         addConfig(
             "MediaViewerMenuItemCopyPhoto",
@@ -1192,7 +1180,13 @@ object NaConfig {
         addConfig(
             "LeftBottomButtonAction",
             ConfigItem.configTypeInt,
-            1
+            0
+        )
+    val rightBottomButton =
+        addConfig(
+            "RightBottomButtonAction",
+            ConfigItem.configTypeInt,
+            0
         )
     val showTextMonoCode =
         addConfig(
@@ -1410,34 +1404,11 @@ object NaConfig {
     }
 
     private fun fixConfig() {
-        if (!preferences.contains(hideShareButton.key) && preferences.contains("HideShareButtonInChannel")) {
-            hideShareButton.setConfigBool(preferences.getBoolean("HideShareButtonInChannel", false))
-            preferences.edit().remove("HideShareButtonInChannel").apply()
-        }
-        if (!preferences.contains(hideUnreadCounter.key)) {
-            val legacyValue = preferences.all["IgnoreUnreadCount"]
-            when (legacyValue) {
-                is Int -> hideUnreadCounter.setConfigBool(legacyValue == NekoConfig.DIALOG_FILTER_EXCLUDE_ALL)
-                else -> hideUnreadCounter.setConfigBool(preferences.getBoolean("IgnoreFolderCount", false))
-            }
-            preferences.edit()
-                .remove("IgnoreUnreadCount")
-                .remove("IgnoreFolderCount")
-                .remove("IgnoreMutedCount")
-                .apply()
-        }
-        if (!preferences.contains(unmuteVideosWithVolumeButton.key) && preferences.contains("DisablePreviewVideoSoundShortcut")) {
-            unmuteVideosWithVolumeButton.setConfigBool(!preferences.getBoolean("DisablePreviewVideoSoundShortcut", true))
-            preferences.edit().remove("DisablePreviewVideoSoundShortcut").apply()
-        }
         if (translatorMode.Int() > 1) {
             translatorMode.setConfigInt(1)
         }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM) {
             pushServiceTypeInAppDialog.setConfigBool(false)
-        }
-        if (!preferences.getBoolean("ShowIdAndDc", true)) {
-            idDcType.setConfigInt(0)
         }
     }
 

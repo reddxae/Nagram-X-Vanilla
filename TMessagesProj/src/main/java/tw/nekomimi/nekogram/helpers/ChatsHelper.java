@@ -47,10 +47,10 @@ import java.util.Collections;
 import xyz.nextalone.nagram.NaConfig;
 
 public class ChatsHelper extends BaseController {
-    public static final int LEFT_BUTTON_NOQUOTE = 0;
-    public static final int LEFT_BUTTON_REPLY = 1;
-    public static final int LEFT_BUTTON_SAVE_MESSAGE = 2;
-    public static final int LEFT_BUTTON_DIRECT_SHARE = 3;
+    public static final int LEFT_BUTTON_REPLY = 0;
+    public static final int LEFT_BUTTON_SAVE_MESSAGE = 1;
+    public static final int RIGHT_BUTTON_FORWARD = 0;
+    public static final int RIGHT_BUTTON_DIRECT_SHARE = 1;
     private static final ChatsHelper[] Instance = new ChatsHelper[UserConfig.MAX_ACCOUNT_COUNT];
     public ChatActivity.ThemeDelegate themeDelegate;
 
@@ -71,15 +71,37 @@ public class ChatsHelper extends BaseController {
         return localInstance;
     }
 
+    public static void normalizeBottomButtonActions() {
+        getLeftButtonAction();
+        getRightButtonAction();
+    }
+
+    public static int getLeftButtonAction() {
+        int action = NaConfig.INSTANCE.getLeftBottomButton().Int();
+        if (action != LEFT_BUTTON_REPLY && action != LEFT_BUTTON_SAVE_MESSAGE) {
+            action = LEFT_BUTTON_REPLY;
+            NaConfig.INSTANCE.getLeftBottomButton().setConfigInt(action);
+        }
+        return action;
+    }
+
+    public static int getRightButtonAction() {
+        int action = NaConfig.INSTANCE.getRightBottomButton().Int();
+        if (action != RIGHT_BUTTON_FORWARD && action != RIGHT_BUTTON_DIRECT_SHARE) {
+            action = RIGHT_BUTTON_FORWARD;
+            NaConfig.INSTANCE.getRightBottomButton().setConfigInt(action);
+        }
+        return action;
+    }
+
     public static String getLeftButtonText(boolean noForwards) {
         if (noForwards) {
             return getString(R.string.Reply);
         }
-        return switch (NaConfig.INSTANCE.getLeftBottomButton().Int()) {
+        return switch (getLeftButtonAction()) {
             case LEFT_BUTTON_REPLY -> getString(R.string.Reply);
             case LEFT_BUTTON_SAVE_MESSAGE -> getString(R.string.AddToSavedMessages);
-            case LEFT_BUTTON_DIRECT_SHARE -> getString(R.string.DirectShare);
-            default -> getString(R.string.NoQuoteForward);
+            default -> getString(R.string.Reply);
         };
     }
 
@@ -87,10 +109,24 @@ public class ChatsHelper extends BaseController {
         if (noForwards) {
             return R.drawable.input_reply;
         }
-        return switch (NaConfig.INSTANCE.getLeftBottomButton().Int()) {
+        return switch (getLeftButtonAction()) {
+            case LEFT_BUTTON_REPLY -> R.drawable.input_reply;
             case LEFT_BUTTON_SAVE_MESSAGE -> R.drawable.msg_saved;
-            case LEFT_BUTTON_DIRECT_SHARE -> R.drawable.msg_share;
             default -> R.drawable.input_reply;
+        };
+    }
+
+    public static String getRightButtonText() {
+        return switch (getRightButtonAction()) {
+            case RIGHT_BUTTON_DIRECT_SHARE -> getString(R.string.DirectShare);
+            default -> getString(R.string.Forward);
+        };
+    }
+
+    public static int getRightButtonDrawable() {
+        return switch (getRightButtonAction()) {
+            case RIGHT_BUTTON_DIRECT_SHARE -> R.drawable.msg_share;
+            default -> R.drawable.input_forward;
         };
     }
 
@@ -118,23 +154,15 @@ public class ChatsHelper extends BaseController {
             createReplyAction(chatActivity);
             return;
         }
-        switch (NaConfig.INSTANCE.getLeftBottomButton().Int()) {
+        switch (getLeftButtonAction()) {
             case LEFT_BUTTON_REPLY:
                 createReplyAction(chatActivity);
                 break;
             case LEFT_BUTTON_SAVE_MESSAGE:
                 createSaveMessagesSelected(chatActivity);
                 break;
-            case LEFT_BUTTON_DIRECT_SHARE:
-                createShareAlertSelected(chatActivity);
-                break;
-            case LEFT_BUTTON_NOQUOTE:
             default:
-                ChatActivity.noForwardQuote = true;
-                if (chatActivity.messagePreviewParams != null) {
-                    chatActivity.messagePreviewParams.setHideForwardSendersName(true);
-                }
-                chatActivity.openForward(false);
+                createReplyAction(chatActivity);
                 break;
         }
     }
@@ -143,19 +171,13 @@ public class ChatsHelper extends BaseController {
         ArrayList<String> configStringKeys = new ArrayList<>();
         ArrayList<Integer> configValues = new ArrayList<>();
 
-        configStringKeys.add(getString(R.string.NoQuoteForward));
-        configValues.add(LEFT_BUTTON_NOQUOTE);
-
         configStringKeys.add(getString(R.string.Reply));
         configValues.add(LEFT_BUTTON_REPLY);
 
         configStringKeys.add(getString(R.string.AddToSavedMessages));
         configValues.add(LEFT_BUTTON_SAVE_MESSAGE);
 
-        configStringKeys.add(getString(R.string.DirectShare));
-        configValues.add(LEFT_BUTTON_DIRECT_SHARE);
-
-        PopupHelper.show(configStringKeys, getString(R.string.LeftBottomButtonAction), configValues.indexOf(NaConfig.INSTANCE.getLeftBottomButton().Int()), chatActivity.getContext(), i -> {
+        PopupHelper.show(configStringKeys, getString(R.string.LeftBottomButtonAction), configValues.indexOf(getLeftButtonAction()), chatActivity.getContext(), i -> {
             NaConfig.INSTANCE.getLeftBottomButton().setConfigInt(configValues.get(i));
 
             if (chatActivity.replyButton == null) return;
@@ -165,6 +187,46 @@ public class ChatsHelper extends BaseController {
             @SuppressLint("UseCompatLoadingForDrawables") Drawable image = chatActivity.getContext().getResources().getDrawable(getLeftButtonDrawable(noForwards)).mutate();
             image.setColorFilter(new PorterDuffColorFilter(chatActivity.getThemedColor(Theme.key_actionBarActionModeDefaultIcon), PorterDuff.Mode.MULTIPLY));
             chatActivity.replyButton.setCompoundDrawablesWithIntrinsicBounds(image, null, null, null);
+        }, resourcesProvider);
+    }
+
+    public void makeForwardButtonClick(ChatActivity chatActivity) {
+        switch (getRightButtonAction()) {
+            case RIGHT_BUTTON_DIRECT_SHARE:
+                createShareAlertSelected(chatActivity);
+                break;
+            case RIGHT_BUTTON_FORWARD:
+            default:
+                ChatActivity.noForwardQuote = false;
+                ChatActivity.noForwardCaption = false;
+                if (chatActivity.messagePreviewParams != null) {
+                    chatActivity.messagePreviewParams.setHideForwardSendersName(false);
+                }
+                chatActivity.openForward(false);
+                break;
+        }
+    }
+
+    public void makeForwardButtonLongClick(ChatActivity chatActivity, Theme.ResourcesProvider resourcesProvider) {
+        ArrayList<String> configStringKeys = new ArrayList<>();
+        ArrayList<Integer> configValues = new ArrayList<>();
+
+        configStringKeys.add(getString(R.string.Forward));
+        configValues.add(RIGHT_BUTTON_FORWARD);
+
+        configStringKeys.add(getString(R.string.DirectShare));
+        configValues.add(RIGHT_BUTTON_DIRECT_SHARE);
+
+        PopupHelper.show(configStringKeys, getString(R.string.RightBottomButtonAction), configValues.indexOf(getRightButtonAction()), chatActivity.getContext(), i -> {
+            NaConfig.INSTANCE.getRightBottomButton().setConfigInt(configValues.get(i));
+
+            if (chatActivity.forwardButton == null) return;
+
+            chatActivity.forwardButton.setText(getRightButtonText());
+
+            @SuppressLint("UseCompatLoadingForDrawables") Drawable image = chatActivity.getContext().getResources().getDrawable(getRightButtonDrawable()).mutate();
+            image.setColorFilter(new PorterDuffColorFilter(chatActivity.getThemedColor(Theme.key_actionBarActionModeDefaultIcon), PorterDuff.Mode.MULTIPLY));
+            chatActivity.forwardButton.setCompoundDrawablesWithIntrinsicBounds(image, null, null, null);
         }, resourcesProvider);
     }
 

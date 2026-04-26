@@ -518,8 +518,8 @@
     <string name="ChannelAddToChannel">Add to channel</string>
     <string name="ChannelDeleteFromList">Delete from this list</string>
     <string name="ChannelSubscribers">Subscribers</string>
-    <string name="ReplaceSubscribersWithIcon">Show Icon Instead of \"subscribers\"</string>
-    <string name="ReplaceMembersWithIcon">Show Icon Instead of \"members\"</string>
+    <string name="ReplaceSubscribersWithIcon">Show Icon Instead of \"Subscribers\"</string>
+    <string name="ReplaceMembersWithIcon">Show Icon Instead of \"Members\"</string>
     <string name="HideOnlineMembersCounter">Hide Online Members Counter</string>
     <string name="ChannelBlacklist">Removed Users</string>
     <string name="ChannelPermissions">Permissions</string>
@@ -6609,8 +6609,10 @@
     <string name="SortByReactions">Reactions First</string>
     <string name="SortByReposts">Reposts First</string>
     <string name="SortByTime">Newest First</string>
-    <string name="StoryViewsSortDescription">Choose the order for the  list of viewers.</string>
-    <string name="StoryReactionsSortDescription">Choose the order for the  list of reactions.</string>
+    <string name="StoryViewsSortDescription">Choose the order for the 
+list of viewers.</string>
+    <string name="StoryReactionsSortDescription">Choose the order for the 
+list of reactions.</string>
     <string name="NoContactsViewed">None of your contacts viewed this story.</string>
     <string name="Viewers">Viewers</string>
     <string name="StealthModeConfirmTitle">You are in Stealth Mode now</string>

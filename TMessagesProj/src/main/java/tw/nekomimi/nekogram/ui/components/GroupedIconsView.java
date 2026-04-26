@@ -29,7 +29,6 @@ public class GroupedIconsView extends FrameLayout {
 
     private final static int OPTION_DELETE = 1;
     private final static int OPTION_FORWARD = 2;
-    private final static int OPTION_FORWARD_NOQUOTE = 2011;
     private final static int OPTION_COPY = 3;
     private final static int OPTION_COPY_PHOTO = 150;
     private final static int OPTION_COPY_PHOTO_AS_STICKER = 151;
@@ -105,7 +104,7 @@ public class GroupedIconsView extends FrameLayout {
         if (allowEdit) {
             options.add(new OptionConfig(R.drawable.msg_edit, OPTION_EDIT));
         } else {
-            options.add(new OptionConfig(R.drawable.msg_forward_noquote, OPTION_FORWARD, OPTION_FORWARD_NOQUOTE, allowForward, allowForward));
+            options.add(new OptionConfig(R.drawable.msg_forward, OPTION_FORWARD, allowForward));
         }
 
         for (OptionConfig config : options) {

@@ -173,6 +173,7 @@
     <string name="TabStyle">Стиль вкладок</string>
     <string name="TabStylePure">Чистые</string>
     <string name="TabStylePills">Овальные</string>
+    <string name="RightBottomButtonAction">Действие правой кнопки</string>
     <string name="LeftBottomButtonAction">Действие левой кнопки</string>
     <string name="TranscribeProviderOpenAI">OpenAI-совместимый API</string>
     <string name="OpenAiApiCredentialsDialog">Настройте API, совместимый с OpenAI. Вы можете обратиться к этой **документации**.\n</string>
@@ -228,6 +229,8 @@
     <string name="DidNotGetTheCodeBlameDurov">Если вы не получили код на другом устройстве или у вас не выполнен вход в Telegram на другом устройстве, воспользуйтесь официальным приложением Telegram для получения кода.\n\nTelegram **отключил возможность входа с помощью SMS** в сторонних приложениях. Пользователи, входящие в сторонние приложения, могут получать коды для входа только через Telegram.\n\nМы не можем вам в этом помочь. Если у вас возникли проблемы со входом, обратитесь в службу поддержки Telegram.</string>
     <string name="QRLoginMessage">Отсканируйте QR-код с помощью другого устройства для входа.</string>
     <string name="DnsType">DNS-резолвер</string>
+    <string name="DnsTypeTelegram">Telegram</string>
+    <string name="DnsTypeBuiltInDoH">Встроенный DoH</string>
     <string name="DnsTypeSystem">Системный</string>
     <string name="CustomDoH">Пользовательский DoH</string>
     <string name="PinnedReactions">Закреплённые реакции</string>
@@ -269,6 +272,7 @@
     <string name="Resolution">Разрешение</string>
     <string name="Bitrate">Битрейт</string>
     <string name="VideoMessagesCamera2Api">Use Camera2 API</string>
+    <string name="VideoMessagesCamera2ApiNotice">Camera2 API может работать некорректно на некоторых устройствах. Хотя эта опция предоставляет больше возможностей, пожалуйста, считайте её экспериментальной.</string>
     <string name="VideoMessagesRecordFrom">Начинать запись с...</string>
     <string name="VideoMessagesAlwaysAsk">Всегда спрашивать</string>
     <string name="VideoMessagesFront">Фронтальная</string>

@@ -219,6 +219,8 @@
 # dnsjava
 -dontwarn java.net.spi.InetAddressResolverProvider
 -dontwarn org.xbill.DNS.spi.DnsjavaInetAddressResolverProvider
+-dontwarn com.sun.jna.**
+-dontwarn javax.naming.**
 
 -dontwarn java.beans.**
 -dontwarn lombok.**

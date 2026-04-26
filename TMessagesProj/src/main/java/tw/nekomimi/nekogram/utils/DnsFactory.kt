@@ -17,6 +17,7 @@ import org.xbill.DNS.AAAARecord
 import org.xbill.DNS.ARecord
 import org.xbill.DNS.Cache
 import org.xbill.DNS.DClass
+import org.xbill.DNS.Lookup
 import org.xbill.DNS.Message
 import org.xbill.DNS.Name
 import org.xbill.DNS.Rcode
@@ -208,6 +209,10 @@ object DnsFactory {
     fun getTxtRecords(domain: String): List<String> {
         FileLog.d("TXT lookup for '$domain' requested")
 
+        if (NekoConfig.dnsType.Int() == NekoConfig.DNS_TYPE_SYSTEM) {
+            return getSystemTxtRecords(domain) ?: listOf()
+        }
+
         val type = Type.TXT
         val dc = DClass.IN
         val name = Name(domain, Name.root)
@@ -308,6 +313,33 @@ object DnsFactory {
         } else {
             FileLog.w("All DoH providers failed or timed out for '$domain' (TXT).")
             return listOf()
+        }
+    }
+
+    private fun getSystemTxtRecords(domain: String): List<String>? {
+        return try {
+            FileLog.d("Using system DNS for TXT lookup of '$domain'.")
+            val lookup = Lookup(Name(domain, Name.root), Type.TXT)
+            lookup.setCache(cache)
+            val records = lookup.run()
+            if (lookup.result == Lookup.SUCCESSFUL && records != null) {
+                val txtRecords = records
+                    .filterIsInstance<TXTRecord>()
+                    .flatMap { it.strings }
+                if (txtRecords.isNotEmpty()) {
+                    FileLog.d("System DNS TXT resolved '$domain' to: $txtRecords")
+                    txtRecords
+                } else {
+                    FileLog.w("System DNS TXT lookup for '$domain' returned no TXT records.")
+                    null
+                }
+            } else {
+                FileLog.w("System DNS TXT lookup for '$domain' failed: ${lookup.errorString}")
+                null
+            }
+        } catch (e: Exception) {
+            FileLog.e("System DNS TXT lookup for '$domain' failed: ${e.message ?: e.javaClass.simpleName}")
+            null
         }
     }
 

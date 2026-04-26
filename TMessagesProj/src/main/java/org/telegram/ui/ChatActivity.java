@@ -331,6 +331,7 @@ import tw.nekomimi.nekogram.helpers.ChatsHelper;
 import tw.nekomimi.nekogram.helpers.remote.EmojiHelper;
 import tw.nekomimi.nekogram.helpers.remote.PagePreviewRulesHelper;
 import tw.nekomimi.nekogram.menu.copy.CopyPopupWrapper;
+import tw.nekomimi.nekogram.menu.forward.ForwardItem;
 import tw.nekomimi.nekogram.menu.forward.ForwardPopupWrapper;
 import tw.nekomimi.nekogram.menu.reply.ReplyPopupWrapper;
 import tw.nekomimi.nekogram.menu.translate.TranslatePopupWrapper;
@@ -379,7 +380,6 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
     private final static int nkbtn_translate = 2008;
     private final static int nkbtn_hide = 2009;
     private final static int nkbtn_savemessage = 2010;
-    private final static int nkbtn_forward_noquote = 2011;
     private final static int nkbtn_sharemessage = 2030;
 
     // chat click menu buttons
@@ -472,7 +472,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
     private BlurredFrameLayout bottomOverlayChat;
     public BlurredFrameLayout bottomMessagesActionContainer;
     @Nullable
-    private TextView forwardButton;
+    public TextView forwardButton;
     @Nullable
     public TextView replyButton;
     @Nullable
@@ -2746,7 +2746,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         migrated_to = arguments.getInt("migrated_to", 0);
         scrollToTopOnResume = arguments.getBoolean("scrollToTopOnResume", false);
         needRemovePreviousSameChatActivity = arguments.getBoolean("need_remove_previous_same_chat_activity", true);
-        noForwardQuote = arguments.getBoolean("forward_noquote", false);
+        noForwardQuote = false;
         noForwardCaption = arguments.getBoolean("forward_nocaption", false);
         justCreatedChat = arguments.getBoolean("just_created_chat", false);
         wallpaperRandomSeed = Utilities.random.nextLong();
@@ -3949,8 +3949,8 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                     }
                     createDeleteMessagesAlert(null, null);
                 } else if (id == forward) {
-                    noForwardQuote = id == nkbtn_forward_noquote;
-                    noForwardCaption = id == nkbtn_forward_nocaption;
+                    noForwardQuote = false;
+                    noForwardCaption = false;
                     if (messagePreviewParams != null) {
                         messagePreviewParams.setHideForwardSendersName(noForwardQuote);
                         messagePreviewParams.hideCaption = noForwardCaption;
@@ -10023,9 +10023,10 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         }
 
         boolean noForwards = getMessagesController().isChatNoForwards(currentChat) || currentChat != null && currentChat.noforwards;
+        ChatsHelper.normalizeBottomButtonActions();
+        ChatsHelper chatsHelper = ChatsHelper.getInstance(currentAccount);
 
         if (!isInsideContainer) {
-            ChatsHelper chatsHelper = ChatsHelper.getInstance(currentAccount);
             replyButton = new TextView(getContext());
             replyButton.setText(ChatsHelper.getLeftButtonText(noForwards));
             replyButton.setGravity(Gravity.CENTER_VERTICAL);
@@ -10047,13 +10048,13 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 replyButton.setOnLongClickListener(v -> {
                     if (!NekoConfig.disableVibration.Bool()) v.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP, HapticFeedbackConstants.FLAG_IGNORE_GLOBAL_SETTING);
                     chatsHelper.makeReplyButtonLongClick(this, noForwards, getResourceProvider());
-                    return false;
+                    return true;
                 });
             }
         }
 
         forwardButton = new TextView(getContext());
-        forwardButton.setText(LocaleController.getString(R.string.Forward));
+        forwardButton.setText(ChatsHelper.getRightButtonText());
         forwardButton.setGravity(Gravity.CENTER_VERTICAL);
         forwardButton.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 15);
         forwardButton.setPadding(AndroidUtilities.dp(21), 0, AndroidUtilities.dp(21), 0);
@@ -10061,13 +10062,16 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         forwardButton.setBackgroundDrawable(Theme.createSelectorDrawable(getThemedColor(Theme.key_actionBarActionModeDefaultSelector), 3));
         forwardButton.setTextColor(getThemedColor(Theme.key_actionBarActionModeDefaultIcon));
         forwardButton.setTypeface(AndroidUtilities.bold());
-        Drawable image = getContext().getResources().getDrawable(R.drawable.input_forward).mutate();
+        Drawable image = getContext().getResources().getDrawable(ChatsHelper.getRightButtonDrawable()).mutate();
         image.setColorFilter(new PorterDuffColorFilter(getThemedColor(Theme.key_actionBarActionModeDefaultIcon), PorterDuff.Mode.MULTIPLY));
         forwardButton.setCompoundDrawablesWithIntrinsicBounds(image, null, null, null);
         forwardButton.setOnClickListener(v -> {
-            noForwardQuote = false;
-            noForwardCaption = false;
-            openForward(false);
+            chatsHelper.makeForwardButtonClick(this);
+        });
+        forwardButton.setOnLongClickListener(v -> {
+            if (!NekoConfig.disableVibration.Bool()) v.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP, HapticFeedbackConstants.FLAG_IGNORE_GLOBAL_SETTING);
+            chatsHelper.makeForwardButtonLongClick(this, getResourceProvider());
+            return true;
         });
         bottomMessagesActionContainer.addView(forwardButton, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.MATCH_PARENT, Gravity.RIGHT | Gravity.TOP));
         if (getDialogId() == UserObject.VERIFY) {
@@ -10821,14 +10825,18 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         getParentActivity().getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
         int maxActionBarItems = (int) (Math.ceil(displayMetrics.widthPixels  / (double) AndroidUtilities.dp(54))) - 2;
         isActionBarTooNarrow = maxActionBarItems < 6;
-        actionModeViews.add(actionMode.addItemWithWidth(nkactionbarbtn_reply, R.drawable.menu_reply, AndroidUtilities.dp(54), LocaleController.getString(R.string.Reply)));
+        ActionBarMenuItem replyActionModeItem = actionMode.addItemWithWidth(nkactionbarbtn_reply, R.drawable.input_reply, AndroidUtilities.dp(54), LocaleController.getString(R.string.Reply));
+        if (replyActionModeItem.getIconView() != null) {
+            replyActionModeItem.getIconView().setScaleX(-1f);
+        }
+        actionModeViews.add(replyActionModeItem);
         actionModeViews.add(actionMode.addItemWithWidth(edit, R.drawable.msg_edit, AndroidUtilities.dp(54), LocaleController.getString(R.string.Edit)));
         actionModeViews.add(actionMode.addItemWithWidth(nkactionbarbtn_selectBetween, R.drawable.ic_select_between, AndroidUtilities.dp(54), LocaleController.getString(R.string.SelectBetween)));
         actionModeViews.add(actionMode.addItemWithWidth(star, R.drawable.msg_fave, AndroidUtilities.dp(54), LocaleController.getString(R.string.AddToFavorites)));
         actionModeViews.add(actionMode.addItemWithWidth(copy, R.drawable.msg_copy, AndroidUtilities.dp(54), LocaleController.getString(R.string.Copy)));
         actionModeViews.add(actionMode.addItemWithWidth(combine_message, R.drawable.msg_replace, AndroidUtilities.dp(54), LocaleController.getString(R.string.CombineMessage)));
         if (currentEncryptedChat == null && getDialogId() != UserObject.VERIFY && NaConfig.INSTANCE.getActionBarButtonForward().Bool()) {
-            actionModeViews.add(actionMode.addItemWithWidth(forward, R.drawable.msg_forward_noquote, AndroidUtilities.dp(54), LocaleController.getString(R.string.Forward)));
+            actionModeViews.add(actionMode.addItemWithWidth(forward, R.drawable.msg_forward, AndroidUtilities.dp(54), LocaleController.getString(R.string.Forward)));
         }
         actionModeViews.add(actionMode.addItemWithWidth(delete, R.drawable.msg_delete, AndroidUtilities.dp(54), LocaleController.getString(R.string.Delete)));
 
@@ -10843,9 +10851,6 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         boolean noforward = getMessagesController().isChatNoForwards(currentChat);
         actionModeViews.add(actionModeOtherItem = actionMode.addItemWithWidth(nkactionbarbtn_action_mode_other, R.drawable.ic_ab_other, AndroidUtilities.dp(54), LocaleController.getString(R.string.MessageMenu)));
 
-        if (NaConfig.INSTANCE.getShowNoQuoteForward().Bool() && (currentEncryptedChat == null && !noforward)) {
-            actionModeOtherItem.addSubItem(nkbtn_forward_noquote, R.drawable.msg_forward_noquote, LocaleController.getString(R.string.NoQuoteForward));
-        }
         actionModeOtherItem.addSubItem(nkbtn_translate, R.drawable.ic_translate, LocaleController.getString(R.string.Translate));
         if (NekoConfig.showShareMessages.Bool()) {
             actionModeOtherItem.addSubItem(nkbtn_sharemessage, R.drawable.msg_shareout, LocaleController.getString(R.string.ShareMessages));
@@ -20151,12 +20156,10 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 ActionBarMenuItem combineMessageItem = actionBar.createActionMode().getItem(combine_message);
 
                 ActionBarMenuSubItem saveMessageItem = null;
-                ActionBarMenuSubItem forwardNoQuoteItem = null;
                 ActionBarMenuSubItem repeatItem = null;
                 ActionBarMenuSubItem RepeatAsCopyItem = null;
                 if (actionModeOtherItem != null) {
                     saveMessageItem = actionModeOtherItem.getSubItem(nkbtn_savemessage);
-                    forwardNoQuoteItem = actionModeOtherItem.getSubItem(nkbtn_forward_noquote);
                     repeatItem = actionModeOtherItem.getSubItem(nkbtn_repeat);
                     RepeatAsCopyItem = actionModeOtherItem.getSubItem(nkbtn_repeatascopy);
                 }
@@ -20166,9 +20169,6 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 boolean canForward = chatMode != MODE_SCHEDULED && cantForwardMessagesCount == 0 && !noforwards;
                 boolean showForward = NaConfig.INSTANCE.getActionBarButtonForward().Bool();
 
-                if (forwardNoQuoteItem != null) {
-                    forwardNoQuoteItem.setVisibility(canForward && NaConfig.INSTANCE.getShowNoQuoteForward().Bool());
-                }
                 if (saveMessageItem != null) {
                     saveMessageItem.setVisibility(canForward);
                 }
@@ -20315,13 +20315,13 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
 
                     int newVisibility;
 
-                    if ((chatMode == MODE_SCHEDULED || !allowChatActions || selectedMessagesIds[0].size() != 0 && selectedMessagesIds[1].size() != 0) && (NaConfig.INSTANCE.getLeftBottomButton().Int() == ChatsHelper.LEFT_BUTTON_REPLY || noforwards)) {
+                    if ((chatMode == MODE_SCHEDULED || !allowChatActions || selectedMessagesIds[0].size() != 0 && selectedMessagesIds[1].size() != 0) && (ChatsHelper.getLeftButtonAction() == ChatsHelper.LEFT_BUTTON_REPLY || noforwards)) {
                         newVisibility = View.GONE;
                     } else if (selectedCount == 1) {
                         newVisibility = View.VISIBLE;
                         for (int b = 0, N = selectedMessagesIds[0].size(); b < N; b++) {
                             MessageObject message = selectedMessagesIds[0].valueAt(b);
-                            if ((ChatObject.isForum(currentChat) && !canSendMessageToTopic(message)) || (NaConfig.INSTANCE.getLeftBottomButton().Int() != ChatsHelper.LEFT_BUTTON_REPLY && !message.canForwardMessage())) {
+                            if ((ChatObject.isForum(currentChat) && !canSendMessageToTopic(message)) || (ChatsHelper.getLeftButtonAction() != ChatsHelper.LEFT_BUTTON_REPLY && !message.canForwardMessage())) {
                                 newVisibility = View.GONE;
                                 break;
                             }
@@ -20333,7 +20333,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                             for (int b = 0, N = selectedMessagesIds[a].size(); b < N; b++) {
                                 MessageObject message = selectedMessagesIds[a].valueAt(b);
                                 long groupId = message.getGroupId();
-                                if ((groupId == 0 || lastGroupId != 0 && lastGroupId != groupId || (ChatObject.isForum(currentChat) && !canSendMessageToTopic(message))) && (NaConfig.INSTANCE.getLeftBottomButton().Int() == ChatsHelper.LEFT_BUTTON_REPLY || noforwards || !message.canForwardMessage())) {
+                                if ((groupId == 0 || lastGroupId != 0 && lastGroupId != groupId || (ChatObject.isForum(currentChat) && !canSendMessageToTopic(message))) && (ChatsHelper.getLeftButtonAction() == ChatsHelper.LEFT_BUTTON_REPLY || noforwards || !message.canForwardMessage())) {
                                     newVisibility = View.GONE;
                                     break;
                                 }
@@ -33073,7 +33073,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                             return true;
                         });
                     }
-                    if (option == OPTION_FORWARD) {
+                    if (option == OPTION_FORWARD && ForwardItem.hasCaption(selectedObject, selectedObjectGroup)) {
                         var forwardPopupWrapper = new ForwardPopupWrapper(this, selectedObject, selectedObjectGroup, popupLayout.getSwipeBack(), this::processSelectedOption, getResourceProvider());
                         int swipeBackIndex = popupLayout.addViewToSwipeBack(forwardPopupWrapper.windowLayout);
                         cell.setOnLongClickListener(view -> {
@@ -33509,9 +33509,6 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         View item = actionMode.getItem(forward);
         if (item != null) {
             item.setVisibility(View.VISIBLE);
-        }
-        if (chatMode != MODE_SCHEDULED && actionModeOtherItem != null && NaConfig.INSTANCE.getShowNoQuoteForward().Bool()) {
-            actionModeOtherItem.showSubItem(nkbtn_forward_noquote);
         }
         actionMode.setItemVisibility(delete, View.VISIBLE);
         createBottomMessagesActionButtons();
@@ -35530,7 +35527,6 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             final long did = topicKey.dialogId;
             if (did != dialog_id || getTopicId() != topicKey.topicId || chatMode == MODE_PINNED) {
                 Bundle args = new Bundle();
-                args.putBoolean("forward_noquote", noForwardQuote);
                 args.putBoolean("forward_nocaption", noForwardCaption);
                 args.putBoolean("scrollToTopOnResume", scrollToTopOnResume);
                 if (DialogObject.isEncryptedDialog(did)) {
@@ -44848,9 +44844,9 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         createUndoView();
         // from ActionBar & Header ( without text_* )
         // should hide shit action bar after done
-        if (id == nkbtn_forward_noquote || id == nkbtn_forward_nocaption) {
-            noForwardQuote = id == nkbtn_forward_noquote;
-            noForwardCaption = id == nkbtn_forward_nocaption;
+        if (id == nkbtn_forward_nocaption) {
+            noForwardQuote = false;
+            noForwardCaption = true;
             if (messagePreviewParams != null) {
                 messagePreviewParams.setHideForwardSendersName(noForwardQuote);
                 messagePreviewParams.hideCaption = noForwardCaption;
@@ -45066,10 +45062,9 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 repeatMessage(false, true);
                 break;
             }
-            case nkbtn_forward_nocaption:
-            case nkbtn_forward_noquote: {
-                noForwardQuote = true;
-                noForwardCaption = id == nkbtn_forward_nocaption;
+            case nkbtn_forward_nocaption: {
+                noForwardQuote = false;
+                noForwardCaption = true;
                 if (messagePreviewParams != null) {
                     messagePreviewParams.setHideForwardSendersName(noForwardQuote);
                     messagePreviewParams.hideCaption = noForwardCaption;
@@ -47231,18 +47226,11 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                     if (!GroupedIconsView.useGroupedIcons() || allowEdit) {
                         items.add(LocaleController.getString(R.string.Forward));
                         options.add(OPTION_FORWARD);
-                        icons.add(NaConfig.INSTANCE.getShowNoQuoteForward().Bool() ? R.drawable.msg_forward : R.drawable.msg_forward_noquote);
+                        icons.add(R.drawable.msg_forward);
                     }
                 }
                 // --- NekoX Start ---
                 if (chatMode != MODE_SCHEDULED) {
-                    if (!selectedObject.needDrawBluredPreview() && !selectedObject.isLiveLocation() && selectedObject.type != 16) {
-                        if (!noforwards && NaConfig.INSTANCE.getShowNoQuoteForward().Bool()) {
-                            items.add(LocaleController.getString(R.string.NoQuoteForward));
-                            options.add(nkbtn_forward_noquote);
-                            icons.add(R.drawable.msg_forward_noquote);
-                        }
-                    }
                     if (NaConfig.INSTANCE.getShowSetReminder().Bool()) {
                         items.add(LocaleController.getString(R.string.SetReminder));
                         options.add(nkbtn_setReminder);
@@ -47599,6 +47587,11 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
     }
 
     private boolean isTitleCentered() {
+        return false;
+    }
+
+    @Override
+    public boolean shouldCenterActionBarTitle() {
         return false;
     }
 

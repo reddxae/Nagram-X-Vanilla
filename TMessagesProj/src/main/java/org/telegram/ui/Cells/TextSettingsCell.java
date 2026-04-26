@@ -59,6 +59,7 @@ public class TextSettingsCell extends FrameLayout {
     private int loadingSize;
     private boolean measureDelay;
     private int changeProgressStartDelay;
+    private int valueSpacingDp = 8;
 
     Paint paint;
 
@@ -158,9 +159,9 @@ public class TextSettingsCell extends FrameLayout {
         if (valueTextView.getVisibility() == VISIBLE) {
             valueTextView.measure(MeasureSpec.makeMeasureSpec(width, MeasureSpec.AT_MOST), MeasureSpec.makeMeasureSpec(getMeasuredHeight(), MeasureSpec.EXACTLY));
             if (betterLayout) {
-                width -= valueTextView.getMeasuredWidth() + AndroidUtilities.dp(8);
+                width -= valueTextView.getMeasuredWidth() + AndroidUtilities.dp(valueSpacingDp);
             } else {
-                width = availableWidth - valueTextView.getMeasuredWidth() - AndroidUtilities.dp(8);
+                width = availableWidth - valueTextView.getMeasuredWidth() - AndroidUtilities.dp(valueSpacingDp);
             }
 
             if (valueImageView.getVisibility() == VISIBLE) {
@@ -218,6 +219,13 @@ public class TextSettingsCell extends FrameLayout {
 
     public TextView getTextView() {
         return textView;
+    }
+
+    public void setValueSpacingDp(int spacingDp) {
+        if (valueSpacingDp != spacingDp) {
+            valueSpacingDp = spacingDp;
+            requestLayout();
+        }
     }
 
     public void setCanDisable(boolean value) {

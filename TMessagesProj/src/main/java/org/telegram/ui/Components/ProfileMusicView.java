@@ -131,7 +131,12 @@ public class ProfileMusicView extends View {
             color1 = peerColor.getBgColor1(Theme.isCurrentThemeDark());
             color2 = peerColor.getBgColor2(Theme.isCurrentThemeDark());
         }
-        return Theme.adaptHSV(ColorUtils.blendARGB(color1, color2, .25f), +.02f, -.08f);
+        int color = Theme.adaptHSV(ColorUtils.blendARGB(color1, color2, .25f), +.02f, -.08f);
+        Theme.ThemeInfo activeTheme = Theme.getActiveTheme();
+        if (activeTheme != null && activeTheme.isMonet()) {
+            color = ColorUtils.blendARGB(color, Color.WHITE, activeTheme.isDark() ? 0.12f : 0.28f);
+        }
+        return color;
     }
 
     public void setMusicDocument(TLRPC.Document document) {
@@ -260,7 +265,7 @@ public class ProfileMusicView extends View {
         canvas.translate(dp(16.6f), 0);
         this.author.draw(canvas, 0, cy, textColor, 1.0f);
         canvas.translate(this.author.getWidth(), 0);
-        this.title.draw(canvas, 0, cy, textColor, 0.85f);
+        this.title.draw(canvas, 0, cy, textColor, 1.0f);
         canvas.translate(this.title.getWidth(), 0);
 
         arrowPaint.setStrokeWidth(dpf2(1.16f));

@@ -56,10 +56,6 @@ import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.R;
 import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.UserConfig;
-import org.telegram.ui.CallLogActivity;
-import org.telegram.ui.ContactsActivity;
-import org.telegram.ui.DialogsActivity;
-import org.telegram.ui.ProfileActivity;
 import org.telegram.ui.Adapters.FiltersView;
 import org.telegram.ui.Components.AnimatedEmojiDrawable;
 import org.telegram.ui.Components.BackupImageView;
@@ -73,8 +69,6 @@ import org.telegram.ui.Components.SnowflakesEffect;
 import java.util.ArrayList;
 
 import tw.nekomimi.nekogram.NekoConfig;
-import tw.nekomimi.nekogram.settings.BaseNekoSettingsActivity;
-import tw.nekomimi.nekogram.settings.BaseNekoXSettingsActivity;
 import xyz.nextalone.nagram.NaConfig;
 
 public class ActionBar extends FrameLayout {
@@ -2062,23 +2056,7 @@ public class ActionBar extends FrameLayout {
         if (!NaConfig.INSTANCE.getCenterActionBarTitle().Bool() || parentFragment == null) {
             return false;
         }
-        if (parentFragment instanceof BaseNekoSettingsActivity ||
-            parentFragment instanceof BaseNekoXSettingsActivity ||
-            parentFragment instanceof DialogsActivity ||
-            parentFragment instanceof ContactsActivity ||
-            parentFragment instanceof CallLogActivity) {
-            return true;
-        }
-        if (parentFragment instanceof ProfileActivity) {
-            return ((ProfileActivity) parentFragment).isSettings();
-        }
-        String simpleName = parentFragment.getClass().getSimpleName();
-        return simpleName.contains("Settings")
-            || "DatacenterActivity".equals(simpleName)
-            || "SessionsActivity".equals(simpleName)
-            || "ThemeActivity".equals(simpleName)
-            || "LanguageSelectActivity".equals(simpleName)
-            || "PasscodeActivity".equals(simpleName);
+        return parentFragment.shouldCenterActionBarTitle();
     }
 
     // --- Spring Animation ---

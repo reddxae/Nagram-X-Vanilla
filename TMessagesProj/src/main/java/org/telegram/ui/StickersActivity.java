@@ -867,7 +867,7 @@ public class StickersActivity extends BaseFragment implements NotificationCenter
         loopInfoRow = -1;
 
         if (currentType == MediaDataController.TYPE_IMAGE) {
-            featuredRow = rowCount++;
+            featuredRow = -1;
             masksRow = -1;
             if (mediaDataController.getArchivedStickersCount(currentType) != 0) {
                 boolean inserted = archivedRow == -1;
@@ -1426,7 +1426,7 @@ public class StickersActivity extends BaseFragment implements NotificationCenter
                             settingsCell.setTextAndValueAndIcon(getString(R.string.Emoji), count > 0 ? Integer.toString(count) : "", R.drawable.msg2_smile_status, true);
                         } else if (position == pinnedReactionsListRow) {
                             settingsCell.imageView.setTranslationX(-AndroidUtilities.dp(2));
-                            settingsCell.setTextAndValueAndIcon(getString(R.string.PinnedReactions), PinnedReactionsActivity.getRowDescription(), R.drawable.msg_pin, true);
+                            settingsCell.setTextAndValueAndIcon(getString(R.string.PinnedReactions), PinnedReactionsActivity.getRowDescription(), R.drawable.msg_pin, false);
                         } else if (position == suggestRow) {
                             String value;
                             switch (SharedConfig.suggestStickers) {

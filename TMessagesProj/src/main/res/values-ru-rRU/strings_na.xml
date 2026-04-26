@@ -36,7 +36,6 @@
     <string name="CustomChannelLabel">Пользовательская метка каналов</string>
     <string name="AlwaysShowDownloadIcon">Всегда показывать значок «Загрузки»</string>
     <string name="HideTitle">Скрыть заголовок</string>
-    <string name="IgnoreUnreadCount">Скрыть количество непрочитанных</string>
     <string name="SendWithoutMarkdown">Отправить без разметки</string>
     <string name="SendAsEmoji">Отправить как эмодзи</string>
     <string name="CustomArtworkApi">API пользовательских музыкальных обложек</string>
@@ -72,6 +71,7 @@
     <string name="DisableClickCommandToSend">Спрашивать перед отправкой команды бота</string>
     <string name="DisableDialogsFloatingButton">Скрыть плавающую кнопку</string>
     <string name="DisableFlagSecure">Отключить FLAG_SECURE</string>
+    <string name="DisableFlagSecureNotice">Разрешает делать скриншоты на экранах, где они обычно заблокированы.</string>
     <string name="CenterActionBarTitleType">Заголовок по центру в настройках</string>
     <string name="ShowQuickReplyInBotCommands">Показывать кнопку быстрого ответа в поле ввода</string>
     <string name="PushServiceType">Тип сервиса уведомлений</string>
@@ -82,8 +82,6 @@
     <string name="StickersChooseShortNameForStickerPack">Выберите короткое имя для вашего набора.</string>
     <string name="StickersCopyStickerSet">Копировать набор стикеров</string>
     <string name="DisableChannelMuteButton">Скрыть нижнюю панель в каналах</string>
-    <string name="DisablePreviewVideoSoundShortcut">Отключить включение звука видео клавишами громкости</string>
-    <string name="DisablePreviewVideoSoundShortcutNotice">Запретить включение звука предварительного просмотра видео клавишами громкости.</string>
     <string name="DisableAutoWebLogin">Отключить автоматический вход при переходе в веб-версию</string>
     <string name="PreviewSendPhoto">Отправить фото</string>
     <string name="PreviewSendVideo">Отправить видео</string>

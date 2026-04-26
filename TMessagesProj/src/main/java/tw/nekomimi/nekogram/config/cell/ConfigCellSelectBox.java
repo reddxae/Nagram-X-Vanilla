@@ -75,6 +75,7 @@ public class ConfigCellSelectBox extends AbstractConfigCell {
 
     public void onBindViewHolder(RecyclerView.ViewHolder holder) {
         TextSettingsCell cell = (TextSettingsCell) holder.itemView;
+        cell.setValueSpacingDp(8);
         String valueText = "";
         if (selectList != null && bindConfig.Int() < selectList.length) {
             valueText = selectList[bindConfig.Int()];
