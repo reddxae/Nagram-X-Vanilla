@@ -119,6 +119,10 @@
     <string name="customSavePathHint">Leave blank to save directly</string>
     <string name="channelLabel">channel</string>
     <string name="forceBlurInChat">Force Enable Blur in All Themes</string>
+    <string name="TranscluentPanels">Translucent Panels</string>
+    <string name="BottomPanel">Bottom Panel</string>
+    <string name="HeaderPanel">Header Panel</string>
+    <string name="DialogWindows">Dialog Windows</string>
     <string name="ChatBlurAlphaValue">Chat Panels Blur Alpha</string>
     <string name="MutualContact">Mutual contact</string>
     <string name="MutualContactDescription">This contact is a mutual contact.</string>

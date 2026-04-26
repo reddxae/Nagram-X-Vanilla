@@ -16,6 +16,10 @@ import org.telegram.messenger.SharedConfig;
 
 public class BlurredFrameLayout extends FrameLayout {
 
+    public static final int TRANSLUCENT_PANEL_DEFAULT = 0;
+    public static final int TRANSLUCENT_PANEL_HEADER = 1;
+    public static final int TRANSLUCENT_PANEL_BOTTOM = 2;
+
     protected final SizeNotifierFrameLayout sizeNotifierFrameLayout;
     protected Paint backgroundPaint;
     public int backgroundColor = Color.TRANSPARENT;
@@ -23,50 +27,85 @@ public class BlurredFrameLayout extends FrameLayout {
     public int backgroundPaddingTop;
     public boolean isTopView = true;
     public boolean drawBlur = true;
+    protected int translucentPanelMode = TRANSLUCENT_PANEL_DEFAULT;
 
     public BlurredFrameLayout(@NonNull Context context, SizeNotifierFrameLayout sizeNotifierFrameLayout) {
         super(context);
         this.sizeNotifierFrameLayout = sizeNotifierFrameLayout;
     }
 
+    public void setTranslucentPanelMode(int translucentPanelMode) {
+        this.translucentPanelMode = translucentPanelMode;
+        updateBackgroundColor();
+    }
+
+    protected boolean useTranslucentPanelBackground() {
+        return switch (translucentPanelMode) {
+            case TRANSLUCENT_PANEL_HEADER -> SharedConfig.isChatHeaderTranslucentEnabled();
+            case TRANSLUCENT_PANEL_BOTTOM -> SharedConfig.isChatBottomTranslucentEnabled();
+            default -> SharedConfig.chatBlurEnabled();
+        };
+    }
+
+    protected static int makeOpaqueColor(int color) {
+        if (Color.alpha(color) == 0) {
+            return color;
+        }
+        return Color.argb(255, Color.red(color), Color.green(color), Color.blue(color));
+    }
+
     private android.graphics.Rect blurBounds = new android.graphics.Rect();
+
+    private void updateBackgroundColor() {
+        if (translucentPanelMode != TRANSLUCENT_PANEL_DEFAULT && sizeNotifierFrameLayout != null) {
+            super.setBackgroundColor(useTranslucentPanelBackground() ? Color.TRANSPARENT : makeOpaqueColor(backgroundColor));
+        } else if (SharedConfig.chatBlurEnabled() && sizeNotifierFrameLayout != null) {
+            super.setBackgroundColor(Color.TRANSPARENT);
+        } else {
+            super.setBackgroundColor(backgroundColor);
+        }
+        invalidate();
+    }
+
     @Override
     protected void dispatchDraw(Canvas canvas) {
-        if (SharedConfig.chatBlurEnabled() && sizeNotifierFrameLayout != null && drawBlur && backgroundColor != Color.TRANSPARENT) {
+        if (sizeNotifierFrameLayout != null && drawBlur && backgroundColor != Color.TRANSPARENT) {
             if (backgroundPaint == null) {
                 backgroundPaint = new Paint();
             }
-            backgroundPaint.setColor(backgroundColor);
             blurBounds.set(0, backgroundPaddingTop, getMeasuredWidth(), getMeasuredHeight() - backgroundPaddingBottom);
-            float y = 0;
-            View view = this;
-            while (view != sizeNotifierFrameLayout) {
-                y += view.getY();
-                ViewParent parent = view.getParent();
-                if (parent instanceof View) {
-                    view = (View) parent;
-                } else {
-                    super.dispatchDraw(canvas);
-                    return;
+            if (useTranslucentPanelBackground()) {
+                backgroundPaint.setColor(backgroundColor);
+                float y = 0;
+                View view = this;
+                while (view != sizeNotifierFrameLayout) {
+                    y += view.getY();
+                    ViewParent parent = view.getParent();
+                    if (parent instanceof View) {
+                        view = (View) parent;
+                    } else {
+                        super.dispatchDraw(canvas);
+                        return;
+                    }
                 }
+                sizeNotifierFrameLayout.drawBlurRect(canvas, y, blurBounds, backgroundPaint, isTopView);
+            } else if (translucentPanelMode != TRANSLUCENT_PANEL_DEFAULT) {
+                backgroundPaint.setColor(makeOpaqueColor(backgroundColor));
+                canvas.drawRect(blurBounds, backgroundPaint);
             }
-            sizeNotifierFrameLayout.drawBlurRect(canvas, y, blurBounds, backgroundPaint, isTopView);
         }
         super.dispatchDraw(canvas);
     }
 
     @Override
     public void setBackgroundColor(int color) {
-        if (SharedConfig.chatBlurEnabled() && sizeNotifierFrameLayout != null) {
-            backgroundColor = color;
-        } else {
-            super.setBackgroundColor(color);
-        }
+        backgroundColor = color;
+        updateBackgroundColor();
     }
 
     @Override
     protected void onAttachedToWindow() {
-        if (SharedConfig.chatBlurEnabled() && sizeNotifierFrameLayout != null) {
+        if (useTranslucentPanelBackground() && sizeNotifierFrameLayout != null) {
             sizeNotifierFrameLayout.blurBehindViews.add(this);
         }
         super.onAttachedToWindow();

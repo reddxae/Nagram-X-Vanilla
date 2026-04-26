@@ -704,6 +704,32 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
             blurBehindViews.add(this);
         }
 
+        private int getOpaqueHeaderColor(Paint paint) {
+            int color = paint.getColor();
+            if (!SharedConfig.isChatHeaderTranslucentEnabled() && Color.alpha(color) != 0) {
+                return Color.argb(255, Color.red(color), Color.green(color), Color.blue(color));
+            }
+            return color;
+        }
+
+        private void drawHeaderRect(Canvas canvas, Rect bounds, Paint paint) {
+            if (SharedConfig.isChatHeaderTranslucentEnabled()) {
+                drawBlurRect(canvas, 0, bounds, paint, true);
+            } else {
+                windowBackgroundPaint.setColor(getOpaqueHeaderColor(paint));
+                canvas.drawRect(bounds, windowBackgroundPaint);
+            }
+        }
+
+        private void drawHeaderCircle(Canvas canvas, float cx, float cy, float radius, Paint paint) {
+            if (SharedConfig.isChatHeaderTranslucentEnabled()) {
+                drawBlurCircle(canvas, 0, cx, cy, radius, paint, true);
+            } else {
+                windowBackgroundPaint.setColor(getOpaqueHeaderColor(paint));
+                canvas.drawCircle(cx, cy, radius, windowBackgroundPaint);
+            }
+        }
+
         private int startedTrackingPointerId;
         private int startedTrackingX;
         private int startedTrackingY;
@@ -924,7 +950,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                     }
                 }
                 blurBounds.set(0, top, getMeasuredWidth(), top + actionBarHeight);
-                drawBlurRect(canvas, 0, blurBounds, searchAnimationProgress == 1f ? actionBarSearchPaint : actionBarDefaultPaint, true);
+                drawHeaderRect(canvas, blurBounds, searchAnimationProgress == 1f ? actionBarSearchPaint : actionBarDefaultPaint);
                 if (searchAnimationProgress > 0 && searchAnimationProgress < 1f) {
                     actionBarSearchPaint.setColor(ColorUtils.blendARGB(Theme.getColor(folderId == 0 ? Theme.key_actionBarDefault : Theme.key_actionBarDefaultArchived), Theme.getColor(Theme.key_windowBackgroundWhite), searchAnimationProgress));
                     if (searchIsShowed || !searchWasFullyShowed) {
@@ -933,11 +959,11 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                         float cX = getMeasuredWidth() - dp(24);
                         int statusBarH = actionBar.getOccupyStatusBar() ? AndroidUtilities.statusBarHeight : 0;
                         float cY = statusBarH + (actionBar.getMeasuredHeight() - statusBarH) / 2f;
-                        drawBlurCircle(canvas, 0, cX, cY, getMeasuredWidth() * 1.3f * searchAnimationProgress, actionBarSearchPaint, true);
+                        drawHeaderCircle(canvas, cX, cY, getMeasuredWidth() * 1.3f * searchAnimationProgress, actionBarSearchPaint);
                         canvas.restore();
                     } else {
                         blurBounds.set(0, top, getMeasuredWidth(), top + actionBarHeight);
-                        drawBlurRect(canvas, 0, blurBounds, actionBarSearchPaint, true);
+                        drawHeaderRect(canvas, blurBounds, actionBarSearchPaint);
                     }
                     if (filterTabsView != null && filterTabsView.getVisibility() == View.VISIBLE) {
                         filterTabsView.setTranslationY(actionBarHeight - (actionBar.getHeight() + filterTabsView.getMeasuredHeight()));
@@ -963,10 +989,10 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                 if (progressToActionMode > 0) {
                     actionBarSearchPaint.setColor(ColorUtils.blendARGB(Theme.getColor(folderId == 0 ? Theme.key_actionBarDefault : Theme.key_actionBarDefaultArchived), Theme.getColor(Theme.key_windowBackgroundWhite), progressToActionMode));
                     blurBounds.set(0, top, getMeasuredWidth(), top + actionBarHeight);
-                    drawBlurRect(canvas, 0, blurBounds, actionBarSearchPaint, true);
+                    drawHeaderRect(canvas, blurBounds, actionBarSearchPaint);
                 } else {
                     blurBounds.set(0, top, getMeasuredWidth(), top + actionBarHeight);
-                    drawBlurRect(canvas, 0, blurBounds, actionBarDefaultPaint, true);
+                    drawHeaderRect(canvas, blurBounds, actionBarDefaultPaint);
                 }
             }
             tabsYOffset = 0;
@@ -5323,6 +5349,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         }
         updateMenuButton(false);
         actionBar.setDrawBlurBackground(contentView);
+        actionBar.setRespectChatHeaderTranslucency(true);
 
         rightSlidingDialogContainer = new RightSlidingDialogContainer(context) {
 

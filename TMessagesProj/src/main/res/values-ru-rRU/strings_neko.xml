@@ -118,6 +118,10 @@
     <string name="customSavePathHint">Оставьте пустым, чтобы сохранять напрямую в «Загрузки»</string>
     <string name="channelLabel">канал</string>
     <string name="forceBlurInChat">Принудительно включать размытие во всех темах</string>
+    <string name="TranscluentPanels">Полупрозрачные панели</string>
+    <string name="BottomPanel">Нижняя панель</string>
+    <string name="HeaderPanel">Верхняя панель</string>
+    <string name="DialogWindows">Диалоговые окна</string>
     <string name="ChatBlurAlphaValue">Прозрачность размытия панелей чата</string>
     <string name="MutualContact">Взаимный контакт</string>
     <string name="MutualContactDescription">Этот контакт является взаимным контактом.</string>

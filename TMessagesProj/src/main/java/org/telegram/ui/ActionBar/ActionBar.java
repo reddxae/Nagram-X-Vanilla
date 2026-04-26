@@ -158,6 +158,7 @@ public class ActionBar extends FrameLayout {
 
     SizeNotifierFrameLayout contentView;
     boolean blurredBackground;
+    private boolean respectChatHeaderTranslucency;
     public Paint blurScrimPaint = new Paint();
     Rect rectTmp = new Rect();
 
@@ -629,8 +630,12 @@ public class ActionBar extends FrameLayout {
             protected void dispatchDraw(Canvas canvas) {
                 if (blurredBackground && drawBlur) {
                     rectTmp.set(0, 0, getMeasuredWidth(), getMeasuredHeight());
-                    blurScrimPaint.setColor(actionModeColor);
-                    contentView.drawBlurRect(canvas, 0, rectTmp, blurScrimPaint, true);
+                    blurScrimPaint.setColor(getBlurBackgroundColor(actionModeColor));
+                    if (useBlurredHeaderBackground()) {
+                        contentView.drawBlurRect(canvas, 0, rectTmp, blurScrimPaint, true);
+                    } else {
+                        canvas.drawRect(rectTmp, blurScrimPaint);
+                    }
                 }
                 super.dispatchDraw(canvas);
             }
@@ -1931,6 +1936,21 @@ public class ActionBar extends FrameLayout {
         }
     }
 
+    public void setRespectChatHeaderTranslucency(boolean respectChatHeaderTranslucency) {
+        this.respectChatHeaderTranslucency = respectChatHeaderTranslucency;
+    }
+
+    private boolean useBlurredHeaderBackground() {
+        return !respectChatHeaderTranslucency || SharedConfig.isChatHeaderTranslucentEnabled();
+    }
+
+    private int getBlurBackgroundColor(int color) {
+        if (!useBlurredHeaderBackground() && Color.alpha(color) != 0) {
+            return Color.argb(255, Color.red(color), Color.green(color), Color.blue(color));
+        }
+        return color;
+    }
+
     private int getThemedColor(int key) {
         return Theme.getColor(key, resourcesProvider);
     }
@@ -1946,8 +1966,12 @@ public class ActionBar extends FrameLayout {
     protected void dispatchDraw(Canvas canvas) {
         if (blurredBackground && actionBarColor != Color.TRANSPARENT) {
             rectTmp.set(0, 0, getMeasuredWidth(), getMeasuredHeight());
-            blurScrimPaint.setColor(actionBarColor);
-            contentView.drawBlurRect(canvas, getY(), rectTmp, blurScrimPaint, true);
+            blurScrimPaint.setColor(getBlurBackgroundColor(actionBarColor));
+            if (useBlurredHeaderBackground()) {
+                contentView.drawBlurRect(canvas, getY(), rectTmp, blurScrimPaint, true);
+            } else {
+                canvas.drawRect(rectTmp, blurScrimPaint);
+            }
         }
         super.dispatchDraw(canvas);
     }

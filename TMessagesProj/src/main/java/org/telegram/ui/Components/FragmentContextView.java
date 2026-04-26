@@ -382,6 +382,9 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
                 return who == notifyText || super.verifyDrawable(who);
             }
         };
+        if (chatActivity != null) {
+            ((BlurredFrameLayout) frameLayout).setTranslucentPanelMode(BlurredFrameLayout.TRANSLUCENT_PANEL_HEADER);
+        }
         notifyButtonBounce = new ButtonBounce(frameLayout);
         notifyText.setOverrideFullWidth(AndroidUtilities.displaySize.x);
         notifyText.setScaleProperty(.4f);

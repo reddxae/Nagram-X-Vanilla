@@ -171,6 +171,9 @@ public class NekoConfig {
     public static ConfigItem hideGiftButtonInProfiles = addConfig("HideGiftButtonInProfiles", configTypeBool, false);
     public static ConfigItem moveGiftsToTheLastTab = addConfig("MoveGiftsToTheLastTab", configTypeBool, false);
     public static ConfigItem hideSendAGift = addConfig("HideSendAGift", configTypeBool, false);
+    public static ConfigItem translucentBottomPanel = addConfig("TranslucentBottomPanel", configTypeBool, true);
+    public static ConfigItem translucentHeaderPanel = addConfig("TranslucentHeaderPanel", configTypeBool, true);
+    public static ConfigItem translucentDialogWindows = addConfig("TranslucentDialogWindows", configTypeBool, true);
     public static ConfigItem hideSendAsChannel = addConfig("hideSendAsChannel", configTypeBool, false);
     public static ConfigItem showSpoilersDirectly = addConfig("showSpoilersDirectly", configTypeBool, false);
 

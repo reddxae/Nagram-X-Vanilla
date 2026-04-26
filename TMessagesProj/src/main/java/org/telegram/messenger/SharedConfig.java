@@ -1878,7 +1878,101 @@ public class SharedConfig {
     }
 
     public static boolean chatBlurEnabled() {
-        return (canBlurChat() && LiteMode.isEnabled(LiteMode.FLAG_CHAT_BLUR)) || NekoConfig.forceBlurInChat.Bool();
+        return LiteMode.isEnabled(LiteMode.FLAG_CHAT_BLUR) && canBlurChat();
+    }
+
+    public static boolean setChatBlurEnabled(boolean enabled) {
+        boolean current = LiteMode.isEnabledSetting(LiteMode.FLAG_CHAT_BLUR);
+        if (current == enabled) {
+            return false;
+        }
+        LiteMode.toggleFlag(LiteMode.FLAG_CHAT_BLUR, enabled);
+        return true;
+    }
+
+    public static boolean hasEnabledTranslucentPanels() {
+        return NekoConfig.translucentBottomPanel.Bool() || NekoConfig.translucentHeaderPanel.Bool() || NekoConfig.translucentDialogWindows.Bool();
+    }
+
+    public static boolean setAllTranslucentPanelsEnabled(boolean enabled) {
+        boolean changed = false;
+        if (NekoConfig.translucentBottomPanel.Bool() != enabled) {
+            NekoConfig.translucentBottomPanel.setConfigBool(enabled);
+            changed = true;
+        }
+        if (NekoConfig.translucentHeaderPanel.Bool() != enabled) {
+            NekoConfig.translucentHeaderPanel.setConfigBool(enabled);
+            changed = true;
+        }
+        if (NekoConfig.translucentDialogWindows.Bool() != enabled) {
+            NekoConfig.translucentDialogWindows.setConfigBool(enabled);
+            changed = true;
+        }
+        return changed;
+    }
+
+    public static boolean setForceBlurInChatEnabled(boolean enabled) {
+        if (NekoConfig.forceBlurInChat.Bool() == enabled) {
+            return false;
+        }
+        NekoConfig.forceBlurInChat.setConfigBool(enabled);
+        return true;
+    }
+
+    public static boolean syncBlurSettingsFromNightThemeBlur(boolean enabled) {
+        boolean changed = setChatBlurEnabled(enabled);
+        if (enabled) {
+            if (!hasEnabledTranslucentPanels()) {
+                changed |= setAllTranslucentPanelsEnabled(true);
+            }
+        } else {
+            changed |= setAllTranslucentPanelsEnabled(false);
+            changed |= setForceBlurInChatEnabled(false);
+        }
+        return changed;
+    }
+
+    public static boolean syncBlurSettingsFromTranslucentPanels(boolean enabled) {
+        boolean changed = setChatBlurEnabled(enabled);
+        if (!enabled) {
+            changed |= setForceBlurInChatEnabled(false);
+        }
+        return changed;
+    }
+
+    public static boolean syncBlurSettingsFromForceBlur(boolean enabled) {
+        if (!enabled) {
+            return false;
+        }
+        boolean changed = setChatBlurEnabled(true);
+        if (!hasEnabledTranslucentPanels()) {
+            changed |= setAllTranslucentPanelsEnabled(true);
+        }
+        return changed;
+    }
+
+    public static boolean isNightThemeBlurSettingEnabled() {
+        return hasEnabledTranslucentPanels();
+    }
+
+    public static boolean isTranslucentPanelsSettingEnabled() {
+        return LiteMode.isEnabled(LiteMode.FLAG_CHAT_BLUR);
+    }
+
+    public static boolean isForceBlurInChatSettingEnabled() {
+        return isNightThemeBlurSettingEnabled() && isTranslucentPanelsSettingEnabled();
+    }
+
+    public static boolean isChatHeaderTranslucentEnabled() {
+        return chatBlurEnabled() && NekoConfig.translucentHeaderPanel.Bool();
+    }
+
+    public static boolean isChatBottomTranslucentEnabled() {
+        return chatBlurEnabled() && NekoConfig.translucentBottomPanel.Bool();
+    }
+
+    public static boolean isDialogTranslucentEnabled() {
+        return chatBlurEnabled() && NekoConfig.translucentDialogWindows.Bool();
     }
 
     public static class BackgroundActivityPrefs {

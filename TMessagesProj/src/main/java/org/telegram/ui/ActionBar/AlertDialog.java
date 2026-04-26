@@ -216,7 +216,7 @@ public class AlertDialog extends Dialog implements Drawable.Callback, Notificati
     public void setBlurParams(float blurAlpha, boolean blurBehind, boolean blurBackground) {
         this.blurAlpha = blurAlpha;
         this.blurBehind = blurBehind;
-        this.blurredBackground = blurBackground;
+        this.blurredBackground = blurBackground && SharedConfig.isDialogTranslucentEnabled();
     }
 
     protected boolean supportsNativeBlur() {
@@ -300,7 +300,7 @@ public class AlertDialog extends Dialog implements Drawable.Callback, Notificati
         backgroundColor = getThemedColor(Theme.key_dialogBackground);
         final boolean isDark = AndroidUtilities.computePerceivedBrightness(backgroundColor) < 0.721f;
         blurredNativeBackground = supportsNativeBlur() && progressViewStyle == ALERT_TYPE_MESSAGE;
-        blurredBackground = (blurredNativeBackground || !supportsNativeBlur() && SharedConfig.getDevicePerformanceClass() >= SharedConfig.PERFORMANCE_CLASS_HIGH && LiteMode.isEnabled(LiteMode.FLAG_CHAT_BLUR)) && isDark;
+        blurredBackground = (blurredNativeBackground || !supportsNativeBlur() && SharedConfig.getDevicePerformanceClass() >= SharedConfig.PERFORMANCE_CLASS_HIGH && LiteMode.isEnabled(LiteMode.FLAG_CHAT_BLUR)) && isDark && SharedConfig.isDialogTranslucentEnabled();
 
         backgroundPaddings = new Rect();
         if (progressStyle != ALERT_TYPE_SPINNER || blurredBackground) {
@@ -1892,7 +1892,7 @@ public class AlertDialog extends Dialog implements Drawable.Callback, Notificati
         }
 
         public Builder setBlurredBackground(boolean b) {
-            alertDialog.blurredBackground = b;
+            alertDialog.blurredBackground = b && SharedConfig.isDialogTranslucentEnabled();
             return this;
         }
 

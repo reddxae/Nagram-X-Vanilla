@@ -2573,6 +2573,7 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
         super(context, fragment == null ? null : fragment.contentView);
         this.resourcesProvider = resourcesProvider;
         this.backgroundColor = getThemedColor(Theme.key_chat_messagePanelBackground);
+        setTranslucentPanelMode(TRANSLUCENT_PANEL_BOTTOM);
         this.drawBlur = false;
         this.isChat = isChat;
 
@@ -4454,8 +4455,8 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
         bottom += chatSearchExpandOffset;
 
         if (allowBlur) {
-            backgroundPaint.setColor(getThemedColor(Theme.key_chat_messagePanelBackground));
-            if (SharedConfig.chatBlurEnabled() && sizeNotifierLayout != null) {
+            backgroundPaint.setColor(useTranslucentPanelBackground() ? getThemedColor(Theme.key_chat_messagePanelBackground) : makeOpaqueColor(getThemedColor(Theme.key_chat_messagePanelBackground)));
+            if (useTranslucentPanelBackground() && sizeNotifierLayout != null) {
                 blurBounds.set(0, bottom, getWidth(), getHeight());
                 sizeNotifierLayout.drawBlurRect(canvas, getTop(), blurBounds, backgroundPaint, false);
             } else {

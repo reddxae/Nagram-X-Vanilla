@@ -118,6 +118,10 @@
     <string name="customSavePathHint">Залиште порожнім, щоб зберегти у стандартну папку</string>
     <string name="channelLabel">канал</string>
     <string name="forceBlurInChat">Примусово вмикати розмиття в усіх темах</string>
+    <string name="TranscluentPanels">Напівпрозорі панелі</string>
+    <string name="BottomPanel">Нижня панель</string>
+    <string name="HeaderPanel">Верхня панель</string>
+    <string name="DialogWindows">Діалогові вікна</string>
     <string name="ChatBlurAlphaValue">Прозорість розмиття панелей чату</string>
     <string name="MutualContact">Взаємний контакт</string>
     <string name="MutualContactDescription">Цей контакт є взаємним контактом.</string>

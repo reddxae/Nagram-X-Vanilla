@@ -21,6 +21,7 @@ public class ChatSearchTabs extends BlurredFrameLayout {
 
     public ChatSearchTabs(@NonNull Context context, SizeNotifierFrameLayout sizeNotifierFrameLayout) {
         super(context, sizeNotifierFrameLayout);
+        setTranslucentPanelMode(TRANSLUCENT_PANEL_HEADER);
     }
 
     public void setTabs(ViewPagerFixed.TabsView tabs) {

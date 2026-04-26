@@ -43,6 +43,7 @@ import org.telegram.messenger.BuildVars;
 import org.telegram.messenger.LiteMode;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.MessagesController;
+import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.R;
 import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.Utilities;
@@ -133,6 +134,10 @@ public class LiteModeSettingsActivity extends BaseFragment {
                 }
                 boolean value = LiteMode.isEnabledSetting(item.flags);
                 LiteMode.toggleFlag(item.flags, !value);
+                if (item.flags == LiteMode.FLAG_CHAT_BLUR) {
+                    SharedConfig.syncBlurSettingsFromNightThemeBlur(!value);
+                    NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.reloadInterface);
+                }
                 updateValues();
             } else if (item.viewType == VIEW_TYPE_SWITCH2) {
                 if (item.type == SWITCH_TYPE_SMOOTH_TRANSITIONS) {

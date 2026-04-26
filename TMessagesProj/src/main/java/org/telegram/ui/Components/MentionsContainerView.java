@@ -72,6 +72,7 @@ public class MentionsContainerView extends BlurredFrameLayout implements Notific
         this.baseFragment = baseFragment;
         this.sizeNotifierFrameLayout = container;
         this.resourcesProvider = resourcesProvider;
+        setTranslucentPanelMode(TRANSLUCENT_PANEL_BOTTOM);
         this.drawBlur = false;
         this.isTopView = false;
         setVisibility(View.GONE);
@@ -365,7 +366,7 @@ public class MentionsContainerView extends BlurredFrameLayout implements Notific
         }
         paint.setColor(color != null ? color : getThemedColor(Theme.key_chat_messagePanelBackground));
 
-        if (allowBlur && SharedConfig.chatBlurEnabled() && sizeNotifierFrameLayout != null) {
+        if (allowBlur && useTranslucentPanelBackground() && sizeNotifierFrameLayout != null) {
             if (r > 0) {
                 canvas.save();
                 if (path == null) {
@@ -382,6 +383,7 @@ public class MentionsContainerView extends BlurredFrameLayout implements Notific
                 canvas.restore();
             }
         } else {
+            paint.setColor(makeOpaqueColor(paint.getColor()));
             drawRoundRect(canvas, rect, r);
         }
         canvas.clipRect(rect);

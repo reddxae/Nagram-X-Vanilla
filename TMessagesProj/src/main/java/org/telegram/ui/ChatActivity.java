@@ -8267,9 +8267,18 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 Theme.chat_composeShadowDrawable.setBounds(0, 0, getMeasuredWidth(), bottom);
                 Theme.chat_composeShadowDrawable.draw(canvas);
                 blurBounds.set(0, bottom, getMeasuredWidth(), getMeasuredHeight());
-                contentView.drawBlurRect(canvas, getY(), blurBounds, getThemedPaint(Theme.key_paint_chatComposeBackground), false);
+                if (SharedConfig.isChatBottomTranslucentEnabled()) {
+                    contentView.drawBlurRect(canvas, getY(), blurBounds, getThemedPaint(Theme.key_paint_chatComposeBackground), false);
+                } else {
+                    if (backgroundPaint == null) {
+                        backgroundPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+                    }
+                    backgroundPaint.setColor(ColorUtils.setAlphaComponent(getThemedColor(Theme.key_chat_messagePanelBackground), 255));
+                    canvas.drawRect(blurBounds, backgroundPaint);
+                }
             }
         };
+        bottomMessagesActionContainer.setTranslucentPanelMode(BlurredFrameLayout.TRANSLUCENT_PANEL_BOTTOM);
         bottomMessagesActionContainer.drawBlur = false;
         bottomMessagesActionContainer.isTopView = false;
         bottomMessagesActionContainer.setVisibility(View.INVISIBLE);
@@ -8896,7 +8905,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 int bottom = Theme.chat_composeShadowDrawable.getIntrinsicHeight();
                 Theme.chat_composeShadowDrawable.setBounds(0, 0, getMeasuredWidth(), bottom);
                 Theme.chat_composeShadowDrawable.draw(canvas);
-                if (SharedConfig.chatBlurEnabled()) {
+                if (SharedConfig.isChatBottomTranslucentEnabled()) {
                     if (backgroundPaint == null) {
                         backgroundPaint = new Paint();
                     }
@@ -8904,11 +8913,16 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                     blurBounds.set(0, bottom, getMeasuredWidth(), getMeasuredHeight());
                     contentView.drawBlurRect(canvas, getY(), blurBounds, backgroundPaint, false);
                 } else {
-                    canvas.drawRect(0, bottom, getMeasuredWidth(), getMeasuredHeight(), getThemedPaint(Theme.key_paint_chatComposeBackground));
+                    if (backgroundPaint == null) {
+                        backgroundPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+                    }
+                    backgroundPaint.setColor(ColorUtils.setAlphaComponent(getThemedColor(Theme.key_chat_messagePanelBackground), 255));
+                    canvas.drawRect(0, bottom, getMeasuredWidth(), getMeasuredHeight(), backgroundPaint);
                 }
                 super.dispatchDraw(canvas);
             }
         };
+        bottomOverlayChat.setTranslucentPanelMode(BlurredFrameLayout.TRANSLUCENT_PANEL_BOTTOM);
         bottomOverlayChat.isTopView = false;
         bottomOverlayChat.drawBlur = false;
         bottomOverlayChat.setWillNotDraw(false);
@@ -9361,6 +9375,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             }
         };
         actionBar.setDrawBlurBackground(contentView);
+        actionBar.setRespectChatHeaderTranslucency(true);
 
         if (isTopic) {
             reactionsMentionCount = forumTopic.unread_reactions_count;
@@ -10161,6 +10176,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 super.requestLayout();
             }
         };
+        topChatPanelView.setTranslucentPanelMode(BlurredFrameLayout.TRANSLUCENT_PANEL_HEADER);
         topChatPanelView.backgroundColor = getThemedColor(Theme.key_chat_topPanelBackground);
         topChatPanelView.backgroundPaddingBottom = dp(NekoConfig.disableAppBarShadow.Bool() ? 0 : 2);
         topChatPanelView.setTag(1);
@@ -10345,6 +10361,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         }
 
         topChatPanelView2 = new BlurredFrameLayout(getContext(), contentView);
+        topChatPanelView2.setTranslucentPanelMode(BlurredFrameLayout.TRANSLUCENT_PANEL_HEADER);
         topChatPanelView2.backgroundColor = getThemedColor(Theme.key_chat_topPanelBackground);
         topChatPanelView2.backgroundPaddingBottom = AndroidUtilities.dp(2);
         topChatPanelView2.setPadding(0, 0, 0, dp(2));
@@ -11080,7 +11097,15 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                     Theme.chat_composeShadowDrawable.draw(canvas);
                 }
                 blurBounds.set(0, bottom, getMeasuredWidth(), getMeasuredHeight());
-                contentView.drawBlurRect(canvas, getY(), blurBounds, getThemedPaint(Theme.key_paint_chatComposeBackground), false);
+                if (SharedConfig.isChatBottomTranslucentEnabled()) {
+                    contentView.drawBlurRect(canvas, getY(), blurBounds, getThemedPaint(Theme.key_paint_chatComposeBackground), false);
+                } else {
+                    if (backgroundPaint == null) {
+                        backgroundPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+                    }
+                    backgroundPaint.setColor(ColorUtils.setAlphaComponent(getThemedColor(Theme.key_chat_messagePanelBackground), 255));
+                    canvas.drawRect(blurBounds, backgroundPaint);
+                }
             }
 
             @Override
@@ -11109,6 +11134,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 }
             }
         };
+        searchContainer.setTranslucentPanelMode(BlurredFrameLayout.TRANSLUCENT_PANEL_BOTTOM);
         searchContainer.setClickable(false);
         searchContainer.drawBlur = false;
         searchContainer.isTopView = false;
@@ -12123,6 +12149,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 return result;
             }
         };
+        pinnedMessageView.setTranslucentPanelMode(BlurredFrameLayout.TRANSLUCENT_PANEL_HEADER);
         pinnedMessageView.setTag(1);
         pinnedMessageEnterOffset = -AndroidUtilities.dp(50);
         pinnedMessageView.setVisibility(View.GONE);

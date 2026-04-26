@@ -208,6 +208,7 @@ public class SearchTagsList extends BlurredFrameLayout implements NotificationCe
 
     public SearchTagsList(Context context, BaseFragment fragment, SizeNotifierFrameLayout contentView, int currentAccount, long topicId, Theme.ResourcesProvider resourcesProvider, boolean showWithCut) {
         super(context, contentView);
+        setTranslucentPanelMode(TRANSLUCENT_PANEL_HEADER);
 
         this.showWithCut = showWithCut;
         this.currentAccount = currentAccount;
