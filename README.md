@@ -3,6 +3,8 @@ Yet another Nagram fork with Telegram official branding.
 
 Based on Telegram 12.1.1 without shitty liquid ass redesign. Intended for personal use with various QoL fixes.
 
+This project is AI-assisted.
+
 ## Why?
 The point is... ugh, well, I'm more into ReVanced-style mods than making fully rebranded ones. I love that aesthetic when the app looks essentially the same as the original, just with some useful additions — rather than going in a completely different design direction. Besides, I don't have time for that stuff.
 
@@ -27,17 +29,24 @@ An important paradigm of this client is No Cringe. You won't find any epic rippl
 - Option to disable "Gooey" avatar animation
 - Replicate iOS-like camera switching style with blurred fade-in effect in Video Messages 
 - "Disable Avatar Blur" feature will UI with pre-12.0.0 profile behaviour (kind of)
+- Configurable translucency of the panels
+- Relative online time (e.g., "last seen 5 minutes ago" instead of "last seen at 15:10")
 - Hide Direct Share button everywhere with "Hide Share Button Next to Post"
 - Icons for Attachments Tabs
 - Replace subscribers/members caption to monochrome icon
 - Thousands separators for large numbers, also for sub counter when "Disable Number Rounding" enabled
 - Hide Stars rating and Gift button from profile
+- Hide last seen Premium prompt ("when?" badge next to last seen)
+- Hide the Gifts tab from user/channel profiles completely / move it to the last tab
+- Backported table parsing support from upstream
+- Separate "Don't Send Typing" for chats and groups
 - Changed Nagram's set of by-default enabled features in the sake of being predictable
 - Overall UI improvements
   - Fixed abnormal CPU usage caused by PiP source flapping and notification spam (Telegram bug)
   - Fixed centering of online status relatively to user name (Telegram bug)
   - Fixed views counter overlapping number of voters if the poll message forwarded (Telegram bug)
   - Fixed dividers inconsistency over the app
+  - Omit seconds from business hours in profiles
   - Do not convert date in media viewer to numeric format
   - Other tweaks to beautify appearance
 
