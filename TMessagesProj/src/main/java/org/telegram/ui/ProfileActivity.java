@@ -8678,6 +8678,10 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
         return isGiftsTabEnabledForCurrentProfile() && (userInfo != null && userInfo.stargifts_count > 0 || chatInfo != null && chatInfo.stargifts_count > 0);
     }
 
+    private boolean hasVisibleMyProfileStoriesOrGifts() {
+        return !NaConfig.INSTANCE.getDisableStories().Bool() || hasVisibleGiftsTab();
+    }
+
     private boolean isGiftContextMenuActionVisible(boolean giftAvailable) {
         return giftAvailable && !NekoConfig.hideSendAGift.Bool();
     }
@@ -11104,7 +11108,8 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
         visibleSortedUsers.clear();
 
         boolean hasMedia = false;
-        if (sharedMediaPreloader != null) {
+        boolean hideMyProfileStoriesAndGifts = myProfile && !hasVisibleMyProfileStoriesOrGifts();
+        if (!hideMyProfileStoriesAndGifts && sharedMediaPreloader != null) {
             int[] lastMediaCount = sharedMediaPreloader.getLastMediaCount();
             for (int a = 0; a < lastMediaCount.length; a++) {
                 if (lastMediaCount[a] > 0) {
@@ -11119,19 +11124,19 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                 hasMedia = sharedMediaPreloader.hasPreviews;
             }
         }
-        if (!hasMedia && userInfo != null) {
+        if (!hideMyProfileStoriesAndGifts && !hasMedia && userInfo != null) {
             hasMedia = userInfo.stories_pinned_available;
         }
-        if (!hasMedia && userInfo != null && userInfo.bot_info != null) {
+        if (!hideMyProfileStoriesAndGifts && !hasMedia && userInfo != null && userInfo.bot_info != null) {
             hasMedia = userInfo.bot_info.has_preview_medias;
         }
-        if (!hasMedia && hasVisibleGiftsTab()) {
+        if (!hideMyProfileStoriesAndGifts && !hasMedia && hasVisibleGiftsTab()) {
             hasMedia = true;
         }
-        if (!hasMedia && chatInfo != null) {
+        if (!hideMyProfileStoriesAndGifts && !hasMedia && chatInfo != null) {
             hasMedia = chatInfo.stories_pinned_available;
         }
-        if (!hasMedia) {
+        if (!hideMyProfileStoriesAndGifts && !hasMedia) {
             if (chatId != 0 && MessagesController.ChannelRecommendations.hasRecommendations(currentAccount, -chatId)) {
                 hasMedia = true;
             } else if (isBot && userId != 0 && MessagesController.ChannelRecommendations.hasRecommendations(currentAccount, userId)) {
@@ -11370,7 +11375,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                     reportDividerRow = rowCount++;
                 }
 
-                if (hasMedia || (user != null && user.bot && user.bot_can_edit) || userInfo != null && userInfo.common_chats_count != 0 || myProfile) {
+                if (hasMedia || (user != null && user.bot && user.bot_can_edit) || userInfo != null && userInfo.common_chats_count != 0 || myProfile && !hideMyProfileStoriesAndGifts) {
                     sharedMediaRow = rowCount++;
                 } else if (lastSectionRow == -1 && needSendMessage) {
                     sendMessageRow = rowCount++;
