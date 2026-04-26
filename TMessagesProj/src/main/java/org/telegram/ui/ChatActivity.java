@@ -100,6 +100,7 @@ import android.view.ViewGroup;
 import android.view.ViewOutlineProvider;
 import android.view.ViewPropertyAnimator;
 import android.view.ViewTreeObserver;
+import android.view.Window;
 import android.view.WindowManager;
 import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityNodeInfo;
@@ -27783,6 +27784,41 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         }
     }
 
+    private int getChatNavigationBarColor() {
+        return ColorUtils.setAlphaComponent(getThemedColor(Theme.key_chat_messagePanelBackground), 255);
+    }
+
+    @Override
+    public int getNavigationBarColor() {
+        int color = getChatNavigationBarColor();
+        if (sheetsStack != null) {
+            for (int i = 0; i < sheetsStack.size(); ++i) {
+                AttachedSheet sheet = sheetsStack.get(i);
+                if (sheet.attachedToParent()) {
+                    color = sheet.getNavigationBarColor(color);
+                }
+            }
+        }
+        return color;
+    }
+
+    @Override
+    public void setNavigationBarColor(int color) {
+        Activity activity = getParentActivity();
+        if (activity instanceof LaunchActivity) {
+            ((LaunchActivity) activity).setNavigationBarColor(color, true);
+        } else if (activity != null) {
+            Window window = activity.getWindow();
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && window != null && window.getNavigationBarColor() != color) {
+                window.setNavigationBarColor(color);
+                AndroidUtilities.setLightNavigationBar(window, AndroidUtilities.computePerceivedBrightness(color) >= 0.721f);
+            }
+        }
+        if (parentLayout != null) {
+            parentLayout.setNavigationBarColor(color);
+        }
+    }
+
     private boolean shownConversionDateTimeToast;
     private void checkConversionDateTimeToast() {
         if (shownConversionDateTimeToast || !isFullyVisible || !chatListView.isAttachedToWindow()) return;
@@ -42908,7 +42944,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             if (headerItem != null) {
                 headerItem.updateColor();
             }
-            setNavigationBarColor(getThemedColor(Theme.key_windowBackgroundGray));
+            setNavigationBarColor(getChatNavigationBarColor());
             if (fragmentContextView != null) {
                 fragmentContextView.updateColors();
             }
