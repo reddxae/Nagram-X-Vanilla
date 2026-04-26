@@ -111,6 +111,24 @@ public class LocaleController {
         return formatterConstDay;
     }
 
+    private volatile FastDateFormat formatterConstDayNoSeconds;
+    public FastDateFormat getFormatterConstDayNoSeconds() {
+        if (formatterConstDayNoSeconds == null) {
+            synchronized (this) {
+                if (formatterConstDayNoSeconds == null) {
+                    final Locale locale = currentLocale == null ? Locale.getDefault() : currentLocale;
+                    String lang = locale.getLanguage();
+                    if (lang == null) {
+                        lang = "en";
+                    }
+                    lang = lang.toLowerCase();
+                    formatterConstDayNoSeconds = createFormatter(lang.toLowerCase().equals("ar") || lang.toLowerCase().equals("ko") ? locale : Locale.US, is24HourFormat ? "HH:mm" : "h:mm a", is24HourFormat ? "HH:mm" : "h:mm a");
+                }
+            }
+        }
+        return formatterConstDayNoSeconds;
+    }
+
     private volatile FastDateFormat formatterWeek;
     public FastDateFormat getFormatterWeek() {
         if (formatterWeek == null) {
@@ -2698,6 +2716,7 @@ public class LocaleController {
         formatterScheduleYear = null;
         formatterDay = null;
         formatterConstDay = null;
+        formatterConstDayNoSeconds = null;
         formatterStats = null;
         formatterBannedUntil = null;
         formatterBannedUntilThisYear = null;
