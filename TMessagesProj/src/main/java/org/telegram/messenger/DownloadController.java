@@ -38,7 +38,6 @@ import java.util.Locale;
 import java.util.concurrent.ConcurrentHashMap;
 
 import tw.nekomimi.nekogram.helpers.AyuFilter;
-import tw.nekomimi.nekogram.utils.AndroidUtil;
 
 public class DownloadController extends BaseController implements NotificationCenter.NotificationCenterDelegate {
 
@@ -613,7 +612,7 @@ public class DownloadController extends BaseController implements NotificationCe
 
     public boolean canDownloadMedia(MessageObject messageObject) {
         if (messageObject.getDocument() != null) {
-            if (AndroidUtil.isAutoDownloadDisabledFor(messageObject.getDocumentName()) || AyuFilter.isFiltered(messageObject, null)) {
+            if (AyuFilter.isFiltered(messageObject, null)) {
                 return false;
             }
         }
@@ -675,7 +674,7 @@ public class DownloadController extends BaseController implements NotificationCe
         if (messageObject.isHiddenSensitive())
             return 0;
         if (messageObject.getDocument() != null) {
-            if (AndroidUtil.isAutoDownloadDisabledFor(messageObject.getDocumentName()) || AyuFilter.isFiltered(messageObject, null)) {
+            if (AyuFilter.isFiltered(messageObject, null)) {
                 return 0;
             }
         }

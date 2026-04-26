@@ -26,12 +26,8 @@ import org.telegram.ui.Components.BulletinFactory;
 import org.telegram.ui.LaunchActivity;
 
 import java.io.File;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.regex.Pattern;
 
-import tw.nekomimi.nekogram.NekoConfig;
 import xyz.nextalone.nagram.NaConfig;
 
 public class AndroidUtil {
@@ -133,32 +129,6 @@ public class AndroidUtil {
                 }
             }
         }
-    }
-
-    private static final Set<String> WIN32_EXECUTABLE_EXTENSIONS = new HashSet<>(Arrays.asList(
-            "cmd", "bat", "com", "exe", "lnk", "msi", "ps1", "reg", "vb", "vbe", "vbs", "vbscript"
-    ));
-    private static final Set<String> ARCHIVE_EXTENSIONS = new HashSet<>(Arrays.asList(
-            "apk", "zip", "7z", "tar", "gz", "zst", "iso", "xz", "lha", "lzh"
-    ));
-
-    public static boolean isAutoDownloadDisabledFor(String documentName) {
-        if (TextUtils.isEmpty(documentName)) {
-            return false;
-        }
-        int dotIndex = documentName.lastIndexOf('.');
-        if (dotIndex < 0) {
-            return false;
-        }
-        String extension = documentName.substring(dotIndex + 1).toLowerCase();
-
-        boolean isExecutable = NekoConfig.disableAutoDownloadingWin32Executable.Bool() &&
-                WIN32_EXECUTABLE_EXTENSIONS.contains(extension);
-
-        boolean isArchive = NekoConfig.disableAutoDownloadingArchive.Bool() &&
-                ARCHIVE_EXTENSIONS.contains(extension);
-
-        return isExecutable || isArchive;
     }
 
     public static void showErrorDialog(Exception e) {
