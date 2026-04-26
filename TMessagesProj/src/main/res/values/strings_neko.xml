@@ -73,6 +73,7 @@
     <string name="ConfirmCall">Confirm calling</string>
     <string name="CallTo">Call to **%1$s**?</string>
     <string name="DisableNumberRounding">Disable Number Rounding</string>
+    <string name="DisableNumberRoundingForReactions">Also Disable for Reactions</string>
     <string name="Categories">Categories</string>
     <string name="OfficialChannel">Official Channel</string>
     <string name="About">About</string>

@@ -72,6 +72,7 @@
     <string name="ConfirmCall">Підтвердити виклик</string>
     <string name="CallTo">Зателефонувати до **%1$s**?</string>
     <string name="DisableNumberRounding">Вимкнути округлення чисел</string>
+    <string name="DisableNumberRoundingForReactions">Також вимкнути для реакцій</string>
     <string name="Categories">Налаштування</string>
     <string name="OfficialChannel">Офіційний канал</string>
     <string name="About">Про програму</string>

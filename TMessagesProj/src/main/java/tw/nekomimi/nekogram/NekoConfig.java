@@ -141,6 +141,7 @@ public class NekoConfig {
     public static ConfigItem confirmAVMessage = addConfig("ConfirmAVMessage", configTypeBool, false);
     public static ConfigItem askBeforeCall = addConfig("AskBeforeCalling", configTypeBool, true);
     public static ConfigItem disableNumberRounding = addConfig("DisableNumberRounding", configTypeBool, false);
+    public static ConfigItem disableNumberRoundingForReactions = addConfig("DisableNumberRoundingForReactions", configTypeBool, false);
 
     public static ConfigItem dnsType = addConfig("DnsType", configTypeInt, DNS_TYPE_SYSTEM);
     public static ConfigItem customDoH = addConfig("CustomDoH", configTypeString, "");

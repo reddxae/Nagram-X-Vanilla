@@ -66,6 +66,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Objects;
 
+import tw.nekomimi.nekogram.NekoConfig;
 import xyz.nextalone.nagram.NaConfig;
 
 public class ReactionsLayoutInBubble {
@@ -745,6 +746,17 @@ public class ReactionsLayoutInBubble {
         this.scrimDirection = direction;
     }
 
+    private static boolean shouldDisableNumberRoundingForReactions() {
+        return NekoConfig.disableNumberRounding.Bool() && NekoConfig.disableNumberRoundingForReactions.Bool();
+    }
+
+    private static CharSequence formatReactionCount(int count, boolean expanded) {
+        if (shouldDisableNumberRoundingForReactions()) {
+            return String.valueOf(count);
+        }
+        return expanded ? LocaleController.formatNumber(count, ',') : AndroidUtilities.formatWholeNumber(count, 0);
+    }
+
     public class ReactionLayoutButton extends ReactionButton {
         public ReactionLayoutButton(ReactionButton reuseFrom, TLRPC.ReactionCount reactionCount, boolean isSmall, boolean isTag) {
             super(reuseFrom, currentAccount, parentView, reactionCount, isSmall, isTag, resourcesProvider);
@@ -909,7 +921,7 @@ public class ReactionsLayoutInBubble {
             imageReceiver.setParentView(parentView);
             isSelected = reactionCount.chosen;
             counterDrawable.updateVisibility = false;
-            counterDrawable.shortFormat = true;
+            counterDrawable.shortFormat = !shouldDisableNumberRoundingForReactions();
 
             if (reaction != null) {
                 if (visibleReaction.isStar) {
@@ -1077,11 +1089,11 @@ public class ReactionsLayoutInBubble {
             if (scrimProgress > 0 && lastScrimProgressDirection != scrimProgressDirection) {
                 if (scrimProgressDirection) {
                     scrimPreviewCounterDrawable.setAnimationProperties(.6f, 0, 650, 1.6f, CubicBezierInterpolator.EASE_OUT_BACK);
-                    scrimPreviewCounterDrawable.setText(AndroidUtilities.formatWholeNumber(count, 0), false);
-                    scrimPreviewCounterDrawable.setText(LocaleController.formatNumber(count, ','), true);
+                    scrimPreviewCounterDrawable.setText(formatReactionCount(count, false), false);
+                    scrimPreviewCounterDrawable.setText(formatReactionCount(count, true), true);
                 } else {
                     scrimPreviewCounterDrawable.setAnimationProperties(.6f, 0, 320, 1.6f, CubicBezierInterpolator.EASE_OUT_QUINT);
-                    scrimPreviewCounterDrawable.setText(AndroidUtilities.formatWholeNumber(count, 0), true);
+                    scrimPreviewCounterDrawable.setText(formatReactionCount(count, false), true);
                 }
                 lastScrimProgressDirection = scrimProgressDirection;
             }
