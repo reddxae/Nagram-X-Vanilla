@@ -88,7 +88,7 @@ public class AyuGhostUtils {
 
     public static InterceptResult interceptRequest(TLObject object, RequestDelegate onCompleteOrig) {
         // Block typing if disabled
-        if (!NekoConfig.sendUploadProgress.Bool() && (object instanceof TLRPC.TL_messages_setTyping || object instanceof TLRPC.TL_messages_setEncryptedTyping)) {
+        if (shouldBlockTypingRequest(object)) {
             if (BuildVars.LOGS_ENABLED) FileLog.d("GhostMode: Blocking typing status request.");
             return InterceptResult.Blocked(onCompleteOrig);
         }
@@ -195,6 +195,22 @@ public class AyuGhostUtils {
         return object instanceof TLRPC.TL_messages_sendMessage ||
                 object instanceof TLRPC.TL_messages_sendMedia ||
                 object instanceof TLRPC.TL_messages_sendMultiMedia;
+    }
+
+    private static boolean shouldBlockTypingRequest(TLObject object) {
+        if (object instanceof TLRPC.TL_messages_setEncryptedTyping) {
+            return !NekoConfig.sendTypingPacketsInChats.Bool();
+        }
+        if (object instanceof TLRPC.TL_messages_setTyping request) {
+            return isGroupTypingPeer(request.peer)
+                    ? !NekoConfig.sendTypingPacketsInGroups.Bool()
+                    : !NekoConfig.sendTypingPacketsInChats.Bool();
+        }
+        return false;
+    }
+
+    private static boolean isGroupTypingPeer(TLRPC.InputPeer peer) {
+        return peer != null && (peer.chat_id != 0 || peer.channel_id != 0);
     }
 
     public static class InterceptResult {

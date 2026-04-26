@@ -200,6 +200,8 @@ public class NekoConfig {
     public static ConfigItem sendReadStoriesPackets = addConfig("sendReadStoriesPackets", configTypeBool, true);
     public static ConfigItem sendOnlinePackets = addConfig("sendOnlinePackets", configTypeBool, true);
     public static ConfigItem sendUploadProgress = addConfig("sendUploadProgress", configTypeBool, true);
+    public static ConfigItem sendTypingPacketsInChats = addConfig("sendTypingPacketsInChats", configTypeBool, true);
+    public static ConfigItem sendTypingPacketsInGroups = addConfig("sendTypingPacketsInGroups", configTypeBool, true);
     public static ConfigItem sendOfflinePacketAfterOnline = addConfig("sendOfflinePacketAfterOnline", configTypeBool, false);
     public static ConfigItem markReadAfterSend = addConfig("markReadAfterSend", configTypeBool, true);
     public static ConfigItem showGhostInDrawer = addConfig("showGhostInDrawer", configTypeBool, false);
@@ -209,6 +211,8 @@ public class NekoConfig {
     public static ConfigItem sendReadStoriesPacketsLocked = addConfig("sendReadStoriesPacketsLocked", configTypeBool, false);
     public static ConfigItem sendOnlinePacketsLocked = addConfig("sendOnlinePacketsLocked", configTypeBool, false);
     public static ConfigItem sendUploadProgressLocked = addConfig("sendUploadProgressLocked", configTypeBool, false);
+    public static ConfigItem sendTypingPacketsInChatsLocked = addConfig("sendTypingPacketsInChatsLocked", configTypeBool, false);
+    public static ConfigItem sendTypingPacketsInGroupsLocked = addConfig("sendTypingPacketsInGroupsLocked", configTypeBool, false);
     public static ConfigItem sendOfflinePacketAfterOnlineLocked = addConfig("sendOfflinePacketAfterOnlineLocked", configTypeBool, false);
     // --- Ghost Mode ---
 
@@ -277,7 +281,29 @@ public class NekoConfig {
             for (int a = 1; a <= 5; a++) {
                 datacenterInfos.add(new DatacenterInfo(a));
             }
+            migrateSplitTypingPacketsConfig();
             configLoaded = true;
+        }
+    }
+
+    private static void migrateSplitTypingPacketsConfig() {
+        if (preferences.contains(sendUploadProgress.getKey())) {
+            boolean legacyValue = sendUploadProgress.Bool();
+            if (!preferences.contains(sendTypingPacketsInChats.getKey())) {
+                sendTypingPacketsInChats.setConfigBool(legacyValue);
+            }
+            if (!preferences.contains(sendTypingPacketsInGroups.getKey())) {
+                sendTypingPacketsInGroups.setConfigBool(legacyValue);
+            }
+        }
+        if (preferences.contains(sendUploadProgressLocked.getKey())) {
+            boolean legacyLockedValue = sendUploadProgressLocked.Bool();
+            if (!preferences.contains(sendTypingPacketsInChatsLocked.getKey())) {
+                sendTypingPacketsInChatsLocked.setConfigBool(legacyLockedValue);
+            }
+            if (!preferences.contains(sendTypingPacketsInGroupsLocked.getKey())) {
+                sendTypingPacketsInGroupsLocked.setConfigBool(legacyLockedValue);
+            }
         }
     }
 
@@ -340,7 +366,8 @@ public class NekoConfig {
             new Pair<>(sendReadMessagePackets, sendReadMessagePacketsLocked),
             new Pair<>(sendReadStoriesPackets, sendReadStoriesPacketsLocked),
             new Pair<>(sendOnlinePackets, sendOnlinePacketsLocked),
-            new Pair<>(sendUploadProgress, sendUploadProgressLocked),
+            new Pair<>(sendTypingPacketsInChats, sendTypingPacketsInChatsLocked),
+            new Pair<>(sendTypingPacketsInGroups, sendTypingPacketsInGroupsLocked),
             new Pair<>(sendOfflinePacketAfterOnline, sendOfflinePacketAfterOnlineLocked)
     );
     // --- Ghost Mode ---

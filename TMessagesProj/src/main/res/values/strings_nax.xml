@@ -137,6 +137,8 @@
     <string name="DontReadStoriesPackets">Don\'t Read Stories</string>
     <string name="DontSendOnlinePackets">Don\'t Send Online</string>
     <string name="DontSendUploadProgress">Don\'t Send Typing</string>
+    <string name="DontSendTypingInChats">Don\'t Send Typing in Chats</string>
+    <string name="DontSendTypingInGroups">Don\'t Send Typing in Groups</string>
     <string name="SendOfflinePacketAfterOnline">Go Offline Automatically</string>
     <string name="MarkReadAfterSend">Read on Interact</string>
     <string name="GhostModeNotice">Long tap on any option to prevent it from changing on toggling Ghost Mode.</string>

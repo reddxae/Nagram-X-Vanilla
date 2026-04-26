@@ -129,6 +129,8 @@
     <string name="DontReadStoriesPackets">Не читать истории</string>
     <string name="DontSendOnlinePackets">Не отправлять онлайн-статус</string>
     <string name="DontSendUploadProgress">Не отправлять статус ввода текста</string>
+    <string name="DontSendTypingInChats">Не отправлять статус ввода в чатах</string>
+    <string name="DontSendTypingInGroups">Не отправлять статус ввода в группах</string>
     <string name="SendOfflinePacketAfterOnline">Автоматически переходить в офлайн</string>
     <string name="MarkReadAfterSend">Отмечать прочитанным после взаимодействия</string>
     <string name="GhostModeNotice">Долгое нажатие на любую опцию предотвращает её изменение при переключении «Режима призрака».</string>

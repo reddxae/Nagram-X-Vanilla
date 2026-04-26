@@ -129,6 +129,8 @@
     <string name="DontReadStoriesPackets">Не читати історії</string>
     <string name="DontSendOnlinePackets">Не надсилати онлайн-статус</string>
     <string name="DontSendUploadProgress">Не надсилати статус введення тексту</string>
+    <string name="DontSendTypingInChats">Не надсилати статус введення в чатах</string>
+    <string name="DontSendTypingInGroups">Не надсилати статус введення в групах</string>
     <string name="SendOfflinePacketAfterOnline">Автоматично переходити в офлайн</string>
     <string name="MarkReadAfterSend">Відзначати прочитаним після взаємодії</string>
     <string name="GhostModeNotice">Довге натискання на будь-яку опцію запобігає її зміні під час перемикання Режиму привида.</string>

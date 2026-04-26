@@ -37,7 +37,8 @@ public class GhostModeActivity extends BaseNekoSettingsActivity {
     private int sendReadMessagePacketsRow;
     private int sendReadStoriesPacketsRow;
     private int sendOnlinePacketsRow;
-    private int sendUploadProgressRow;
+    private int sendTypingPacketsInChatsRow;
+    private int sendTypingPacketsInGroupsRow;
     private int sendOfflinePacketAfterOnlineRow;
     private int ghostModeNoticeRow;
     private int markReadAfterSendRow;
@@ -58,14 +59,16 @@ public class GhostModeActivity extends BaseNekoSettingsActivity {
             sendReadMessagePacketsRow = addRow();
             sendReadStoriesPacketsRow = addRow();
             sendOnlinePacketsRow = addRow();
-            sendUploadProgressRow = addRow();
+            sendTypingPacketsInChatsRow = addRow();
+            sendTypingPacketsInGroupsRow = addRow();
             sendOfflinePacketAfterOnlineRow = addRow();
             ghostModeNoticeRow = addRow();
         } else {
             sendReadMessagePacketsRow = -1;
             sendReadStoriesPacketsRow = -1;
             sendOnlinePacketsRow = -1;
-            sendUploadProgressRow = -1;
+            sendTypingPacketsInChatsRow = -1;
+            sendTypingPacketsInGroupsRow = -1;
             sendOfflinePacketAfterOnlineRow = -1;
             ghostModeNoticeRow = -1;
         }
@@ -93,7 +96,8 @@ public class GhostModeActivity extends BaseNekoSettingsActivity {
         listAdapter.notifyItemChanged(ghostModeToggleRow, PARTIAL);
         listAdapter.notifyItemChanged(sendReadMessagePacketsRow, !isActive);
         listAdapter.notifyItemChanged(sendOnlinePacketsRow, !isActive);
-        listAdapter.notifyItemChanged(sendUploadProgressRow, !isActive);
+        listAdapter.notifyItemChanged(sendTypingPacketsInChatsRow, !isActive);
+        listAdapter.notifyItemChanged(sendTypingPacketsInGroupsRow, !isActive);
         listAdapter.notifyItemChanged(sendReadStoriesPacketsRow, !isActive);
         listAdapter.notifyItemChanged(sendOfflinePacketAfterOnlineRow, isActive);
 
@@ -108,9 +112,9 @@ public class GhostModeActivity extends BaseNekoSettingsActivity {
             updateRows();
             listAdapter.notifyItemChanged(ghostModeToggleRow, PARTIAL);
             if (ghostModeMenuExpanded) {
-                listAdapter.notifyItemRangeInserted(ghostModeToggleRow + 1, 6);
+                listAdapter.notifyItemRangeInserted(ghostModeToggleRow + 1, 7);
             } else {
-                listAdapter.notifyItemRangeRemoved(ghostModeToggleRow + 1, 6);
+                listAdapter.notifyItemRangeRemoved(ghostModeToggleRow + 1, 7);
             }
         } else if (position == sendReadMessagePacketsRow) {
             if (!view.isEnabled()) return;
@@ -128,10 +132,15 @@ public class GhostModeActivity extends BaseNekoSettingsActivity {
             NekoConfig.sendOnlinePackets.toggleConfigBool();
             ((CheckBoxCell) view).setChecked(NekoConfig.sendOnlinePackets.Bool(), true);
             updateGhostViews();
-        } else if (position == sendUploadProgressRow) {
+        } else if (position == sendTypingPacketsInChatsRow) {
             if (!view.isEnabled()) return;
-            NekoConfig.sendUploadProgress.toggleConfigBool();
-            ((CheckBoxCell) view).setChecked(NekoConfig.sendUploadProgress.Bool(), true);
+            NekoConfig.sendTypingPacketsInChats.toggleConfigBool();
+            ((CheckBoxCell) view).setChecked(!NekoConfig.sendTypingPacketsInChats.Bool(), true);
+            updateGhostViews();
+        } else if (position == sendTypingPacketsInGroupsRow) {
+            if (!view.isEnabled()) return;
+            NekoConfig.sendTypingPacketsInGroups.toggleConfigBool();
+            ((CheckBoxCell) view).setChecked(!NekoConfig.sendTypingPacketsInGroups.Bool(), true);
             updateGhostViews();
         } else if (position == sendOfflinePacketAfterOnlineRow) {
             if (!view.isEnabled()) return;
@@ -166,9 +175,12 @@ public class GhostModeActivity extends BaseNekoSettingsActivity {
         } else if (position == sendOnlinePacketsRow) {
             targetItem = NekoConfig.sendOnlinePackets;
             lockedItem = NekoConfig.sendOnlinePacketsLocked;
-        } else if (position == sendUploadProgressRow) {
-            targetItem = NekoConfig.sendUploadProgress;
-            lockedItem = NekoConfig.sendUploadProgressLocked;
+        } else if (position == sendTypingPacketsInChatsRow) {
+            targetItem = NekoConfig.sendTypingPacketsInChats;
+            lockedItem = NekoConfig.sendTypingPacketsInChatsLocked;
+        } else if (position == sendTypingPacketsInGroupsRow) {
+            targetItem = NekoConfig.sendTypingPacketsInGroups;
+            lockedItem = NekoConfig.sendTypingPacketsInGroupsLocked;
         } else if (position == sendOfflinePacketAfterOnlineRow) {
             targetItem = NekoConfig.sendOfflinePacketAfterOnline;
             lockedItem = NekoConfig.sendOfflinePacketAfterOnlineLocked;
@@ -176,7 +188,7 @@ public class GhostModeActivity extends BaseNekoSettingsActivity {
 
         if (lockedItem != null && targetItem != null) {
             boolean currentLocked = lockedItem.Bool();
-            if (!currentLocked && getGhostModeLockedCount() >= 4) {
+            if (!currentLocked && getGhostModeLockedCount() >= 5) {
                 AndroidUtilities.shakeViewSpring(view, -4);
                 return true;
             }
@@ -203,7 +215,8 @@ public class GhostModeActivity extends BaseNekoSettingsActivity {
         if (!NekoConfig.sendReadMessagePackets.Bool()) count++;
         if (!NekoConfig.sendReadStoriesPackets.Bool()) count++;
         if (!NekoConfig.sendOnlinePackets.Bool()) count++;
-        if (!NekoConfig.sendUploadProgress.Bool()) count++;
+        if (!NekoConfig.sendTypingPacketsInChats.Bool()) count++;
+        if (!NekoConfig.sendTypingPacketsInGroups.Bool()) count++;
         if (NekoConfig.sendOfflinePacketAfterOnline.Bool()) count++;
         return count;
     }
@@ -213,7 +226,8 @@ public class GhostModeActivity extends BaseNekoSettingsActivity {
         if (NekoConfig.sendReadMessagePacketsLocked.Bool()) count++;
         if (NekoConfig.sendReadStoriesPacketsLocked.Bool()) count++;
         if (NekoConfig.sendOnlinePacketsLocked.Bool()) count++;
-        if (NekoConfig.sendUploadProgressLocked.Bool()) count++;
+        if (NekoConfig.sendTypingPacketsInChatsLocked.Bool()) count++;
+        if (NekoConfig.sendTypingPacketsInGroupsLocked.Bool()) count++;
         if (NekoConfig.sendOfflinePacketAfterOnlineLocked.Bool()) count++;
         return count;
     }
@@ -273,7 +287,7 @@ public class GhostModeActivity extends BaseNekoSettingsActivity {
                         int selectedCount = getGhostModeSelectedCount();
                         boolean isActive = NekoConfig.isGhostModeActive();
                         checkCell.setTextAndCheck(getString(R.string.GhostMode), isActive, true, true);
-                        checkCell.setCollapseArrow(String.format(Locale.US, "%d/5", selectedCount), !ghostModeMenuExpanded, () -> {
+                        checkCell.setCollapseArrow(String.format(Locale.US, "%d/6", selectedCount), !ghostModeMenuExpanded, () -> {
                             NekoConfig.toggleGhostMode();
                             String msg = isActive
                                     ? getString(R.string.GhostModeDisabled)
@@ -307,11 +321,16 @@ public class GhostModeActivity extends BaseNekoSettingsActivity {
                         lockedItem = NekoConfig.sendOnlinePacketsLocked;
                         checkValue = !item.Bool();
                         title = getString(R.string.DontSendOnlinePackets);
-                    } else if (position == sendUploadProgressRow) {
-                        item = NekoConfig.sendUploadProgress;
-                        lockedItem = NekoConfig.sendUploadProgressLocked;
+                    } else if (position == sendTypingPacketsInChatsRow) {
+                        item = NekoConfig.sendTypingPacketsInChats;
+                        lockedItem = NekoConfig.sendTypingPacketsInChatsLocked;
                         checkValue = !item.Bool();
-                        title = getString(R.string.DontSendUploadProgress);
+                        title = getString(R.string.DontSendTypingInChats);
+                    } else if (position == sendTypingPacketsInGroupsRow) {
+                        item = NekoConfig.sendTypingPacketsInGroups;
+                        lockedItem = NekoConfig.sendTypingPacketsInGroupsLocked;
+                        checkValue = !item.Bool();
+                        title = getString(R.string.DontSendTypingInGroups);
                     } else if (position == sendOfflinePacketAfterOnlineRow) {
                         item = NekoConfig.sendOfflinePacketAfterOnline;
                         lockedItem = NekoConfig.sendOfflinePacketAfterOnlineLocked;
