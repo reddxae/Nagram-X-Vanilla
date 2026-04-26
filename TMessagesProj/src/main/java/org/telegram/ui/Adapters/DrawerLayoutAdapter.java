@@ -416,7 +416,7 @@ public class DrawerLayoutAdapter extends RecyclerListView.SelectionAdapter imple
         boolean showSessions = NaConfig.INSTANCE.getDrawerItemSessions().Bool();
         boolean showRestartApp = NaConfig.INSTANCE.getDrawerItemRestartApp().Bool();
         if (showNSettings || showBrowser || showQrLogin || showSessions) items.add(null); // divider
-        if (showNSettings) items.add(new Item(nkbtnSettings, LocaleController.getString(R.string.NekoSettings), R.drawable.menu_profile_colors));
+        if (showNSettings) items.add(new Item(nkbtnSettings, LocaleController.getString(R.string.NekoSettings), R.drawable.actions_reactions));
         if (showBrowser) items.add(new Item(nkbtnBrowser, LocaleController.getString(R.string.InappBrowser), R.drawable.web_browser));
         if (showQrLogin) items.add(new Item(nkbtnQrLogin, LocaleController.getString(R.string.ImportLogin), R.drawable.msg_qrcode));
         if (showSessions) items.add(new Item(nkbtnSessions, LocaleController.getString(R.string.Devices), R.drawable.msg2_devices));

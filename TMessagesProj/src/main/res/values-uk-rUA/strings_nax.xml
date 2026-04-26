@@ -185,6 +185,8 @@
     <string name="AppearanceIcons">Іконки</string>
     <string name="AppearanceChatsPage">Сторінка чатів</string>
     <string name="AppearanceChatsAndChannels">Чати й канали</string>
+    <string name="AppearanceStickersAndMessages">Наліпки та повідомлення</string>
+    <string name="AppearanceChatsGroupsAndChannels">Чати, групи й канали</string>
     <string name="RightBottomButtonAction">Дія правої кнопки</string>
     <string name="LeftBottomButtonAction">Дія лівої кнопки</string>
     <string name="TranscribeProviderOpenAI">OpenAI-сумісний API</string>
@@ -267,6 +269,8 @@
     <string name="LlmProviderDeepSeekModel">deepseek-chat</string>
     <string name="LlmProviderXAIModel">grok-4-fast-non-reasoning</string>
     <string name="Camera">Камера</string>
+    <string name="CameraHardwareSettings">Апаратні налаштування</string>
+    <string name="CameraRecordingOptions">Параметри запису</string>
     <string name="Resolution">Роздільна здатність</string>
     <string name="Bitrate">Бітрейт</string>
     <string name="VideoMessagesCamera2ApiNotice">Camera2 API може працювати некоректно на деяких пристроях. Хоча ця опція надає більше можливостей, будь ласка, вважайте її експериментальною.</string>

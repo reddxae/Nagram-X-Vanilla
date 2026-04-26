@@ -541,7 +541,7 @@ public class NekoSettingsActivity extends BaseFragment {
                             } else if (position == appearanceRow) {
                                 textCell.setTextAndIcon(getString(R.string.Appearance), R.drawable.menu_profile_colors, true);
                             } else if (position == premiumRow) {
-                                textCell.setTextAndIcon(getString(R.string.Premium), R.drawable.msg_premium_normal, true);
+                                textCell.setTextAndIcon(getString(R.string.Premium), R.drawable.msg_clear, true);
                             } else if (position == translatorRow) {
                                 textCell.setTextAndIcon(getString(R.string.TranslatorSettings), R.drawable.ic_translate, true);
                             } else if (position == passcodeRow) {
@@ -794,12 +794,12 @@ public class NekoSettingsActivity extends BaseFragment {
             return;
         }
         drawable = drawable.mutate();
-        drawable.setColorFilter(new PorterDuffColorFilter(Theme.getColor(Theme.key_dialogIcon), PorterDuff.Mode.SRC_IN));
+        drawable.setColorFilter(new PorterDuffColorFilter(Theme.getColor(Theme.key_windowBackgroundWhiteGrayIcon), PorterDuff.Mode.SRC_IN));
         cell.imageView.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
         cell.imageView.setTag(null);
         cell.imageView.clearColorFilter();
         cell.imageView.setImageDrawable(drawable);
-        cell.imageView.setColorFilter(new PorterDuffColorFilter(Theme.getColor(Theme.key_dialogIcon), PorterDuff.Mode.SRC_IN));
+        cell.imageView.setColorFilter(new PorterDuffColorFilter(Theme.getColor(Theme.key_windowBackgroundWhiteGrayIcon), PorterDuff.Mode.SRC_IN));
         cell.imageView.setTranslationX(0);
         cell.imageView.setTranslationY(0);
         ViewGroup.LayoutParams params = cell.imageView.getLayoutParams();

@@ -485,9 +485,12 @@ public class NekoChatSettingsActivity extends BaseNekoXSettingsActivity implemen
 
     public NekoChatSettingsActivity() {
         ChatsHelper.normalizeBottomButtonActions();
+        cellGroup.rows.remove(headerStickerSize);
         cellGroup.rows.remove(stickerSizeRow);
         cellGroup.rows.remove(hideTimeForStickerRow);
         cellGroup.rows.remove(disableReplyBackgroundRow);
+        cellGroup.rows.remove(showTimeHintRow);
+        cellGroup.rows.remove(dividerStickerSize);
         cellGroup.rows.remove(emojiSetsRow);
         cellGroup.rows.remove(premiumElementsToggleRow);
         cellGroup.rows.remove(replaceMembersWithIconRow);

@@ -217,7 +217,7 @@ public class NekoPremiumSettingsActivity extends BaseNekoXSettingsActivity {
 
     @Override
     public int getDrawable() {
-        return R.drawable.msg_premium_normal;
+        return R.drawable.msg_clear;
     }
 
     @Override

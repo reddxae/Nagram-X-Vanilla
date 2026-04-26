@@ -4,7 +4,6 @@ import static org.telegram.messenger.LocaleController.getString;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
-import android.graphics.Canvas;
 import android.os.Build;
 import android.text.TextUtils;
 import android.util.TypedValue;
@@ -41,6 +40,8 @@ import org.telegram.ui.Components.RecyclerListView;
 import org.telegram.ui.Stories.recorder.DualCameraView;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import kotlin.Unit;
 import tw.nekomimi.nekogram.NekoConfig;
@@ -48,6 +49,7 @@ import tw.nekomimi.nekogram.config.CellGroup;
 import tw.nekomimi.nekogram.config.ConfigItem;
 import tw.nekomimi.nekogram.config.cell.AbstractConfigCell;
 import tw.nekomimi.nekogram.config.cell.ConfigCellCustom;
+import tw.nekomimi.nekogram.config.cell.ConfigCellDivider;
 import tw.nekomimi.nekogram.config.cell.ConfigCellHeader;
 import tw.nekomimi.nekogram.ui.PopupBuilder;
 import tw.nekomimi.nekogram.ui.cells.HeaderCell;
@@ -56,18 +58,17 @@ import xyz.nextalone.nagram.NaConfig;
 @SuppressLint("RtlHardcoded")
 @SuppressWarnings("unused")
 public class NekoCameraSettingsActivity extends BaseNekoXSettingsActivity {
-    private static final int ITEM_TYPE_CAMERA2_API_NOTICE = 100;
     private static final int[] VIDEO_NOTE_BITRATE_VALUES = {600, 800, 1000, 1200, 1400};
     private static final int[] VIDEO_NOTE_RESOLUTION_VALUES = {128, 256, 384, 512, 640};
 
     private final CellGroup cellGroup = new CellGroup(this);
     private final ArrayList<Camera2Session.RoundVideoCameraOption> startCameraOptions = new ArrayList<>();
-    private final AbstractConfigCell headerCamera = cellGroup.appendCell(new ConfigCellHeader(getString(R.string.SendMediaPermissionRound)));
+    private final AbstractConfigCell headerHardwareSettings = cellGroup.appendCell(new ConfigCellHeader(getString(R.string.CameraHardwareSettings)));
     private final AbstractConfigCell camera2ApiRow = cellGroup.appendCell(new Camera2ApiToggleCell());
     private final AbstractConfigCell camera2ApiNoticeRow = cellGroup.appendCell(new AbstractConfigCell() {
         @Override
         public int getType() {
-            return ITEM_TYPE_CAMERA2_API_NOTICE;
+            return CellGroup.ITEM_TYPE_TEXT;
         }
 
         @Override
@@ -78,20 +79,23 @@ public class NekoCameraSettingsActivity extends BaseNekoXSettingsActivity {
         @Override
         public void onBindViewHolder(RecyclerView.ViewHolder holder) {
             TextInfoPrivacyCell cell = (TextInfoPrivacyCell) holder.itemView;
-            cell.setTopPadding(0);
-            cell.setBottomPadding(10);
-            cell.getTextView().setTextSize(TypedValue.COMPLEX_UNIT_DIP, 13);
-            cell.setTextColorByKey(Theme.key_windowBackgroundWhiteGrayText2);
-            cell.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
+            cell.setTopPadding(10);
+            cell.setBottomPadding(17);
+            cell.getTextView().setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
+            cell.setTextColorByKey(Theme.key_windowBackgroundWhiteGrayText4);
+            cell.setBackground(Theme.getThemedDrawable(getContext(), R.drawable.greydivider_bottom, Theme.key_windowBackgroundGrayShadow));
             cell.setText(getString(R.string.VideoMessagesCamera2ApiNotice));
         }
     });
-    private final AbstractConfigCell recordFromRow = cellGroup.appendCell(new RecordFromDropdownCell());
     private final AbstractConfigCell startCameraRow = cellGroup.appendCell(new StartCameraDropdownCell());
     private final AbstractConfigCell seamlessSwitchingRow = cellGroup.appendCell(new VideoMessagesToggleCell(NekoConfig.videoMessagesSeamlessSwitching, R.string.VideoMessagesSeamlessSwitching, ToggleType.SEAMLESS_SWITCHING));
     private final AbstractConfigCell stabilizationRow = cellGroup.appendCell(new StabilizationDropdownCell());
+    private final AbstractConfigCell headerRecordingOptions = cellGroup.appendCell(new ConfigCellHeader(getString(R.string.CameraRecordingOptions)));
+    private final AbstractConfigCell recordFromRow = cellGroup.appendCell(new RecordFromDropdownCell());
     private final AbstractConfigCell saveZoomPositionRow = cellGroup.appendCell(new VideoMessagesToggleCell(NekoConfig.videoMessagesSaveZoomPosition, R.string.VideoMessagesSaveZoomPosition, ToggleType.SAVE_ZOOM_POSITION));
     private final AbstractConfigCell blurCameraSwitchRow = cellGroup.appendCell(new VideoMessagesToggleCell(NekoConfig.videoMessagesBlurCameraSwitch, R.string.VideoMessagesBlurCameraSwitch, ToggleType.BLUR_CAMERA_SWITCH));
+    private final AbstractConfigCell dividerRecordingOptions = cellGroup.appendCell(new ConfigCellDivider());
+    private final AbstractConfigCell headerQuality = cellGroup.appendCell(new ConfigCellHeader(getString(R.string.Quality)));
     private final AbstractConfigCell cameraResolutionRow = cellGroup.appendCell(new ConfigCellCustom("CameraResolution", CellGroup.ITEM_TYPE_TEXT_SETTINGS_CELL, true));
     private final AbstractConfigCell cameraBitrateRow = cellGroup.appendCell(new ConfigCellCustom("CameraBitrate", CellGroup.ITEM_TYPE_TEXT_SETTINGS_CELL, true));
     private final AbstractConfigCell cameraVideoMessagesNoticeRow = cellGroup.appendCell(new AbstractConfigCell() {
@@ -108,6 +112,10 @@ public class NekoCameraSettingsActivity extends BaseNekoXSettingsActivity {
         @Override
         public void onBindViewHolder(RecyclerView.ViewHolder holder) {
             TextInfoPrivacyCell cell = (TextInfoPrivacyCell) holder.itemView;
+            cell.setTopPadding(10);
+            cell.setBottomPadding(17);
+            cell.getTextView().setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
+            cell.setTextColorByKey(Theme.key_windowBackgroundWhiteGrayText4);
             cell.setBackground(Theme.getThemedDrawable(getContext(), R.drawable.greydivider_bottom, Theme.key_windowBackgroundGrayShadow));
             cell.setText(getString(R.string.CameraVideoMessagesNotice));
         }
@@ -115,6 +123,7 @@ public class NekoCameraSettingsActivity extends BaseNekoXSettingsActivity {
     private ListAdapter listAdapter;
 
     public NekoCameraSettingsActivity() {
+        rebuildRows();
         addRowsToMap(cellGroup);
     }
 
@@ -210,6 +219,8 @@ public class NekoCameraSettingsActivity extends BaseNekoXSettingsActivity {
     protected void updateRows() {
         normalizeSelectedStartCamera();
         normalizeStabilizationSelection();
+        rebuildRows();
+        addRowsToMap(cellGroup);
         if (listAdapter != null) {
             listAdapter.notifyDataSetChanged();
         }
@@ -221,8 +232,58 @@ public class NekoCameraSettingsActivity extends BaseNekoXSettingsActivity {
         super.onResume();
         normalizeSelectedStartCamera();
         normalizeStabilizationSelection();
+        rebuildRows();
+        addRowsToMap(cellGroup);
         if (listAdapter != null) {
             listAdapter.notifyDataSetChanged();
+        }
+    }
+
+    private void rebuildRows() {
+        cellGroup.rows.clear();
+        cellGroup.rows.add(headerHardwareSettings);
+        cellGroup.rows.add(camera2ApiRow);
+        if (isCamera2Enabled()) {
+            cellGroup.rows.add(startCameraRow);
+            cellGroup.rows.add(seamlessSwitchingRow);
+            cellGroup.rows.add(stabilizationRow);
+        }
+        cellGroup.rows.add(camera2ApiNoticeRow);
+        cellGroup.rows.add(headerRecordingOptions);
+        cellGroup.rows.add(recordFromRow);
+        cellGroup.rows.add(saveZoomPositionRow);
+        cellGroup.rows.add(blurCameraSwitchRow);
+        cellGroup.rows.add(dividerRecordingOptions);
+        cellGroup.rows.add(headerQuality);
+        cellGroup.rows.add(cameraResolutionRow);
+        cellGroup.rows.add(cameraBitrateRow);
+        cellGroup.rows.add(cameraVideoMessagesNoticeRow);
+    }
+
+    private List<AbstractConfigCell> getCamera2DependentRows() {
+        return Arrays.asList(startCameraRow, seamlessSwitchingRow, stabilizationRow);
+    }
+
+    private void setCamera2DependentRowsVisible(boolean visible) {
+        List<AbstractConfigCell> dependentRows = getCamera2DependentRows();
+        boolean currentlyVisible = cellGroup.rows.contains(startCameraRow);
+        if (visible == currentlyVisible || listAdapter == null) {
+            return;
+        }
+        int camera2RowIndex = cellGroup.rows.indexOf(camera2ApiRow);
+        if (visible) {
+            int insertIndex = cellGroup.rows.indexOf(camera2ApiNoticeRow);
+            cellGroup.rows.addAll(insertIndex, dependentRows);
+            addRowsToMap(cellGroup);
+            listAdapter.notifyItemRangeInserted(insertIndex, dependentRows.size());
+        } else {
+            int removeIndex = cellGroup.rows.indexOf(startCameraRow);
+            cellGroup.rows.removeAll(dependentRows);
+            addRowsToMap(cellGroup);
+            listAdapter.notifyItemRangeRemoved(removeIndex, dependentRows.size());
+        }
+        if (camera2RowIndex >= 0) {
+            listAdapter.notifyItemChanged(camera2RowIndex);
         }
     }
 
@@ -413,7 +474,7 @@ public class NekoCameraSettingsActivity extends BaseNekoXSettingsActivity {
         @Override
         public void onBindViewHolder(RecyclerView.ViewHolder holder) {
             TextCheckCell cell = (TextCheckCell) holder.itemView;
-            cell.setTextAndCheck(getString(R.string.VideoMessagesCamera2Api), isCamera2Enabled(), false, true);
+            cell.setTextAndCheck(getString(R.string.VideoMessagesCamera2Api), isCamera2Enabled(), isCamera2Enabled(), true);
             cell.setEnabled(isEnabled(), null);
         }
 
@@ -422,10 +483,10 @@ public class NekoCameraSettingsActivity extends BaseNekoXSettingsActivity {
                 return;
             }
             SharedConfig.toggleUseCamera2(currentAccount);
+            normalizeSelectedStartCamera();
+            normalizeStabilizationSelection();
             cell.setChecked(isCamera2Enabled());
-            if (listAdapter != null) {
-                listAdapter.notifyDataSetChanged();
-            }
+            setCamera2DependentRowsVisible(isCamera2Enabled());
         }
     }
 
@@ -517,7 +578,7 @@ public class NekoCameraSettingsActivity extends BaseNekoXSettingsActivity {
         public void onBindViewHolder(RecyclerView.ViewHolder holder) {
             TextDetailSettingsCell cell = (TextDetailSettingsCell) holder.itemView;
             cell.setMultilineDetail(true);
-            cell.setTextAndValue(getString(R.string.VideoMessagesStabilization), getStabilizationSubtitle(), cellGroup.needSetDivider(this));
+            cell.setTextAndValue(getString(R.string.VideoMessagesStabilization), getStabilizationSubtitle(), false);
             setDetailCellContentAlpha(cell, isEnabled() ? 1.0f : 0.5f);
         }
 
@@ -721,15 +782,6 @@ public class NekoCameraSettingsActivity extends BaseNekoXSettingsActivity {
                     break;
                 case CellGroup.ITEM_TYPE_TEXT:
                     view = new TextInfoPrivacyCell(mContext);
-                    break;
-                case ITEM_TYPE_CAMERA2_API_NOTICE:
-                    view = new TextInfoPrivacyCell(mContext) {
-                        @Override
-                        protected void onDraw(Canvas canvas) {
-                            super.onDraw(canvas);
-                            canvas.drawLine(AndroidUtilities.dp(20), getMeasuredHeight() - 1, getMeasuredWidth(), getMeasuredHeight() - 1, Theme.dividerPaint);
-                        }
-                    };
                     break;
             }
             view.setLayoutParams(new RecyclerView.LayoutParams(RecyclerView.LayoutParams.MATCH_PARENT, RecyclerView.LayoutParams.WRAP_CONTENT));

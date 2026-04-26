@@ -185,6 +185,8 @@
     <string name="AppearanceIcons">Иконки</string>
     <string name="AppearanceChatsPage">Страница чатов</string>
     <string name="AppearanceChatsAndChannels">Чаты и каналы</string>
+    <string name="AppearanceStickersAndMessages">Стикеры и сообщения</string>
+    <string name="AppearanceChatsGroupsAndChannels">Чаты, группы и каналы</string>
     <string name="RightBottomButtonAction">Действие правой кнопки</string>
     <string name="LeftBottomButtonAction">Действие левой кнопки</string>
     <string name="TranscribeProviderOpenAI">OpenAI-совместимый API</string>
@@ -281,6 +283,8 @@
     <string name="LlmProviderDeepSeekModel">deepseek-chat</string>
     <string name="LlmProviderXAIModel">grok-4-fast-non-reasoning</string>
     <string name="Camera">Камера</string>
+    <string name="CameraHardwareSettings">Аппаратные настройки</string>
+    <string name="CameraRecordingOptions">Параметры записи</string>
     <string name="Resolution">Разрешение</string>
     <string name="Bitrate">Битрейт</string>
     <string name="VideoMessagesCamera2Api">Use Camera2 API</string>

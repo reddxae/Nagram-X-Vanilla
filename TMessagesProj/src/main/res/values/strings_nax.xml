@@ -193,6 +193,8 @@
     <string name="AppearanceIcons">Icons</string>
     <string name="AppearanceChatsPage">Chats Page</string>
     <string name="AppearanceChatsAndChannels">Chats &amp; Channels</string>
+    <string name="AppearanceStickersAndMessages">Stickers and Messages</string>
+    <string name="AppearanceChatsGroupsAndChannels">Chats, Groups &amp; Channels</string>
     <string name="RightBottomButtonAction">Right Button Action</string>
     <string name="LeftBottomButtonAction">Left Button Action</string>
     <string name="TranscribeProviderOpenAI">OpenAI-compatible API</string>
@@ -266,6 +268,8 @@
     <string name="HideStoriesFromHeader">Hide From Header</string>
     <string name="DisableAvatarBlur">Disable Avatar Blur</string>
     <string name="Camera">Camera</string>
+    <string name="CameraHardwareSettings">Hardware settings</string>
+    <string name="CameraRecordingOptions">Recording options</string>
     <string name="Resolution">Resolution</string>
     <string name="Bitrate">Bitrate</string>
     <string name="VideoMessagesCamera2Api">Use Camera2 API</string>

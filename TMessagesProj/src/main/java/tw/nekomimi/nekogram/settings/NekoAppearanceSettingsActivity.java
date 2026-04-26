@@ -213,6 +213,11 @@ public class NekoAppearanceSettingsActivity extends BaseNekoXSettingsActivity im
             getString(R.string.Snowflakes),
             getString(R.string.DisableIgnoreDate),
     }, null));
+    private final AbstractConfigCell replaceSubscribersWithIconRow = cellGroup.appendCell(new ConfigCellTextCheck(NaConfig.INSTANCE.getReplaceSubscribersWithIcon()));
+    private final AbstractConfigCell replaceMembersWithIconRow = cellGroup.appendCell(new ConfigCellTextCheck(NaConfig.INSTANCE.getReplaceMembersWithIcon()));
+    private final AbstractConfigCell hideOnlineMembersCounterRow = cellGroup.appendCell(new ConfigCellTextCheck(NaConfig.INSTANCE.getHideOnlineMembersCounter()));
+    private final AbstractConfigCell useEditedIconRow = cellGroup.appendCell(new ConfigCellTextCheck(NaConfig.INSTANCE.getUseEditedIcon()));
+    private final AbstractConfigCell customEditedMessageRow = cellGroup.appendCell(new ConfigCellTextInput(null, NaConfig.INSTANCE.getCustomEditedMessage(), "", null));
     private final AbstractConfigCell dividerIcons = cellGroup.appendCell(new ConfigCellDivider());
 
     // Chats page
@@ -227,21 +232,21 @@ public class NekoAppearanceSettingsActivity extends BaseNekoXSettingsActivity im
     private final AbstractConfigCell disableBotOpenButtonRow = cellGroup.appendCell(new ConfigCellTextCheck(NaConfig.INSTANCE.getDisableBotOpenButton()));
     private final AbstractConfigCell dividerChatsPage = cellGroup.appendCell(new ConfigCellDivider());
 
-    // Chats & Channels
-    private final AbstractConfigCell headerChatsAndChannels = cellGroup.appendCell(new ConfigCellHeader(getString(R.string.AppearanceChatsAndChannels)));
+    // Stickers and Messages
+    private final AbstractConfigCell headerStickersAndMessages = cellGroup.appendCell(new ConfigCellHeader(getString(R.string.AppearanceStickersAndMessages)));
     private final AbstractConfigCell stickerSizeRow = cellGroup.appendCell(new ConfigCellCustom("StickerSize", ConfigCellCustom.CUSTOM_ITEM_StickerSize, false));
     private final AbstractConfigCell hideTimeForStickerRow = cellGroup.appendCell(new ConfigCellTextCheck(NekoConfig.hideTimeForSticker));
+    private final AbstractConfigCell showTimeHintRow = cellGroup.appendCell(new ConfigCellTextCheck(NaConfig.INSTANCE.getShowTimeHint()));
     private final AbstractConfigCell disableReplyBackgroundRow = cellGroup.appendCell(new ConfigCellTextCheck(NaConfig.INSTANCE.getMessageColoredBackground()));
+    private final AbstractConfigCell dividerStickersAndMessages = cellGroup.appendCell(new ConfigCellDivider());
+
+    // Chats, Groups & Channels
+    private final AbstractConfigCell headerChatsGroupsAndChannels = cellGroup.appendCell(new ConfigCellHeader(getString(R.string.AppearanceChatsGroupsAndChannels)));
     private final AbstractConfigCell hideSendAsChannelRow = cellGroup.appendCell(new ConfigCellTextCheck(NekoConfig.hideSendAsChannel, getString(R.string.HideSendAsChannelDetails)));
     private final AbstractConfigCell disableChannelMuteButtonRow = cellGroup.appendCell(new ConfigCellTextCheck(NaConfig.INSTANCE.getDisableChannelMuteButton()));
     private final AbstractConfigCell emojiSetsRow = cellGroup.appendCell(new ConfigCellCustom("EmojiSet", ConfigCellCustom.CUSTOM_ITEM_EmojiSet, true));
-    private final AbstractConfigCell replaceSubscribersWithIconRow = cellGroup.appendCell(new ConfigCellTextCheck(NaConfig.INSTANCE.getReplaceSubscribersWithIcon()));
-    private final AbstractConfigCell replaceMembersWithIconRow = cellGroup.appendCell(new ConfigCellTextCheck(NaConfig.INSTANCE.getReplaceMembersWithIcon()));
-    private final AbstractConfigCell useEditedIconRow = cellGroup.appendCell(new ConfigCellTextCheck(NaConfig.INSTANCE.getUseEditedIcon()));
-    private final AbstractConfigCell customEditedMessageRow = cellGroup.appendCell(new ConfigCellTextInput(null, NaConfig.INSTANCE.getCustomEditedMessage(), "", null));
-    private final AbstractConfigCell hideOnlineMembersCounterRow = cellGroup.appendCell(new ConfigCellTextCheck(NaConfig.INSTANCE.getHideOnlineMembersCounter()));
     private final AbstractConfigCell showSmallGifRow = cellGroup.appendCell(new ConfigCellTextCheck(NaConfig.INSTANCE.getShowSmallGIF()));
-    private final AbstractConfigCell dividerChatsAndChannels = cellGroup.appendCell(new ConfigCellDivider());
+    private final AbstractConfigCell dividerChatsGroupsAndChannels = cellGroup.appendCell(new ConfigCellDivider());
 
     // Drawer
     private final AbstractConfigCell headerDrawer = cellGroup.appendCell(new ConfigCellHeader(getString(R.string.Drawer)));
@@ -295,7 +300,7 @@ public class NekoAppearanceSettingsActivity extends BaseNekoXSettingsActivity im
                 add(new ConfigCellTextCheckIcon(NaConfig.INSTANCE.getDrawerItemCalls(), getString(R.string.Calls), R.drawable.msg_calls));
                 add(new ConfigCellTextCheckIcon(NaConfig.INSTANCE.getDrawerItemSaved(), getString(R.string.SavedMessages), R.drawable.msg_saved));
                 add(new ConfigCellTextCheckIcon(NaConfig.INSTANCE.getDrawerItemSettings(), getString(R.string.Settings), R.drawable.msg_settings_old, true));
-                add(new ConfigCellTextCheckIcon(NaConfig.INSTANCE.getDrawerItemNSettings(), getString(R.string.NekoSettings), R.drawable.menu_profile_colors));
+                add(new ConfigCellTextCheckIcon(NaConfig.INSTANCE.getDrawerItemNSettings(), getString(R.string.NekoSettings), R.drawable.actions_reactions));
                 add(new ConfigCellTextCheckIcon(NaConfig.INSTANCE.getDrawerItemBrowser(), getString(R.string.InappBrowser), R.drawable.web_browser));
                 add(new ConfigCellTextCheckIcon(NaConfig.INSTANCE.getDrawerItemQrLogin(), getString(R.string.ImportLogin), R.drawable.msg_qrcode));
                 add(new ConfigCellTextCheckIcon(NaConfig.INSTANCE.getDrawerItemSessions(), getString(R.string.Devices), R.drawable.msg2_devices, true));
