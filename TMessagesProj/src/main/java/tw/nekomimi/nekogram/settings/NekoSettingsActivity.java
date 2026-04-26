@@ -432,6 +432,8 @@ public class NekoSettingsActivity extends BaseFragment {
         private int rowCount;
         private int configureHeaderRow = -1;
         private int generalRow = -1;
+        private int appearanceRow = -1;
+        private int premiumRow = -1;
         private int translatorRow = -1;
         private int chatRow = -1;
         private int cameraRow = -1;
@@ -536,6 +538,10 @@ public class NekoSettingsActivity extends BaseFragment {
                                 textCell.setTextAndIcon(getString(R.string.Camera), R.drawable.msg_camera, true);
                             } else if (position == generalRow) {
                                 textCell.setTextAndIcon(getString(R.string.General), R.drawable.msg_settings, true);
+                            } else if (position == appearanceRow) {
+                                textCell.setTextAndIcon(getString(R.string.Appearance), R.drawable.menu_profile_colors, true);
+                            } else if (position == premiumRow) {
+                                textCell.setTextAndIcon(getString(R.string.Premium), R.drawable.msg_premium_normal, true);
                             } else if (position == translatorRow) {
                                 textCell.setTextAndIcon(getString(R.string.TranslatorSettings), R.drawable.ic_translate, true);
                             } else if (position == passcodeRow) {
@@ -585,7 +591,7 @@ public class NekoSettingsActivity extends BaseFragment {
                         return VIEW_TYPE_INFO;
                     } else if (position == configureHeaderRow || position == backupsHeaderRow || position == otherHeaderRow || position == debugHeaderRow) {
                         return VIEW_TYPE_HEADER;
-                    } else if (position == chatRow || position == cameraRow || position == generalRow || position == passcodeRow || position == experimentRow || position == translatorRow ||
+                    } else if (position == chatRow || position == cameraRow || position == generalRow || position == appearanceRow || position == premiumRow || position == passcodeRow || position == experimentRow || position == translatorRow ||
                                 position == importSettingsRow || position == exportSettingsRow || position == resetSettingsRow || position == datacenterStatusRow ||
                                 position == sendLogsRow || position == clearLogsRow) {
                         return VIEW_TYPE_TEXT;
@@ -600,6 +606,10 @@ public class NekoSettingsActivity extends BaseFragment {
                     presentFragment(new NekoCameraSettingsActivity());
                 } else if (position == generalRow) {
                     presentFragment(new NekoGeneralSettingsActivity());
+                } else if (position == appearanceRow) {
+                    presentFragment(new NekoAppearanceSettingsActivity());
+                } else if (position == premiumRow) {
+                    presentFragment(new NekoPremiumSettingsActivity());
                 } else if (position == passcodeRow) {
                     presentFragment(new NekoPasscodeSettingsActivity());
                 } else if (position == experimentRow) {
@@ -658,6 +668,8 @@ public class NekoSettingsActivity extends BaseFragment {
             rowCount = 0;
             configureHeaderRow = rowCount++;
             generalRow = rowCount++;
+            appearanceRow = rowCount++;
+            premiumRow = rowCount++;
             translatorRow = rowCount++;
             chatRow = rowCount++;
             cameraRow = rowCount++;

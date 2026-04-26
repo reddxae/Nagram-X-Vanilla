@@ -33,6 +33,7 @@ import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.NotificationsService;
 import org.telegram.messenger.R;
+import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.UserConfig;
 import org.telegram.ui.ActionBar.ActionBar;
 import org.telegram.ui.ActionBar.ActionBarLayout;
@@ -149,7 +150,7 @@ public class NekoGeneralSettingsActivity extends BaseNekoXSettingsActivity {
     private final AbstractConfigCell dividerMap = cellGroup.appendCell(new ConfigCellDivider());
 
     // Connections
-    private final AbstractConfigCell headerConnection = cellGroup.appendCell(new ConfigCellHeader(getString(R.string.Connection)));
+    private final AbstractConfigCell headerConnection = cellGroup.appendCell(new ConfigCellHeader(getString(R.string.Connections)));
     private final AbstractConfigCell useIPv6Row = cellGroup.appendCell(new ConfigCellTextCheck(NekoConfig.useIPv6));
     private final AbstractConfigCell useProxyItemRow = cellGroup.appendCell(new ConfigCellTextCheck(NekoConfig.useProxyItem));
     private final AbstractConfigCell hideProxyByDefaultRow = cellGroup.appendCell(new ConfigCellTextCheck(NekoConfig.hideProxyByDefault));
@@ -172,7 +173,7 @@ public class NekoGeneralSettingsActivity extends BaseNekoXSettingsActivity {
     private final AbstractConfigCell dividerConnection = cellGroup.appendCell(new ConfigCellDivider());
 
     // Folder
-    private final AbstractConfigCell headerFolder = cellGroup.appendCell(new ConfigCellHeader(getString(R.string.Filters)));
+    private final AbstractConfigCell headerFolder = cellGroup.appendCell(new ConfigCellHeader(getString(R.string.ChatFolders)));
     private final AbstractConfigCell hideAllTabRow = cellGroup.appendCell(new ConfigCellTextCheck(NekoConfig.hideAllTab, getString(R.string.HideAllTabAbout)));
     private final AbstractConfigCell doNotUnarchiveBySwipeRow = cellGroup.appendCell(new ConfigCellTextCheck(NaConfig.INSTANCE.getDoNotUnarchiveBySwipe()));
     private final AbstractConfigCell openArchiveOnPullRow = cellGroup.appendCell(new ConfigCellTextCheck(NekoConfig.openArchiveOnPull));
@@ -312,6 +313,7 @@ public class NekoGeneralSettingsActivity extends BaseNekoXSettingsActivity {
             (input) -> input.matches("^[A-za-z0-9.]{1,255}$") || input.isEmpty() ? input : (String) NekoConfig.customSavePath.defaultValue));
     private final AbstractConfigCell autoPauseVideoRow = cellGroup.appendCell(new ConfigCellTextCheck(NekoConfig.autoPauseVideo, getString(R.string.AutoPauseVideoAbout)));
     private final AbstractConfigCell disableNumberRoundingRow = cellGroup.appendCell(new ConfigCellTextCheck(NekoConfig.disableNumberRounding, getString(R.string.DisableNumberRoundingNotice)));
+    private final AbstractConfigCell disableNumberRoundingForReactionsRow = cellGroup.appendCell(new ConfigCellTextCheck(NekoConfig.disableNumberRoundingForReactions));
     private final AbstractConfigCell usePersianCalendarRow = cellGroup.appendCell(new ConfigCellTextCheck(NekoConfig.usePersianCalendar, getString(R.string.UsePersianCalendarInfo)));
     private final AbstractConfigCell displayPersianCalendarByLatinRow = cellGroup.appendCell(new ConfigCellTextCheck(NekoConfig.displayPersianCalendarByLatin));
     private final AbstractConfigCell showIdAndDcRow = cellGroup.appendCell(new ConfigCellSelectBox("ShowIdAndDc", NaConfig.INSTANCE.getIdDcType(), new String[]{
@@ -338,22 +340,13 @@ public class NekoGeneralSettingsActivity extends BaseNekoXSettingsActivity {
     private final AbstractConfigCell pushServiceTypeUnifiedGatewayRow = cellGroup.appendCell(new ConfigCellTextInput(null, NaConfig.INSTANCE.getPushServiceTypeUnifiedGateway(), null, null, (input) -> input.isEmpty() ? (String) NaConfig.INSTANCE.getPushServiceTypeUnifiedGateway().defaultValue : input));
     private final AbstractConfigCell dividerNotifications = cellGroup.appendCell(new ConfigCellDivider());
 
-    // AutoDownload
-    private final AbstractConfigCell headerAutoDownload = cellGroup.appendCell(new ConfigCellHeader(getString(R.string.AutoDownload)));
-    private final AbstractConfigCell win32Row = cellGroup.appendCell(new ConfigCellTextCheck(NekoConfig.disableAutoDownloadingWin32Executable));
-    private final AbstractConfigCell archiveRow = cellGroup.appendCell(new ConfigCellTextCheck(NekoConfig.disableAutoDownloadingArchive));
-    private final AbstractConfigCell dividerAutoDownload = cellGroup.appendCell(new ConfigCellDivider());
-
     public NekoGeneralSettingsActivity() {
         normalizeDrawerBackgroundType();
-        if (!shouldShowPersian()) {
-            cellGroup.rows.remove(usePersianCalendarRow);
-            cellGroup.rows.remove(displayPersianCalendarByLatinRow);
-        }
+        rebuildVisibleRows();
         wasCentered = isCentered();
         wasCenteredAtBeginning = wasCentered;
-        checkProfileConfigCellRows();
         checkCustomDoHCellRows();
+        checkDisableNumberRoundingRows();
         addRowsToMap(cellGroup);
     }
 
@@ -479,10 +472,12 @@ public class NekoGeneralSettingsActivity extends BaseNekoXSettingsActivity {
                 ActionBarLayout.headerShadowDrawable = (boolean) newValue ? null : parentLayout.getParentActivity().getResources().getDrawable(R.drawable.header_shadow).mutate();
                 parentLayout.rebuildFragments(INavigationLayout.REBUILD_FLAG_REBUILD_LAST | INavigationLayout.REBUILD_FLAG_REBUILD_ONLY_LAST);
             } else if (key.equals(NekoConfig.forceBlurInChat.getKey())) {
-                boolean enabled = (Boolean) newValue;
+                SharedConfig.syncBlurSettingsFromForceBlur((Boolean) newValue);
+                boolean enabled = NekoConfig.forceBlurInChat.Bool();
                 if (chatBlurAlphaSeekbar != null)
                     chatBlurAlphaSeekbar.setEnabled(enabled);
                 ((ConfigCellCustom) chatBlurAlphaValueRow).enabled = enabled;
+                NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.reloadInterface);
             } else if (key.equals(NekoConfig.useOSMDroidMap.getKey())) {
                 boolean enabled = (Boolean) newValue;
                 ((ConfigCellTextCheck) mapDriftingFixForGoogleMapsRow).setEnabled(!enabled);
@@ -531,6 +526,11 @@ public class NekoGeneralSettingsActivity extends BaseNekoXSettingsActivity {
                 restartTooltip.showWithAction(0, UndoView.ACTION_NEED_RESTART, null, null);
             } else if (key.equals(NekoConfig.usePersianCalendar.getKey())) {
                 restartTooltip.showWithAction(0, UndoView.ACTION_NEED_RESTART, null, null);
+            } else if (key.equals(NekoConfig.disableNumberRounding.getKey())) {
+                checkDisableNumberRoundingRows();
+                NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.reloadInterface);
+            } else if (key.equals(NekoConfig.disableNumberRoundingForReactions.getKey())) {
+                NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.reloadInterface);
             } else if (key.equals(NekoConfig.dnsType.getKey())) {
                 checkCustomDoHCellRows();
                 restartTooltip.showWithAction(0, UndoView.ACTION_NEED_RESTART, null, null);
@@ -567,6 +567,7 @@ public class NekoGeneralSettingsActivity extends BaseNekoXSettingsActivity {
     @Override
     public void onResume() {
         super.onResume();
+        setCanNotChange();
         if (listAdapter != null) {
             listAdapter.notifyDataSetChanged();
         }
@@ -738,6 +739,14 @@ public class NekoGeneralSettingsActivity extends BaseNekoXSettingsActivity {
 
         enabled = NaConfig.INSTANCE.getHideArchive().Bool();
         ((ConfigCellTextCheck) openArchiveOnPullRow).setEnabled(!enabled);
+
+        enabled = true;
+        ((ConfigCellTextCheck) forceBlurInChatRow).setEnabledAndUpdateState(true);
+        enabled = NekoConfig.forceBlurInChat.Bool();
+        ((ConfigCellCustom) chatBlurAlphaValueRow).enabled = enabled;
+        if (chatBlurAlphaSeekbar != null) {
+            chatBlurAlphaSeekbar.setEnabled(enabled);
+        }
     }
 
     private static class ChatBlurAlphaSeekBar extends FrameLayout {
@@ -852,6 +861,89 @@ public class NekoGeneralSettingsActivity extends BaseNekoXSettingsActivity {
             if (customDoHRowIndex != -1) {
                 cellGroup.rows.remove(customDoHRow);
                 listAdapter.notifyItemRemoved(customDoHRowIndex);
+            }
+        }
+    }
+
+    private void rebuildVisibleRows() {
+        cellGroup.rows.clear();
+
+        cellGroup.rows.add(headerGeneral);
+        cellGroup.rows.add(customSavePathRow);
+        cellGroup.rows.add(autoPauseVideoRow);
+        cellGroup.rows.add(disableNumberRoundingRow);
+        cellGroup.rows.add(disableNumberRoundingForReactionsRow);
+        if (shouldShowPersian()) {
+            cellGroup.rows.add(usePersianCalendarRow);
+            cellGroup.rows.add(displayPersianCalendarByLatinRow);
+        }
+        cellGroup.rows.add(showIdAndDcRow);
+        cellGroup.rows.add(nameOrderRow);
+        cellGroup.rows.add(alwaysShowDownloadIconRow);
+        cellGroup.rows.add(hideHelpSectionRow);
+        cellGroup.rows.add(showStickersInTopLevelRow);
+        cellGroup.rows.add(dividerGeneral);
+
+        cellGroup.rows.add(headerPrivacy);
+        cellGroup.rows.add(disableSystemAccountRow);
+        cellGroup.rows.add(doNotShareMyPhoneNumberRow);
+        cellGroup.rows.add(disableSuggestionViewRow);
+        cellGroup.rows.add(disableAutoWebLoginRow);
+        cellGroup.rows.add(disableCrashlyticsCollectionRow);
+        cellGroup.rows.add(dividerPrivacy);
+
+        cellGroup.rows.add(headerConnection);
+        cellGroup.rows.add(useIPv6Row);
+        cellGroup.rows.add(useProxyItemRow);
+        cellGroup.rows.add(hideProxyByDefaultRow);
+        cellGroup.rows.add(disableProxyWhenVpnEnabledRow);
+        cellGroup.rows.add(defaultHlsVideoQualityRow);
+        cellGroup.rows.add(dnsTypeRow);
+        cellGroup.rows.add(customDoHRow);
+        cellGroup.rows.add(dividerConnection);
+
+        cellGroup.rows.add(headerFolder);
+        cellGroup.rows.add(hideAllTabRow);
+        cellGroup.rows.add(doNotUnarchiveBySwipeRow);
+        cellGroup.rows.add(openArchiveOnPullRow);
+        cellGroup.rows.add(hideArchiveRow);
+        cellGroup.rows.add(ignoreUnreadCountRow);
+        cellGroup.rows.add(sortMenuRow);
+        cellGroup.rows.add(dividerFolder);
+
+        cellGroup.rows.add(headerNotifications);
+        cellGroup.rows.add(pushServiceTypeRow);
+        cellGroup.rows.add(pushServiceTypeInAppDialogRow);
+        cellGroup.rows.add(disableNotificationBubblesRow);
+        cellGroup.rows.add(pushServiceTypeUnifiedGatewayRow);
+        cellGroup.rows.add(dividerNotifications);
+
+        cellGroup.rows.add(headerMap);
+        cellGroup.rows.add(useOSMDroidMapRow);
+        cellGroup.rows.add(mapDriftingFixForGoogleMapsRow);
+        cellGroup.rows.add(mapPreviewRow);
+        cellGroup.rows.add(dividerMap);
+    }
+
+    private void checkDisableNumberRoundingRows() {
+        boolean showReactionsOption = NekoConfig.disableNumberRounding.Bool();
+        if (listAdapter == null) {
+            if (!showReactionsOption) {
+                cellGroup.rows.remove(disableNumberRoundingForReactionsRow);
+            }
+            return;
+        }
+        if (showReactionsOption) {
+            final int index = cellGroup.rows.indexOf(disableNumberRoundingRow);
+            if (!cellGroup.rows.contains(disableNumberRoundingForReactionsRow)) {
+                cellGroup.rows.add(index + 1, disableNumberRoundingForReactionsRow);
+                listAdapter.notifyItemInserted(index + 1);
+            }
+        } else {
+            int rowIndex = cellGroup.rows.indexOf(disableNumberRoundingForReactionsRow);
+            if (rowIndex != -1) {
+                cellGroup.rows.remove(disableNumberRoundingForReactionsRow);
+                listAdapter.notifyItemRemoved(rowIndex);
             }
         }
     }

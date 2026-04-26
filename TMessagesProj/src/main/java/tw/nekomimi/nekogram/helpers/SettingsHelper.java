@@ -15,12 +15,14 @@ import java.util.ArrayList;
 import java.util.Map;
 
 import tw.nekomimi.nekogram.settings.BaseNekoSettingsActivity;
+import tw.nekomimi.nekogram.settings.NekoAppearanceSettingsActivity;
 import tw.nekomimi.nekogram.settings.BaseNekoXSettingsActivity;
 import tw.nekomimi.nekogram.settings.NekoChatSettingsActivity;
 import tw.nekomimi.nekogram.settings.NekoEmojiSettingsActivity;
 import tw.nekomimi.nekogram.settings.NekoExperimentalSettingsActivity;
 import tw.nekomimi.nekogram.settings.NekoGeneralSettingsActivity;
 import tw.nekomimi.nekogram.settings.NekoPasscodeSettingsActivity;
+import tw.nekomimi.nekogram.settings.NekoPremiumSettingsActivity;
 import tw.nekomimi.nekogram.settings.NekoSettingsActivity;
 import tw.nekomimi.nekogram.settings.NekoTranslatorSettingsActivity;
 
@@ -63,6 +65,14 @@ public class SettingsHelper {
                 case "general":
                 case "g":
                     fragment = nekox_fragment = new NekoGeneralSettingsActivity();
+                    break;
+                case "appearance":
+                case "a":
+                    fragment = nekox_fragment = new NekoAppearanceSettingsActivity();
+                    break;
+                case "premium":
+                case "p":
+                    fragment = nekox_fragment = new NekoPremiumSettingsActivity();
                     break;
                 case "translator":
                 case "translate":
@@ -110,6 +120,8 @@ public class SettingsHelper {
     public static ArrayList<SettingsSearchResult> onCreateSearchArray(Callback callback) {
         ArrayList<SettingsSearchResult> items = new ArrayList<>();
         ArrayList<BaseNekoXSettingsActivity> fragments = new ArrayList<>();
+        fragments.add(new NekoAppearanceSettingsActivity());
+        fragments.add(new NekoPremiumSettingsActivity());
         fragments.add(new NekoGeneralSettingsActivity());
         fragments.add(new NekoChatSettingsActivity());
         fragments.add(new NekoExperimentalSettingsActivity());

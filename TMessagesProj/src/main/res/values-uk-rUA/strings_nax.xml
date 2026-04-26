@@ -78,6 +78,7 @@
     <string name="InstantViewTranslation">Миттєвий перегляд</string>
     <string name="SaveDeletedMessageForBot">Зберегти у чатах бота</string>
     <string name="DrawerElements">Елементи меню</string>
+    <string name="DrawerIconsDecoration">Оформлення значків бічного меню</string>
     <string name="HideArchive">Видалити \"Архівні чати\" зі Списку Чату</string>
     <string name="HideChannelSilentBroadcast">Сховати беззвучний перемикач трансляції</string>
     <string name="ConfirmAllLinks">Запитувати перед відкриттям вбудованих посилань</string>
@@ -175,8 +176,13 @@
     <string name="ResetChatNameOverrides">Скинути змінені назви чатів</string>
     <string name="ResetChatNameNotification">Змінені назви чатів очищені.</string>
     <string name="TabStyle">Стиль вкладок</string>
+    <string name="SelectedTabStyle">Стиль вибраної вкладки</string>
     <string name="TabStylePure">Прозорі</string>
     <string name="TabStylePills">Овальні</string>
+    <string name="AppearanceProfiles">Профілі</string>
+    <string name="AppearanceIcons">Іконки</string>
+    <string name="AppearanceChatsPage">Сторінка чатів</string>
+    <string name="AppearanceChatsAndChannels">Чати й канали</string>
     <string name="RightBottomButtonAction">Дія правої кнопки</string>
     <string name="LeftBottomButtonAction">Дія лівої кнопки</string>
     <string name="TranscribeProviderOpenAI">OpenAI-сумісний API</string>

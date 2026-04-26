@@ -78,6 +78,7 @@
     <string name="InstantViewTranslation">Мгновенный просмотр</string>
     <string name="SaveDeletedMessageForBot">Сохранять в чатах с ботами</string>
     <string name="DrawerElements">Элементы бокового меню</string>
+    <string name="DrawerIconsDecoration">Оформление значков бокового меню</string>
     <string name="HideArchive">Удалить архивные чаты из списка чатов</string>
     <string name="HideChannelSilentBroadcast">Скрыть переключатель бесшумной трансляции</string>
     <string name="ConfirmAllLinks">Спрашивать перед открытием встроенных ссылок</string>
@@ -175,8 +176,13 @@
     <string name="ResetChatNameOverrides">Сбросить названия чатов</string>
     <string name="ResetChatNameNotification">Изменённые названия чатов очищены.</string>
     <string name="TabStyle">Стиль вкладок</string>
+    <string name="SelectedTabStyle">Стиль выбранной вкладки</string>
     <string name="TabStylePure">Чистые</string>
     <string name="TabStylePills">Овальные</string>
+    <string name="AppearanceProfiles">Профили</string>
+    <string name="AppearanceIcons">Иконки</string>
+    <string name="AppearanceChatsPage">Страница чатов</string>
+    <string name="AppearanceChatsAndChannels">Чаты и каналы</string>
     <string name="RightBottomButtonAction">Действие правой кнопки</string>
     <string name="LeftBottomButtonAction">Действие левой кнопки</string>
     <string name="TranscribeProviderOpenAI">OpenAI-совместимый API</string>

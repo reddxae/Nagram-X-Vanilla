@@ -28,6 +28,7 @@ import org.telegram.messenger.BuildVars;
 import org.telegram.messenger.MediaController;
 import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.R;
+import org.telegram.messenger.SharedConfig;
 import org.telegram.ui.ActionBar.ActionBar;
 import org.telegram.ui.ActionBar.ActionBarMenu;
 import org.telegram.ui.ActionBar.ActionBarMenuItem;
@@ -108,6 +109,8 @@ public class NekoChatSettingsActivity extends BaseNekoXSettingsActivity implemen
             add(new ConfigCellCheckBox(NaConfig.INSTANCE.getPremiumItemStickerEffects()));
             add(new ConfigCellCheckBox(NaConfig.INSTANCE.getPremiumItemBoosts()));
             add(new ConfigCellCheckBox(NaConfig.INSTANCE.getPremiumItemRatingInProfiles()));
+            add(new ConfigCellCheckBox(NaConfig.INSTANCE.getPremiumItemGiftsInUserProfiles()));
+            add(new ConfigCellCheckBox(NaConfig.INSTANCE.getPremiumItemGiftsInChannelProfiles()));
     }}, null));
     private final AbstractConfigCell sendCommentAfterForwardRow = cellGroup.appendCell(new ConfigCellTextCheck(NekoConfig.sendCommentAfterForward));
     private final AbstractConfigCell fixLinkPreviewRow = cellGroup.appendCell(new ConfigCellTextCheck(NaConfig.INSTANCE.getFixLinkPreview(), getString(R.string.FixLinkPreviewDetails)));
@@ -433,11 +436,18 @@ public class NekoChatSettingsActivity extends BaseNekoXSettingsActivity implemen
     private final AbstractConfigCell typeMessageHintUseGroupNameRow = cellGroup.appendCell(new ConfigCellTextCheck(NaConfig.INSTANCE.getTypeMessageHintUseGroupName()));
     private final AbstractConfigCell showSendAsUnderMessageHintRow = cellGroup.appendCell(new ConfigCellTextCheck(NaConfig.INSTANCE.getShowSendAsUnderMessageHint()));
     private final AbstractConfigCell hideGiftButtonInProfilesRow = cellGroup.appendCell(new ConfigCellTextCheck(NekoConfig.hideGiftButtonInProfiles));
+    private final AbstractConfigCell moveGiftsToTheLastTabRow = cellGroup.appendCell(new ConfigCellTextCheck(NekoConfig.moveGiftsToTheLastTab));
+    private final AbstractConfigCell hideSendAGiftRow = cellGroup.appendCell(new ConfigCellTextCheck(NekoConfig.hideSendAGift));
     private final AbstractConfigCell hideBotButtonInInputFieldRow = cellGroup.appendCell(new ConfigCellTextCheck(NaConfig.INSTANCE.getHideBotButtonInInputField()));
     private final AbstractConfigCell disableMarkdownRow = cellGroup.appendCell(new ConfigCellTextCheck(NaConfig.INSTANCE.getDisableMarkdown()));
     private final AbstractConfigCell showQuickReplyInBotCommandsRow = cellGroup.appendCell(new ConfigCellTextCheck(NaConfig.INSTANCE.getShowQuickReplyInBotCommands()));
     private final AbstractConfigCell disablePreviewVideoSoundShortcutRow = cellGroup.appendCell(new ConfigCellTextCheck(NaConfig.INSTANCE.getUnmuteVideosWithVolumeButton()));
     private final AbstractConfigCell hideReactionsRow = cellGroup.appendCell(new ConfigCellTextCheck(NaConfig.INSTANCE.getHideReactions()));
+    private final AbstractConfigCell transcluentPanelsRow = cellGroup.appendCell(new ConfigCellTextCheck2("TranscluentPanels", getString(R.string.TranscluentPanels), new ArrayList<>() {{
+            add(new ConfigCellCheckBox(NekoConfig.translucentBottomPanel, null, getString(R.string.BottomPanel), 0, true));
+            add(new ConfigCellCheckBox(NekoConfig.translucentHeaderPanel, null, getString(R.string.HeaderPanel), 0, true));
+            add(new ConfigCellCheckBox(NekoConfig.translucentDialogWindows, null, getString(R.string.DialogWindows), 0, false));
+    }}, null));
     private final AbstractConfigCell dividerInteractions = cellGroup.appendCell(new ConfigCellDivider());
 
     // Stickers
@@ -475,9 +485,23 @@ public class NekoChatSettingsActivity extends BaseNekoXSettingsActivity implemen
 
     public NekoChatSettingsActivity() {
         ChatsHelper.normalizeBottomButtonActions();
-        if (NaConfig.INSTANCE.getUseEditedIcon().Bool()) {
-            cellGroup.rows.remove(customEditedMessageRow);
-        }
+        cellGroup.rows.remove(stickerSizeRow);
+        cellGroup.rows.remove(hideTimeForStickerRow);
+        cellGroup.rows.remove(disableReplyBackgroundRow);
+        cellGroup.rows.remove(emojiSetsRow);
+        cellGroup.rows.remove(premiumElementsToggleRow);
+        cellGroup.rows.remove(replaceMembersWithIconRow);
+        cellGroup.rows.remove(hideOnlineMembersCounterRow);
+        cellGroup.rows.remove(showSmallGifRow);
+        cellGroup.rows.remove(useEditedIconRow);
+        cellGroup.rows.remove(customEditedMessageRow);
+        cellGroup.rows.remove(hideSendAsChannelRow);
+        cellGroup.rows.remove(disableChannelMuteButtonRow);
+        cellGroup.rows.remove(replaceSubscribersWithIconRow);
+        cellGroup.rows.remove(hideGiftButtonInProfilesRow);
+        cellGroup.rows.remove(moveGiftsToTheLastTabRow);
+        cellGroup.rows.remove(hideSendAGiftRow);
+        cellGroup.rows.remove(transcluentPanelsRow);
         if (NaConfig.INSTANCE.getTranscribeProvider().Int() != TranscribeHelper.TRANSCRIBE_OPENAI) {
             cellGroup.rows.remove(transcribeProviderOpenAiRow);
         }
@@ -509,11 +533,13 @@ public class NekoChatSettingsActivity extends BaseNekoXSettingsActivity implemen
             actionBar.setOccupyStatusBar(false);
         }
 
-        ActionBarMenu menu = actionBar.createMenu();
-        menuItem = menu.addItem(0, R.drawable.ic_ab_other);
-        menuItem.setContentDescription(getString(R.string.AccDescrMoreOptions));
-        menuItem.addSubItem(1, R.drawable.msg_reset, getString(R.string.ResetStickerSize));
-        menuItem.setVisibility(NekoConfig.stickerSize.Float() != 14.0f ? View.VISIBLE : View.GONE);
+        if (cellGroup.rows.contains(stickerSizeRow)) {
+            ActionBarMenu menu = actionBar.createMenu();
+            menuItem = menu.addItem(0, R.drawable.ic_ab_other);
+            menuItem.setContentDescription(getString(R.string.AccDescrMoreOptions));
+            menuItem.addSubItem(1, R.drawable.msg_reset, getString(R.string.ResetStickerSize));
+            menuItem.setVisibility(NekoConfig.stickerSize.Float() != 14.0f ? View.VISIBLE : View.GONE);
+        }
 
         actionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
             @Override
@@ -522,8 +548,12 @@ public class NekoChatSettingsActivity extends BaseNekoXSettingsActivity implemen
                     finishFragment();
                 } else if (id == 1) {
                     NekoConfig.stickerSize.setConfigFloat(14.0f);
-                    menuItem.setVisibility(View.GONE);
-                    stickerSizeCell.invalidate();
+                    if (menuItem != null) {
+                        menuItem.setVisibility(View.GONE);
+                    }
+                    if (stickerSizeCell != null) {
+                        stickerSizeCell.invalidate();
+                    }
                 }
             }
         });
@@ -660,26 +690,18 @@ public class NekoChatSettingsActivity extends BaseNekoXSettingsActivity implemen
             } else if (key.equals(NekoConfig.labelChannelUser.getKey())) {
                 setCanNotChange();
                 listAdapter.notifyItemChanged(cellGroup.rows.indexOf(channelAliasRow));
-            } else if (key.equals(NaConfig.INSTANCE.getUseEditedIcon().getKey())) {
-                if ((boolean) newValue) {
-                    if (cellGroup.rows.contains(customEditedMessageRow)) {
-                        final int index = cellGroup.rows.indexOf(customEditedMessageRow);
-                        cellGroup.rows.remove(customEditedMessageRow);
-                        listAdapter.notifyItemRemoved(index);
-                    }
-                } else {
-                    if (!cellGroup.rows.contains(customEditedMessageRow)) {
-                        final int index = cellGroup.rows.indexOf(useEditedIconRow) + 1;
-                        cellGroup.rows.add(index, customEditedMessageRow);
-                        listAdapter.notifyItemInserted(index);
-                    }
-                }
             } else if (key.equals(NaConfig.INSTANCE.getMessageColoredBackground().getKey())) {
-                stickerSizeCell.invalidate();
+                if (stickerSizeCell != null) {
+                    stickerSizeCell.invalidate();
+                }
             } else if (key.equals(NekoConfig.hideTimeForSticker.getKey())) {
-                stickerSizeCell.invalidate();
+                if (stickerSizeCell != null) {
+                    stickerSizeCell.invalidate();
+                }
             } else if (key.equals("PremiumElements" + "_check")) {
                 stickerSizeCell.invalidate();
+                setCanNotChange();
+                NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.reloadInterface);
             } else if (key.equals(NaConfig.INSTANCE.getPremiumItemEmojiInReplies().getKey())) {
                 stickerSizeCell.invalidate();
             } else if (key.equals(NaConfig.INSTANCE.getPremiumItemCustomColorInReplies().getKey())) {
@@ -696,7 +718,25 @@ public class NekoChatSettingsActivity extends BaseNekoXSettingsActivity implemen
                 NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.reloadInterface);
             } else if (key.equals(NaConfig.INSTANCE.getPremiumItemRatingInProfiles().getKey())) {
                 NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.reloadInterface);
+            } else if (key.equals(NaConfig.INSTANCE.getPremiumItemGiftsInUserProfiles().getKey())) {
+                setCanNotChange();
+                NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.reloadInterface);
+            } else if (key.equals(NaConfig.INSTANCE.getPremiumItemGiftsInChannelProfiles().getKey())) {
+                setCanNotChange();
+                NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.reloadInterface);
             } else if (key.equals(NekoConfig.hideGiftButtonInProfiles.getKey())) {
+                NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.reloadInterface);
+            } else if (key.equals(NekoConfig.moveGiftsToTheLastTab.getKey())) {
+                NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.reloadInterface);
+            } else if (key.equals(NekoConfig.hideSendAGift.getKey())) {
+                NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.reloadInterface);
+            } else if (key.equals("TranscluentPanels_check")) {
+                SharedConfig.syncBlurSettingsFromTranslucentPanels((Boolean) newValue);
+                NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.reloadInterface);
+            } else if (key.equals(NekoConfig.translucentBottomPanel.getKey()) ||
+                    key.equals(NekoConfig.translucentHeaderPanel.getKey()) ||
+                    key.equals(NekoConfig.translucentDialogWindows.getKey())) {
+                SharedConfig.syncBlurSettingsFromTranslucentPanels(SharedConfig.hasEnabledTranslucentPanels());
                 NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.reloadInterface);
             } else if (key.equals(NaConfig.INSTANCE.getTranscribeProvider().getKey())) {
                 if ((int) newValue == TranscribeHelper.TRANSCRIBE_OPENAI) {
@@ -713,6 +753,8 @@ public class NekoChatSettingsActivity extends BaseNekoXSettingsActivity implemen
                     }
                 }
             } else if (key.equals("PremiumElements")) {
+                addRowsToMap(cellGroup);
+            } else if (key.equals("TranscluentPanels")) {
                 addRowsToMap(cellGroup);
             }
         };
@@ -750,6 +792,7 @@ public class NekoChatSettingsActivity extends BaseNekoXSettingsActivity implemen
     @Override
     public void onResume() {
         super.onResume();
+        setCanNotChange();
         if (listAdapter != null) {
             listAdapter.notifyDataSetChanged();
         }
@@ -830,15 +873,17 @@ public class NekoChatSettingsActivity extends BaseNekoXSettingsActivity implemen
 
     @Override
     public void emojiPacksLoaded(String error) {
-        if (listAdapter != null) {
-            listAdapter.notifyItemChanged(cellGroup.rows.indexOf(emojiSetsRow), PARTIAL);
+        int index = cellGroup.rows.indexOf(emojiSetsRow);
+        if (listAdapter != null && index != -1) {
+            listAdapter.notifyItemChanged(index, PARTIAL);
         }
     }
 
     @Override
     public void didReceivedNotification(int id, int account, Object... args) {
-        if (id == NotificationCenter.emojiLoaded && listAdapter != null) {
-            listAdapter.notifyItemChanged(cellGroup.rows.indexOf(emojiSetsRow), PARTIAL);
+        int index = cellGroup.rows.indexOf(emojiSetsRow);
+        if (id == NotificationCenter.emojiLoaded && listAdapter != null && index != -1) {
+            listAdapter.notifyItemChanged(index, PARTIAL);
         }
     }
 
@@ -1029,5 +1074,9 @@ public class NekoChatSettingsActivity extends BaseNekoXSettingsActivity implemen
 
         enabled = NekoConfig.labelChannelUser.Bool();
         ((ConfigCellTextCheck) channelAliasRow).setEnabled(enabled);
+
+        enabled = NaConfig.INSTANCE.getPremiumItemGiftsInUserProfiles().Bool() || NaConfig.INSTANCE.getPremiumItemGiftsInChannelProfiles().Bool();
+        ((ConfigCellTextCheck) moveGiftsToTheLastTabRow).setEnabledAndUpdateState(enabled);
+
     }
 }
