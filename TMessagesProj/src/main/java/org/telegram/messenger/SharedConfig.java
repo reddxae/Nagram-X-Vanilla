@@ -352,7 +352,7 @@ public class SharedConfig {
     public static boolean useThreeLinesLayout;
     public static boolean archiveHidden;
 
-    private static int chatSwipeAction;
+    private static final String CHAT_SWIPE_ACTION_SETTING = "ChatSwipeAction";
 
     public static int distanceSystemType;
     public static int mediaColumnsCount = 3;
@@ -684,7 +684,6 @@ public class SharedConfig {
             lockRecordAudioVideoHint = preferences.getInt("lockRecordAudioVideoHint", 0);
             disableVoiceAudioEffects = preferences.getBoolean("disableVoiceAudioEffects", false);
             noiseSupression = preferences.getBoolean("noiseSupression", false);
-            chatSwipeAction = preferences.getInt("ChatSwipeAction", -1);
             messageSeenHintCount = preferences.getInt("messageSeenCount", 3);
             emojiInteractionsHintCount = preferences.getInt("emojiInteractionsHintCount", 3);
             dayNightThemeSwitchHintCount = preferences.getInt("dayNightThemeSwitchHintCount", 3);
@@ -1688,6 +1687,8 @@ public class SharedConfig {
     }
 
     public static int getChatSwipeAction(int currentAccount) {
+        SharedPreferences preferences = MessagesController.getMainSettings(currentAccount);
+        int chatSwipeAction = preferences.getInt(CHAT_SWIPE_ACTION_SETTING, -1);
         if (chatSwipeAction >= 0) {
             if (chatSwipeAction == SwipeGestureSettingsView.SWIPE_GESTURE_FOLDERS && MessagesController.getInstance(currentAccount).dialogFilters.isEmpty()) {
                 return SwipeGestureSettingsView.SWIPE_GESTURE_ARCHIVE;
@@ -1700,10 +1701,9 @@ public class SharedConfig {
         return SwipeGestureSettingsView.SWIPE_GESTURE_ARCHIVE;
     }
 
-    public static void updateChatListSwipeSetting(int newAction) {
-        chatSwipeAction = newAction;
-        SharedPreferences preferences = ApplicationLoader.applicationContext.getSharedPreferences("mainconfig", Activity.MODE_PRIVATE);
-        preferences.edit().putInt("ChatSwipeAction", chatSwipeAction).apply();
+    public static void updateChatListSwipeSetting(int currentAccount, int newAction) {
+        SharedPreferences preferences = MessagesController.getMainSettings(currentAccount);
+        preferences.edit().putInt(CHAT_SWIPE_ACTION_SETTING, newAction).apply();
     }
 
     public static void updateMessageSeenHintCount(int count) {

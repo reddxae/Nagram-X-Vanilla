@@ -2548,7 +2548,7 @@ public class MessagesController extends BaseController implements NotificationCe
         dialogFiltersById.put(filter.id, filter);
         int chatSwipeAction = SharedConfig.getChatSwipeAction(currentAccount);
         if (dialogFilters.size() == 1 && chatSwipeAction != SwipeGestureSettingsView.SWIPE_GESTURE_FOLDERS && chatSwipeAction != SwipeGestureSettingsView.SWIPE_GESTURE_NOTHING) {
-            SharedConfig.updateChatListSwipeSetting(SwipeGestureSettingsView.SWIPE_GESTURE_FOLDERS);
+            SharedConfig.updateChatListSwipeSetting(currentAccount, SwipeGestureSettingsView.SWIPE_GESTURE_FOLDERS);
         }
         lockFiltersInternal();
     }

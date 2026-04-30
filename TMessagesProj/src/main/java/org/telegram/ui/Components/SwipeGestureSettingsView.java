@@ -114,7 +114,7 @@ public class SwipeGestureSettingsView extends FrameLayout {
         picker.setOnValueChangedListener((picker, oldVal, newVal) -> {
             swapIcons();
 
-            SharedConfig.updateChatListSwipeSetting(actionForPickerValue(newVal));
+            SharedConfig.updateChatListSwipeSetting(currentAccount, actionForPickerValue(newVal));
             invalidate();
             try {
                 if (!NekoConfig.disableVibration.Bool()) picker.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP, HapticFeedbackConstants.FLAG_IGNORE_GLOBAL_SETTING);
