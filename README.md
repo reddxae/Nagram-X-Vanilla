@@ -40,11 +40,13 @@ An important paradigm of this client is No Cringe. You won't find any epic rippl
 - Hide the Gifts tab from user/channel profiles completely / move it to the last tab
 - Backported table parsing support from upstream
 - Separate "Don't Send Typing" for chats and groups
+- "Nothing" option for "Chat list swipe gesture"
 - Changed Nagram's set of by-default enabled features in the sake of being predictable
 - Overall UI improvements
   - Fixed abnormal CPU usage caused by PiP source flapping and notification spam (Telegram bug)
   - Fixed centering of online status relatively to user name (Telegram bug)
   - Fixed views counter overlapping number of voters if the poll message forwarded (Telegram bug)
+  - Fixed hidden archive randomly re-appears in the chat list (Telegram bug)
   - Fixed dividers inconsistency over the app
   - Omit seconds from business hours in profiles
   - Do not convert date in media viewer to numeric format
