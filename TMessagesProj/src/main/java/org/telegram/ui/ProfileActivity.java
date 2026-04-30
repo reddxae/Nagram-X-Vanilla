@@ -11109,6 +11109,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
 
         boolean hasMedia = false;
         boolean hideMyProfileStoriesAndGifts = myProfile && !hasVisibleMyProfileStoriesOrGifts();
+        boolean canShowStories = !NaConfig.INSTANCE.getDisableStories().Bool();
         if (!hideMyProfileStoriesAndGifts && sharedMediaPreloader != null) {
             int[] lastMediaCount = sharedMediaPreloader.getLastMediaCount();
             for (int a = 0; a < lastMediaCount.length; a++) {
@@ -11124,7 +11125,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                 hasMedia = sharedMediaPreloader.hasPreviews;
             }
         }
-        if (!hideMyProfileStoriesAndGifts && !hasMedia && userInfo != null) {
+        if (!hideMyProfileStoriesAndGifts && !hasMedia && canShowStories && userInfo != null) {
             hasMedia = userInfo.stories_pinned_available;
         }
         if (!hideMyProfileStoriesAndGifts && !hasMedia && userInfo != null && userInfo.bot_info != null) {
@@ -11133,7 +11134,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
         if (!hideMyProfileStoriesAndGifts && !hasMedia && hasVisibleGiftsTab()) {
             hasMedia = true;
         }
-        if (!hideMyProfileStoriesAndGifts && !hasMedia && chatInfo != null) {
+        if (!hideMyProfileStoriesAndGifts && !hasMedia && canShowStories && chatInfo != null) {
             hasMedia = chatInfo.stories_pinned_available;
         }
         if (!hideMyProfileStoriesAndGifts && !hasMedia) {

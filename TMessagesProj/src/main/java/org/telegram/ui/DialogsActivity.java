@@ -12984,18 +12984,18 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
     }
 
     public void updateStoriesVisibility(boolean animated) {
-        if (NaConfig.INSTANCE.getHideStoriesFromHeader().Bool()) {
-            return;
-        }
         if (dialogStoriesCell == null || storiesVisibilityAnimator != null || rightSlidingDialogContainer != null && rightSlidingDialogContainer.hasFragment() || searchIsShowed || actionBar.isActionModeShowed() || onlySelect) {
             return;
         }
         if (StoryRecorder.isVisible() || (getLastStoryViewer() != null && getLastStoryViewer().isFullyVisible())) {
             animated = false;
         }
-        boolean onlySelfStories = !isArchive() && getStoriesController().hasOnlySelfStories();
+        boolean hideStoriesFromHeader = NaConfig.INSTANCE.getDisableStories().Bool() || NaConfig.INSTANCE.getHideStoriesFromHeader().Bool();
+        boolean onlySelfStories = !hideStoriesFromHeader && !isArchive() && getStoriesController().hasOnlySelfStories();
         boolean newVisibility;
-        if (isArchive()) {
+        if (hideStoriesFromHeader) {
+            newVisibility = false;
+        } else if (isArchive()) {
             newVisibility = !getStoriesController().getHiddenList().isEmpty();
         } else {
             newVisibility = !onlySelfStories && getStoriesController().hasStories();
@@ -13005,7 +13005,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         hasOnlySlefStories = onlySelfStories;
 
         boolean oldStoriesCellVisibility = dialogStoriesCellVisible;
-        dialogStoriesCellVisible = !NaConfig.INSTANCE.getHideStoriesFromHeader().Bool() && (onlySelfStories || newVisibility);
+        dialogStoriesCellVisible = !hideStoriesFromHeader && (onlySelfStories || newVisibility);
 
         if (newVisibility || dialogStoriesCellVisible) {
             dialogStoriesCell.updateItems(animated, dialogStoriesCellVisible != oldStoriesCellVisibility);
