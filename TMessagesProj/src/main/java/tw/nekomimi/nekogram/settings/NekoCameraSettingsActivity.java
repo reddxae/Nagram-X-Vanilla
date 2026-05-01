@@ -90,6 +90,7 @@ public class NekoCameraSettingsActivity extends BaseNekoXSettingsActivity {
     private final AbstractConfigCell startCameraRow = cellGroup.appendCell(new StartCameraDropdownCell());
     private final AbstractConfigCell seamlessSwitchingRow = cellGroup.appendCell(new VideoMessagesToggleCell(NekoConfig.videoMessagesSeamlessSwitching, R.string.VideoMessagesSeamlessSwitching, ToggleType.SEAMLESS_SWITCHING));
     private final AbstractConfigCell stabilizationRow = cellGroup.appendCell(new StabilizationDropdownCell());
+    private final AbstractConfigCell stabilizationNoticeRow = cellGroup.appendCell(new StabilizationNoticeCell());
     private final AbstractConfigCell headerRecordingOptions = cellGroup.appendCell(new ConfigCellHeader(getString(R.string.CameraRecordingOptions)));
     private final AbstractConfigCell recordFromRow = cellGroup.appendCell(new RecordFromDropdownCell());
     private final AbstractConfigCell saveZoomPositionRow = cellGroup.appendCell(new VideoMessagesToggleCell(NekoConfig.videoMessagesSaveZoomPosition, R.string.VideoMessagesSaveZoomPosition, ToggleType.SAVE_ZOOM_POSITION));
@@ -247,6 +248,9 @@ public class NekoCameraSettingsActivity extends BaseNekoXSettingsActivity {
             cellGroup.rows.add(startCameraRow);
             cellGroup.rows.add(seamlessSwitchingRow);
             cellGroup.rows.add(stabilizationRow);
+            if (isAnyStabilizationSupported()) {
+                cellGroup.rows.add(stabilizationNoticeRow);
+            }
         }
         cellGroup.rows.add(camera2ApiNoticeRow);
         cellGroup.rows.add(headerRecordingOptions);
@@ -261,7 +265,11 @@ public class NekoCameraSettingsActivity extends BaseNekoXSettingsActivity {
     }
 
     private List<AbstractConfigCell> getCamera2DependentRows() {
-        return Arrays.asList(startCameraRow, seamlessSwitchingRow, stabilizationRow);
+        ArrayList<AbstractConfigCell> rows = new ArrayList<>(Arrays.asList(startCameraRow, seamlessSwitchingRow, stabilizationRow));
+        if (isAnyStabilizationSupported()) {
+            rows.add(stabilizationNoticeRow);
+        }
+        return rows;
     }
 
     private void setCamera2DependentRowsVisible(boolean visible) {
@@ -566,7 +574,7 @@ public class NekoCameraSettingsActivity extends BaseNekoXSettingsActivity {
 
         @Override
         public int getType() {
-            return CellGroup.ITEM_TYPE_TEXT_DETAIL;
+            return CellGroup.ITEM_TYPE_TEXT_SETTINGS_CELL;
         }
 
         @Override
@@ -576,10 +584,10 @@ public class NekoCameraSettingsActivity extends BaseNekoXSettingsActivity {
 
         @Override
         public void onBindViewHolder(RecyclerView.ViewHolder holder) {
-            TextDetailSettingsCell cell = (TextDetailSettingsCell) holder.itemView;
-            cell.setMultilineDetail(true);
-            cell.setTextAndValue(getString(R.string.VideoMessagesStabilization), getStabilizationSubtitle(), false);
-            setDetailCellContentAlpha(cell, isEnabled() ? 1.0f : 0.5f);
+            TextSettingsCell cell = (TextSettingsCell) holder.itemView;
+            cell.setCanDisable(true);
+            cell.setTextAndValue(getString(R.string.VideoMessagesStabilization), getStabilizationSummary(), cellGroup.needSetDivider(this));
+            cell.setEnabled(isEnabled(), null);
         }
 
         private void onClick(View anchor) {
@@ -608,6 +616,29 @@ public class NekoCameraSettingsActivity extends BaseNekoXSettingsActivity {
                 }
             });
             builder.show();
+        }
+    }
+
+    private class StabilizationNoticeCell extends AbstractConfigCell {
+        @Override
+        public int getType() {
+            return CellGroup.ITEM_TYPE_TEXT;
+        }
+
+        @Override
+        public boolean isEnabled() {
+            return false;
+        }
+
+        @Override
+        public void onBindViewHolder(RecyclerView.ViewHolder holder) {
+            TextInfoPrivacyCell cell = (TextInfoPrivacyCell) holder.itemView;
+            cell.setTopPadding(10);
+            cell.setBottomPadding(17);
+            cell.getTextView().setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
+            cell.setTextColorByKey(Theme.key_windowBackgroundWhiteGrayText4);
+            cell.setBackground(Theme.getThemedDrawable(getContext(), R.drawable.greydivider_bottom, Theme.key_windowBackgroundGrayShadow));
+            cell.setText(getString(R.string.VideoMessagesStabilizationDescription));
         }
     }
 
@@ -647,14 +678,23 @@ public class NekoCameraSettingsActivity extends BaseNekoXSettingsActivity {
         }
     }
 
-    private String getStabilizationSubtitle() {
+    private String getStabilizationSummary() {
         if (!isCamera2Enabled()) {
             return getString(R.string.VideoMessagesCamera2Required);
         }
         if (!isAnyStabilizationSupported()) {
             return getString(R.string.VideoMessagesStabilizationUnsupported);
         }
-        return getString(R.string.VideoMessagesTapToChooseCamera) + "\n" + getString(R.string.VideoMessagesStabilizationDescription);
+        boolean front = isStabilizationEnabledForCamera(true);
+        boolean rear = isStabilizationEnabledForCamera(false);
+        if (front && rear) {
+            return getString(R.string.VideoMessagesBoth);
+        } else if (front) {
+            return getString(R.string.VideoMessagesFrontCamera);
+        } else if (rear) {
+            return getString(R.string.VideoMessagesRearCamera);
+        }
+        return getString(R.string.None);
     }
 
     private String getRecordFromSummary() {

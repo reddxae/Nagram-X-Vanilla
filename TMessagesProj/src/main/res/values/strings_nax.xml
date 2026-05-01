@@ -281,13 +281,13 @@
     <string name="VideoMessagesStartCamera">Default Rear Camera</string>
     <string name="VideoMessagesStartCameraUnavailable">No camera modules available</string>
     <string name="VideoMessagesSeamlessSwitching">Seamless Switching</string>
-    <string name="VideoMessagesSeamlessSwitchingDescription">Record from both cameras simultaneously for instant switching during video messages. May increase battery and CPU usage.</string>
-    <string name="VideoMessagesSeamlessSwitchingUnsupported">Simultaneous front and back camera capture is not available on this device.</string>
+    <string name="VideoMessagesSeamlessSwitchingDescription">Record from both Front and Rear cameras at once for instant switching. May increase battery usage.</string>
+    <string name="VideoMessagesSeamlessSwitchingUnsupported">Simultaneous Front and Back camera capture isn\'t available on this device.</string>
     <string name="VideoMessagesStabilization">Stabilization</string>
-    <string name="VideoMessagesTapToChooseCamera">Tap to choose camera.</string>
     <string name="VideoMessagesStabilizationDescription">Some devices may only support video stabilization on one of the cameras.</string>
     <string name="VideoMessagesStabilizationUnsupported">Native video stabilization is not available for video messages on this device.</string>
     <string name="VideoMessagesStabilizationDisabled">Disabled</string>
+    <string name="VideoMessagesBoth">Both</string>
     <string name="VideoMessagesCameraModuleMain">Main</string>
     <string name="VideoMessagesCameraModuleUltraWide">Ultra-Wide</string>
     <string name="VideoMessagesCameraModuleTelephoto">Telephoto</string>

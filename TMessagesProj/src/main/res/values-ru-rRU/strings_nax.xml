@@ -299,7 +299,6 @@
     <string name="VideoMessagesSeamlessSwitchingDescription">Записывает одновременно с обеих камер для мгновенного переключения во время видеосообщений. Может увеличить расход батареи и нагрузку на процессор.</string>
     <string name="VideoMessagesSeamlessSwitchingUnsupported">Одновременная съёмка с фронтальной и основной камер недоступна на этом устройстве.</string>
     <string name="VideoMessagesStabilization">Стабилизация</string>
-    <string name="VideoMessagesTapToChooseCamera">Нажмите, чтобы выбрать камеру.</string>
     <string name="VideoMessagesStabilizationDescription">Некоторые устройства могут поддерживать видеостабилизацию только на одной из камер.</string>
     <string name="VideoMessagesStabilizationUnsupported">Нативная видеостабилизация недоступна для видеосообщений на этом устройстве.</string>
     <string name="VideoMessagesStabilizationDisabled">Выключено</string>
