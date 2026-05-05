@@ -909,7 +909,7 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
                         } else {
                             lastMediaCount[a] = Math.max(mediaMergeCount[a], 0);
                         }
-                        if (did == dialogId && lastMediaCount[a] != 0 && lastLoadMediaCount[a] != mediaCount[a]) {
+                        if (did == dialogId && shouldPreloadMediaMessages() && lastMediaCount[a] != 0 && lastLoadMediaCount[a] != mediaCount[a]) {
                             int type = a;
                             if (type == 0) {
                                 if (sharedMediaData[0].filterType == FILTER_PHOTOS_ONLY) {
@@ -1165,6 +1165,10 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
             if (mergeDialogId != 0) {
                 parentFragment.getMediaDataController().getMediaCounts(mergeDialogId, topicId, parentFragment.getClassGuid());
             }
+        }
+
+        private boolean shouldPreloadMediaMessages() {
+            return !(parentFragment instanceof ChatActivityInterface && dialogId == parentFragment.getUserConfig().getClientUserId() && topicId == 0);
         }
 
         private void setChatInfo(TLRPC.ChatFull chatInfo) {
@@ -1525,7 +1529,8 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
         } else {
             main_tab = null;
         }
-        if ((initialTab == TAB_GIFTS && isGiftsTabEnabledForCurrentProfile()) || initialTab == TAB_RECOMMENDED_CHANNELS || initialTab == TAB_SAVED_DIALOGS || initialTab == TAB_COMMON_GROUPS) {
+        final boolean canShowGiftsTab = parent instanceof ProfileActivity;
+        if ((initialTab == TAB_GIFTS && canShowGiftsTab && isGiftsTabEnabledForCurrentProfile()) || initialTab == TAB_RECOMMENDED_CHANNELS || initialTab == TAB_SAVED_DIALOGS || initialTab == TAB_COMMON_GROUPS) {
             this.initialTab = initialTab;
         } else if (user != null && user.bot && user.bot_has_main_app && user.bot_can_edit) {
             this.initialTab = TAB_BOT_PREVIEWS;
@@ -1533,7 +1538,7 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
             this.initialTab = TAB_STORIES;
         } else if (main_tab instanceof TLRPC.TL_profileTabPosts && (userInfo != null && userInfo.stories_pinned_available || chatInfo != null && chatInfo.stories_pinned_available || isStoriesView())) {
             this.initialTab = TAB_STORIES;
-        } else if (main_tab instanceof TLRPC.TL_profileTabGifts && hasVisibleGiftsTab()) {
+        } else if (main_tab instanceof TLRPC.TL_profileTabGifts && canShowGiftsTab && hasVisibleGiftsTab()) {
             if (!shouldMoveGiftsTabToEnd()) {
                 this.initialTab = TAB_GIFTS;
             }
@@ -1549,7 +1554,7 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
             this.initialTab = TAB_VOICE;
         } else if (!NaConfig.INSTANCE.getDisableStories().Bool() && (userInfo != null && userInfo.stories_pinned_available || chatInfo != null && chatInfo.stories_pinned_available || isStoriesView())) {
             this.initialTab = getInitialTab();
-        } else if (hasVisibleGiftsTab()) {
+        } else if (canShowGiftsTab && hasVisibleGiftsTab()) {
             if (!shouldMoveGiftsTabToEnd()) {
                 this.initialTab = TAB_GIFTS;
             }
@@ -5459,7 +5464,7 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
         if (mediaPages[0].selectedType == TAB_BOT_PREVIEWS) {
             return botPreviewsContainer.getCurrentListView();
         }
-        if (mediaPages[0].selectedType == TAB_GIFTS) {
+        if (mediaPages[0].selectedType == TAB_GIFTS && giftsContainer != null) {
             return giftsContainer.getCurrentListView();
         }
         if (mediaPages[0].selectedType == TAB_SAVED_MESSAGES && savedMessagesContainer != null) {
@@ -6510,7 +6515,7 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
         boolean hasBotPreviews = user != null && user.bot && !user.bot_can_edit && (userInfo != null && userInfo.bot_info != null && userInfo.bot_info.has_preview_medias) && !hasEditBotPreviews;
         boolean hasStories = (DialogObject.isUserDialog(dialog_id) || DialogObject.isChatDialog(dialog_id)) && !DialogObject.isEncryptedDialog(dialog_id) && (userInfo != null && userInfo.stories_pinned_available || info != null && info.stories_pinned_available || isStoriesView()) && includeStories();
         hasStories = !NaConfig.INSTANCE.getDisableStories().Bool() && hasStories;
-        boolean hasGifts = hasVisibleGiftsTab();
+        boolean hasGifts = giftsContainer != null && hasVisibleGiftsTab();
         final TLRPC.ProfileTab main_tab = info != null ? info.main_tab : userInfo != null ? userInfo.main_tab : null;
         int changed = 0;
         if (wasReordering != scrollSlidingTextTabStrip.isReordering()) {
