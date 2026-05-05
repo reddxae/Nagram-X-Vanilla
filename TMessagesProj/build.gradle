@@ -11,7 +11,7 @@ plugins {
 def buildTimestamp = System.getenv('BUILD_TIMESTAMP') ?: '0'
 def commitId = System.getenv('COMMIT_ID')
 def verName = "${APP_VERSION_NAME}${commitId?.take(7) ? "-${commitId.take(7)}" : ''}"
-def verCode = 1239
+def verCode = 1240
 
 def officialVer = APP_VERSION_NAME
 def officialCode = APP_VERSION_CODE
@@ -182,7 +182,7 @@ android {
             if (architecture == null || architecture.trim().isEmpty()) {
                 architecture = 'universal'
             }
-            outputFileName = String.format('Vanilla-%s-%s-%s.apk', versionName, versionCode, architecture)
+            outputFileName = String.format('Vanilla-v%s-%s-%s.apk', versionName, versionCode, architecture)
         }
     }
 
