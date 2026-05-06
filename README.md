@@ -31,6 +31,8 @@ An important paradigm of this client is No Cringe. You won't find any epic rippl
 - "Disable Avatar Blur" feature will UI with pre-12.0.0 profile behaviour (kind of)
 - Configurable translucency of the panels
 - Relative online time (e.g., "last seen 5 minutes ago" instead of "last seen at 15:10")
+- Swipe on player panel to switch next/previous track, just like in Spotify
+- Show media cover for music or user profile picture for voice/round messages in player panel
 - Hide Direct Share button everywhere with "Hide Share Button Next to Post"
 - Icons for Attachments Tabs
 - Replace subscribers/members caption to monochrome icon
@@ -47,6 +49,8 @@ An important paradigm of this client is No Cringe. You won't find any epic rippl
   - Fixed centering of online status relatively to user name (Telegram bug)
   - Fixed views counter overlapping number of voters if the poll message forwarded (Telegram bug)
   - Fixed hidden archive randomly re-appears in the chat list (Telegram bug)
+  - Adding archived chats to Chat Filters
+  - Moved big and not really important "Add to Profile" button on player page to menu
   - Fixed dividers inconsistency over the app
   - Omit seconds from business hours in profiles
   - Do not convert date in media viewer to numeric format
