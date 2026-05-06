@@ -2309,9 +2309,8 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                                     AndroidUtilities.runOnUIThread(() -> {
                                         // Open the folder.
                                         // Delay was taken from PullForegroundDrawable::startOutAnimation().
-                                        Bundle args = new Bundle();
+                                        Bundle args = arguments != null ? new Bundle(arguments) : new Bundle();
                                         args.putInt("folderId", 1); // 1 is the ID of the archive folder.
-                                        args.putBoolean("onlySelect", onlySelect);
                                         DialogsActivity dialogsActivity = new DialogsActivity(args);
                                         dialogsActivity.setDelegate(delegate);
                                         presentFragment(dialogsActivity, onlySelect);
@@ -8128,9 +8127,11 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                         return;
                     }
                     TLRPC.TL_dialogFolder dialogFolder = (TLRPC.TL_dialogFolder) dialog;
-                    Bundle args = new Bundle();
+                    Bundle args = arguments != null ? new Bundle(arguments) : new Bundle();
                     args.putInt("folderId", dialogFolder.folder.id);
-                    presentFragment(new DialogsActivity(args));
+                    DialogsActivity dialogsActivity = new DialogsActivity(args);
+                    dialogsActivity.setDelegate(delegate);
+                    presentFragment(dialogsActivity, onlySelect);
                     return;
                 }
                 dialogId = dialog.id;
