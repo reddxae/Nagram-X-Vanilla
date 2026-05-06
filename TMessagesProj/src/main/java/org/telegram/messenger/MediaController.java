@@ -2881,6 +2881,58 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
         playNextMessageWithoutOrder(false);
     }
 
+    public boolean playNextMusicMessageNoWrap() {
+        return playMusicMessageNoWrap(true);
+    }
+
+    public boolean playPreviousMusicMessageNoWrap() {
+        return playMusicMessageNoWrap(false);
+    }
+
+    public boolean hasNextMusicMessageNoWrap() {
+        return getMusicMessageNoWrapIndex(SharedConfig.shuffleMusic ? shuffledPlaylist : playlist, true) >= 0;
+    }
+
+    public boolean hasPreviousMusicMessageNoWrap() {
+        return getMusicMessageNoWrapIndex(SharedConfig.shuffleMusic ? shuffledPlaylist : playlist, false) >= 0;
+    }
+
+    private boolean playMusicMessageNoWrap(boolean next) {
+        ArrayList<MessageObject> currentPlayList = SharedConfig.shuffleMusic ? shuffledPlaylist : playlist;
+        int index = getMusicMessageNoWrapIndex(currentPlayList, next);
+        if (index < 0) {
+            return false;
+        }
+        if (playingMessageObject != null) {
+            playingMessageObject.resetPlayingProgress();
+        }
+        currentPlaylistNum = index;
+        playMusicAgain = true;
+        playMessage(currentPlayList.get(currentPlaylistNum));
+        return true;
+    }
+
+    private int getMusicMessageNoWrapIndex(ArrayList<MessageObject> currentPlayList, boolean next) {
+        if (playingMessageObject == null || !playingMessageObject.isMusic() || currentPlayList == null || currentPlayList.isEmpty() || currentPlaylistNum < 0 || currentPlaylistNum >= currentPlayList.size()) {
+            return -1;
+        }
+        int direction = next ? (SharedConfig.playOrderReversed ? 1 : -1) : (SharedConfig.playOrderReversed ? -1 : 1);
+        int index = currentPlaylistNum + direction;
+        int connectionState = ConnectionsManager.getInstance(UserConfig.selectedAccount).getConnectionState();
+        boolean offline = connectionState == ConnectionsManager.ConnectionStateWaitingForNetwork;
+        while (offline && index >= 0 && index < currentPlayList.size()) {
+            MessageObject audio = currentPlayList.get(index);
+            if (audio != null && audio.mediaExists) {
+                break;
+            }
+            index += direction;
+        }
+        if (index < 0 || index >= currentPlayList.size()) {
+            return -1;
+        }
+        return index;
+    }
+
     public boolean findMessageInPlaylistAndPlay(MessageObject messageObject) {
         int index = playlist.indexOf(messageObject);
         if (index == -1) {

@@ -42,6 +42,7 @@ import android.view.Gravity;
 import android.view.HapticFeedbackConstants;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewConfiguration;
 import android.view.ViewGroup;
 import android.view.accessibility.AccessibilityNodeInfo;
 import android.widget.Button;
@@ -63,6 +64,8 @@ import org.telegram.messenger.AnimationNotificationsLocker;
 import org.telegram.messenger.ChatObject;
 import org.telegram.messenger.ContactsController;
 import org.telegram.messenger.DialogObject;
+import org.telegram.messenger.FileLoader;
+import org.telegram.messenger.ImageLocation;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.LocationController;
 import org.telegram.messenger.MediaController;
@@ -74,8 +77,10 @@ import org.telegram.messenger.SendMessagesHelper;
 import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.UserObject;
+import org.telegram.messenger.audioinfo.AudioInfo;
 import org.telegram.messenger.voip.VoIPService;
 import org.telegram.tgnet.ConnectionsManager;
+import org.telegram.tgnet.TLObject;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.tgnet.tl.TL_phone;
 import org.telegram.ui.ActionBar.ActionBarMenuItem;
@@ -120,6 +125,10 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
 
     private ImageView playButton;
     private PlayPauseDrawable playPauseDrawable;
+    private PinnedLineView playerPinnedLineView;
+    private BackupImageView[] playerPreviewImageViews = new BackupImageView[2];
+    private int playerPreviewActiveIndex;
+    private AnimatorSet playerPreviewAnimator;
     private AudioPlayerAlert.ClippingTextViewSwitcher titleTextView;
     private AudioPlayerAlert.ClippingTextViewSwitcher subtitleTextView;
     private AnimatorSet animatorSet;
@@ -155,6 +164,10 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
     private int currentStyle = STYLE_NOT_SET;
     private String lastString;
     private boolean isMusic;
+    private float audioSwipeStartX;
+    private float audioSwipeStartY;
+    private boolean audioSwipeTracking;
+    private boolean audioSwipeStarted;
     private boolean supportsCalls = true;
     private AvatarsImageView avatars;
 
@@ -419,6 +432,18 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
                 }
             }
         });
+
+        playerPinnedLineView = new PinnedLineView(context, resourcesProvider);
+        playerPinnedLineView.set(0, 1, false);
+        playerPinnedLineView.setVisibility(GONE);
+        addView(playerPinnedLineView, LayoutHelper.createFrame(2, 48, Gravity.LEFT | Gravity.TOP, 8, 0, 0, 0));
+
+        for (int i = 0; i < playerPreviewImageViews.length; i++) {
+            playerPreviewImageViews[i] = new BackupImageView(context);
+            playerPreviewImageViews[i].setRoundRadius(dp(2));
+            playerPreviewImageViews[i].setVisibility(i == 0 ? GONE : INVISIBLE);
+            addView(playerPreviewImageViews[i], LayoutHelper.createFrame(32, 32, Gravity.TOP | Gravity.LEFT, 17, 8, 0, 0));
+        }
 
         importingImageView = new RLottieImageView(context);
         importingImageView.setScaleType(ImageView.ScaleType.CENTER);
@@ -817,8 +842,40 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
                 checkImport(false);
             }
         });
+        setOnLongClickListener(v -> {
+            if (currentStyle == STYLE_AUDIO_PLAYER) {
+                return openPlayingMessageInChat(MediaController.getInstance().getPlayingMessageObject());
+            }
+            return false;
+        });
 
         setLeftMargin(leftMargin);
+    }
+
+    private boolean openPlayingMessageInChat(MessageObject messageObject) {
+        if (fragment == null || messageObject == null || messageObject.getId() == 0) {
+            return false;
+        }
+        long dialogId = 0;
+        if (chatActivity != null) {
+            dialogId = chatActivity.getDialogId();
+        }
+        if (messageObject.getDialogId() == dialogId && chatActivity != null) {
+            chatActivity.scrollToMessageId(messageObject.getId(), 0, false, 0, true, 0);
+        } else {
+            dialogId = messageObject.getDialogId();
+            Bundle args = new Bundle();
+            if (DialogObject.isEncryptedDialog(dialogId)) {
+                args.putInt("enc_id", DialogObject.getEncryptedChatId(dialogId));
+            } else if (DialogObject.isUserDialog(dialogId)) {
+                args.putLong("user_id", dialogId);
+            } else {
+                args.putLong("chat_id", -dialogId);
+            }
+            args.putInt("message_id", messageObject.getId());
+            fragment.presentFragment(new ChatActivity(args), fragment instanceof ChatActivity);
+        }
+        return true;
     }
 
     private boolean slidingSpeed;
@@ -1057,6 +1114,60 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
         return Math.abs(a - b) < 0.05f;
     }
 
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        if (currentStyle == STYLE_AUDIO_PLAYER && lastMessageObject != null && lastMessageObject.isMusic()) {
+            final float x = event.getX();
+            final float y = event.getY();
+            final int action = event.getActionMasked();
+            final int touchSlop = ViewConfiguration.get(getContext()).getScaledTouchSlop();
+            if (action == MotionEvent.ACTION_DOWN) {
+                audioSwipeStartX = x;
+                audioSwipeStartY = y;
+                audioSwipeTracking = true;
+                audioSwipeStarted = false;
+            } else if (audioSwipeTracking && action == MotionEvent.ACTION_MOVE) {
+                final float dx = x - audioSwipeStartX;
+                final float dy = y - audioSwipeStartY;
+                if (!audioSwipeStarted && Math.abs(dx) > touchSlop && Math.abs(dx) > Math.abs(dy) * 1.5f) {
+                    audioSwipeStarted = true;
+                    if (getParent() != null) {
+                        getParent().requestDisallowInterceptTouchEvent(true);
+                    }
+                    MotionEvent cancel = MotionEvent.obtain(event);
+                    cancel.setAction(MotionEvent.ACTION_CANCEL);
+                    super.onTouchEvent(cancel);
+                    cancel.recycle();
+                } else if (!audioSwipeStarted && Math.abs(dy) > touchSlop && Math.abs(dy) > Math.abs(dx)) {
+                    audioSwipeTracking = false;
+                }
+                if (audioSwipeStarted) {
+                    return true;
+                }
+            } else if (audioSwipeTracking && (action == MotionEvent.ACTION_UP || action == MotionEvent.ACTION_CANCEL)) {
+                final boolean consumeSwipe = audioSwipeStarted && action == MotionEvent.ACTION_UP && Math.abs(x - audioSwipeStartX) >= dp(56);
+                final float dx = x - audioSwipeStartX;
+                audioSwipeTracking = false;
+                audioSwipeStarted = false;
+                if (getParent() != null) {
+                    getParent().requestDisallowInterceptTouchEvent(false);
+                }
+                if (consumeSwipe) {
+                    if (dx < 0) {
+                        MediaController.getInstance().playNextMusicMessageNoWrap();
+                    } else {
+                        MediaController.getInstance().playPreviousMusicMessageNoWrap();
+                    }
+                    return true;
+                }
+            }
+        } else {
+            audioSwipeTracking = false;
+            audioSwipeStarted = false;
+        }
+        return super.onTouchEvent(event);
+    }
+
     private void playbackSpeedChanged(boolean byTap, float oldValue, float newValue) {
         if (equals(oldValue, newValue)) {
             return;
@@ -1149,6 +1260,8 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
             joinButton.setVisibility(GONE);
             closeButton.setVisibility(GONE);
             playButton.setVisibility(GONE);
+            setPlayerPreviewViewsVisibility(GONE);
+            playerPinnedLineView.setVisibility(GONE);
             muteButton.setVisibility(GONE);
             avatars.setVisibility(GONE);
             importingImageView.setVisibility(VISIBLE);
@@ -1164,7 +1277,6 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
             frameLayout.setBackgroundColor(getThemedColor(Theme.key_inappPlayerBackground));
             frameLayout.setTag(Theme.key_inappPlayerBackground);
 
-            subtitleTextView.setVisibility(GONE);
             joinButton.setVisibility(GONE);
             closeButton.setVisibility(VISIBLE);
             playButton.setVisibility(VISIBLE);
@@ -1177,24 +1289,49 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
                 if (textView == null) {
                     continue;
                 }
-                textView.setGravity(Gravity.CENTER_VERTICAL | Gravity.LEFT);
-                textView.setTextColor(getThemedColor(Theme.key_inappPlayerTitle));
-                textView.setTypeface(Typeface.DEFAULT);
-                textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 15);
+                textView.setGravity(style == STYLE_AUDIO_PLAYER ? Gravity.TOP | Gravity.LEFT : Gravity.CENTER_VERTICAL | Gravity.LEFT);
+                textView.setTextColor(getThemedColor(style == STYLE_AUDIO_PLAYER ? Theme.key_inappPlayerPerformer : Theme.key_inappPlayerTitle));
+                textView.setTypeface(style == STYLE_AUDIO_PLAYER ? AndroidUtilities.bold() : Typeface.DEFAULT);
+                textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, style == STYLE_AUDIO_PLAYER ? 14 : 15);
+                textView.setIncludeFontPadding(false);
             }
-            titleTextView.setTag(Theme.key_inappPlayerTitle);
+            for (int i = 0; i < 2; i++) {
+                TextView textView = i == 0 ? subtitleTextView.getTextView() : subtitleTextView.getNextTextView();
+                if (textView == null) {
+                    continue;
+                }
+                textView.setGravity(Gravity.TOP | Gravity.LEFT);
+                textView.setTextColor(getThemedColor(Theme.key_chat_topPanelMessage));
+                textView.setTypeface(Typeface.DEFAULT);
+                textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
+                textView.setIncludeFontPadding(false);
+            }
             if (style == STYLE_AUDIO_PLAYER) {
-                playButton.setLayoutParams(LayoutHelper.createFrame(36, 36, Gravity.TOP | Gravity.LEFT, 0, 0, 0, 0));
-                titleTextView.setLayoutParams(LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 36, Gravity.LEFT | Gravity.TOP, 35, 0, (isSideMenued ? 64 : 0) + 36, 0));
+                subtitleTextView.setVisibility(VISIBLE);
+                setPlayerPreviewViewsVisibility(VISIBLE);
+                playerPinnedLineView.setVisibility(VISIBLE);
+                titleTextView.setTag(Theme.key_inappPlayerPerformer);
+                subtitleTextView.setTag(Theme.key_chat_topPanelMessage);
+                playButton.setLayoutParams(LayoutHelper.createFrame(36, 48, Gravity.TOP | Gravity.RIGHT, 0, 0, 38, 0));
+                titleTextView.setLayoutParams(LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 18, Gravity.LEFT | Gravity.TOP, 55, 7.3f, (isSideMenued ? 64 : 0) + 116, 0));
+                subtitleTextView.setLayoutParams(LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 18, Gravity.LEFT | Gravity.TOP, 55, 25.3f, (isSideMenued ? 64 : 0) + 116, 0));
                 createPlaybackSpeedButton();
                 if (playbackSpeedButton != null) {
                     playbackSpeedButton.setVisibility(VISIBLE);
                     playbackSpeedButton.setTag(1);
+                    playbackSpeedButton.setLayoutParams(LayoutHelper.createFrame(36, 48, Gravity.TOP | Gravity.RIGHT, 0, 0, 74, 0));
                 }
+                silentButton.setLayoutParams(LayoutHelper.createFrame(36, 48, Gravity.RIGHT | Gravity.TOP, 0, 0, 74, 0));
+                closeButton.setLayoutParams(LayoutHelper.createFrame(36, 48, Gravity.RIGHT | Gravity.TOP, 0, 0, 2, 0));
                 closeButton.setContentDescription(getString(R.string.AccDescrClosePlayer));
             } else {
+                subtitleTextView.setVisibility(GONE);
+                setPlayerPreviewViewsVisibility(GONE);
+                playerPinnedLineView.setVisibility(GONE);
+                titleTextView.setTag(Theme.key_inappPlayerTitle);
                 playButton.setLayoutParams(LayoutHelper.createFrame(36, 36, Gravity.TOP | Gravity.LEFT, 8, 0, 0, 0));
                 titleTextView.setLayoutParams(LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 36, Gravity.LEFT | Gravity.TOP, 35 + 16, 0, (isSideMenued ? 64 : 0) + 36, 0));
+                closeButton.setLayoutParams(LayoutHelper.createFrame(36, 36, Gravity.RIGHT | Gravity.TOP, 0, 0, 2, 0));
                 closeButton.setContentDescription(getString(R.string.AccDescrStopLiveLocation));
             }
         } else if (style == STYLE_INACTIVE_GROUP_CALL) {
@@ -1235,6 +1372,8 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
 
             closeButton.setVisibility(GONE);
             playButton.setVisibility(GONE);
+            setPlayerPreviewViewsVisibility(GONE);
+            playerPinnedLineView.setVisibility(GONE);
             if (playbackSpeedButton != null) {
                 playbackSpeedButton.setVisibility(GONE);
                 playbackSpeedButton.setTag(null);
@@ -1282,6 +1421,8 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
             titleTextView.setTag(Theme.key_returnToCallText);
             closeButton.setVisibility(GONE);
             playButton.setVisibility(GONE);
+            setPlayerPreviewViewsVisibility(GONE);
+            playerPinnedLineView.setVisibility(GONE);
             subtitleTextView.setVisibility(GONE);
             joinButton.setVisibility(GONE);
 
@@ -1499,6 +1640,9 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
     float micAmplitude;
 
     public int getStyleHeight() {
+        if (currentStyle == STYLE_AUDIO_PLAYER) {
+            return 48;
+        }
         return currentStyle == STYLE_INACTIVE_GROUP_CALL ? 48 : 36;
     }
 
@@ -1852,15 +1996,16 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
             }
             if (lastMessageObject != messageObject || prevStyle != STYLE_AUDIO_PLAYER) {
                 lastMessageObject = messageObject;
-                SpannableStringBuilder stringBuilder;
+                titleTextView.setPadding(0, 0, 0, 0);
+                subtitleTextView.setPadding(0, 0, 0, 0);
+                updatePlayerPreview(lastMessageObject, !create && wasVisible);
                 if (lastMessageObject.isVoice() || lastMessageObject.isRoundVideo()) {
                     isMusic = false;
                     if (playbackSpeedButton != null) {
                         playbackSpeedButton.setAlpha(1.0f);
                         playbackSpeedButton.setEnabled(true);
+                        playbackSpeedButton.setVisibility(VISIBLE);
                     }
-                    titleTextView.setPadding(0, 0, dp(44) + joinButtonWidth, 0);
-                    stringBuilder = new SpannableStringBuilder(String.format("%s %s", messageObject.getMusicAuthor(), messageObject.getMusicTitle()));
 
                     for (int i = 0; i < 2; i++) {
                         TextView textView = i == 0 ? titleTextView.getTextView() : titleTextView.getNextTextView();
@@ -1871,23 +2016,21 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
                     }
 
                     updatePlaybackButton(false);
+                    titleTextView.setText(getString(lastMessageObject.isRoundVideo() ? R.string.AttachRound : R.string.AttachAudio), false);
+                    subtitleTextView.setText(messageObject.getMusicAuthor(), false);
                 } else {
                     isMusic = true;
                     if (playbackSpeedButton != null) {
                         if (messageObject.getDuration() >= 10 * 60) {
                             playbackSpeedButton.setAlpha(1.0f);
                             playbackSpeedButton.setEnabled(true);
-                            titleTextView.setPadding(0, 0, dp(44) + joinButtonWidth, 0);
+                            playbackSpeedButton.setVisibility(VISIBLE);
                             updatePlaybackButton(false);
                         } else {
-                            playbackSpeedButton.setAlpha(0.0f);
                             playbackSpeedButton.setEnabled(false);
-                            titleTextView.setPadding(0, 0, joinButtonWidth, 0);
+                            playbackSpeedButton.setVisibility(INVISIBLE);
                         }
-                    } else {
-                        titleTextView.setPadding(0, 0, joinButtonWidth, 0);
                     }
-                    stringBuilder = new SpannableStringBuilder(String.format("%s - %s", messageObject.getMusicAuthor(), messageObject.getMusicTitle()));
                     for (int i = 0; i < 2; i++) {
                         TextView textView = i == 0 ? titleTextView.getTextView() : titleTextView.getNextTextView();
                         if (textView == null) {
@@ -1895,12 +2038,166 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
                         }
                         textView.setEllipsize(TextUtils.TruncateAt.END);
                     }
+                    titleTextView.setText(messageObject.getMusicTitle(), !create && wasVisible);
+                    subtitleTextView.setText(messageObject.getMusicAuthor(), !create && wasVisible);
                 }
-                TypefaceSpan span = new TypefaceSpan(AndroidUtilities.bold(), 0, getThemedColor(Theme.key_inappPlayerPerformer));
-                stringBuilder.setSpan(span, 0, messageObject.getMusicAuthor().length(), Spanned.SPAN_INCLUSIVE_INCLUSIVE);
-                titleTextView.setText(stringBuilder, !create && wasVisible && isMusic);
             }
         }
+    }
+
+    private void updatePlayerPreview(MessageObject messageObject, boolean animated) {
+        if (playerPreviewImageViews[0] == null || messageObject == null) {
+            return;
+        }
+        final int nextIndex;
+        if (animated) {
+            nextIndex = playerPreviewActiveIndex == 0 ? 1 : 0;
+        } else {
+            nextIndex = playerPreviewActiveIndex;
+        }
+        BackupImageView imageView = playerPreviewImageViews[nextIndex];
+        imageView.getImageReceiver().setCurrentAccount(messageObject.currentAccount);
+        if (messageObject.isMusic()) {
+            imageView.setRoundRadius(dp(2));
+            AudioInfo audioInfo = MediaController.getInstance().getAudioInfo();
+            if (audioInfo != null && audioInfo.getCover() != null) {
+                imageView.setImageBitmap(audioInfo.getCover());
+            } else {
+                ImageLocation thumbImageLocation = getPlayerArtworkThumbImageLocation(messageObject);
+                String artworkUrl = messageObject.getArtworkUrl(false);
+                if (!TextUtils.isEmpty(artworkUrl)) {
+                    imageView.setImage(ImageLocation.getForPath(artworkUrl), null, thumbImageLocation, null, null, null, 0, 1, messageObject);
+                } else if (thumbImageLocation != null) {
+                    imageView.setImage(null, null, thumbImageLocation, null, null, null, 0, 1, messageObject);
+                } else {
+                    imageView.setImageResource(R.drawable.nocover_small);
+                }
+            }
+        } else {
+            imageView.setRoundRadius(dp(16));
+            TLObject object = getPlayerSenderObject(messageObject);
+            AvatarDrawable avatarDrawable = new AvatarDrawable(resourcesProvider);
+            if (object instanceof TLRPC.User) {
+                avatarDrawable.setInfo(messageObject.currentAccount, (TLRPC.User) object);
+                imageView.setForUserOrChat((TLRPC.User) object, avatarDrawable);
+            } else if (object instanceof TLRPC.Chat) {
+                avatarDrawable.setInfo(messageObject.currentAccount, (TLRPC.Chat) object);
+                imageView.setForUserOrChat((TLRPC.Chat) object, avatarDrawable);
+            } else {
+                avatarDrawable.setInfo(messageObject.getDialogId(), messageObject.getMusicAuthor(), null);
+                imageView.setImageDrawable(avatarDrawable);
+            }
+        }
+        if (animated) {
+            switchPlayerPreview(nextIndex);
+        } else {
+            playerPreviewActiveIndex = nextIndex;
+            for (int i = 0; i < playerPreviewImageViews.length; i++) {
+                playerPreviewImageViews[i].setAlpha(1f);
+                playerPreviewImageViews[i].setScaleX(1f);
+                playerPreviewImageViews[i].setScaleY(1f);
+                playerPreviewImageViews[i].setTranslationY(0);
+                playerPreviewImageViews[i].setVisibility(i == playerPreviewActiveIndex && currentStyle == STYLE_AUDIO_PLAYER ? VISIBLE : INVISIBLE);
+            }
+        }
+    }
+
+    private void switchPlayerPreview(int nextIndex) {
+        if (nextIndex == playerPreviewActiveIndex) {
+            return;
+        }
+        if (playerPreviewAnimator != null) {
+            playerPreviewAnimator.cancel();
+        }
+        BackupImageView previousImageView = playerPreviewImageViews[playerPreviewActiveIndex];
+        BackupImageView nextImageView = playerPreviewImageViews[nextIndex];
+        nextImageView.setVisibility(VISIBLE);
+        nextImageView.setAlpha(0f);
+        nextImageView.setScaleX(0.7f);
+        nextImageView.setScaleY(0.7f);
+        playerPreviewAnimator = new AnimatorSet();
+        playerPreviewAnimator.playTogether(
+                ObjectAnimator.ofFloat(previousImageView, View.ALPHA, 1f, 0f),
+                ObjectAnimator.ofFloat(previousImageView, View.SCALE_X, 1f, 0.7f),
+                ObjectAnimator.ofFloat(previousImageView, View.SCALE_Y, 1f, 0.7f),
+                ObjectAnimator.ofFloat(nextImageView, View.ALPHA, 0f, 1f),
+                ObjectAnimator.ofFloat(nextImageView, View.SCALE_X, 0.7f, 1f),
+                ObjectAnimator.ofFloat(nextImageView, View.SCALE_Y, 0.7f, 1f)
+        );
+        playerPreviewAnimator.setInterpolator(CubicBezierInterpolator.EASE_OUT_QUINT);
+        playerPreviewAnimator.setDuration(180 * 2);
+        playerPreviewAnimator.addListener(new AnimatorListenerAdapter() {
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                previousImageView.setVisibility(INVISIBLE);
+                previousImageView.setAlpha(1f);
+                previousImageView.setScaleX(1f);
+                previousImageView.setScaleY(1f);
+                nextImageView.setAlpha(1f);
+                nextImageView.setScaleX(1f);
+                nextImageView.setScaleY(1f);
+                if (playerPreviewAnimator == animation) {
+                    playerPreviewAnimator = null;
+                }
+            }
+        });
+        playerPreviewActiveIndex = nextIndex;
+        playerPreviewAnimator.start();
+    }
+
+    private void setPlayerPreviewViewsVisibility(int visibility) {
+        for (int i = 0; i < playerPreviewImageViews.length; i++) {
+            if (playerPreviewImageViews[i] != null) {
+                playerPreviewImageViews[i].setVisibility(visibility == VISIBLE && i != playerPreviewActiveIndex ? INVISIBLE : visibility);
+            }
+        }
+    }
+
+    private ImageLocation getPlayerArtworkThumbImageLocation(MessageObject messageObject) {
+        TLRPC.Document document = messageObject.getDocument();
+        TLRPC.PhotoSize thumb = document != null ? FileLoader.getClosestPhotoSizeWithSize(document.thumbs, 90) : null;
+        if (!(thumb instanceof TLRPC.TL_photoSize) && !(thumb instanceof TLRPC.TL_photoSizeProgressive)) {
+            thumb = null;
+        }
+        if (thumb != null) {
+            return ImageLocation.getForDocument(thumb, document);
+        }
+        String smallArtworkUrl = messageObject.getArtworkUrl(true);
+        if (smallArtworkUrl != null) {
+            return ImageLocation.getForPath(smallArtworkUrl);
+        }
+        return null;
+    }
+
+    private TLObject getPlayerSenderObject(MessageObject messageObject) {
+        if (messageObject.messageOwner != null && messageObject.messageOwner.fwd_from != null && messageObject.messageOwner.fwd_from.from_id != null) {
+            TLObject forwardedObject = getPlayerPeerObject(messageObject.currentAccount, messageObject.messageOwner.fwd_from.from_id);
+            if (forwardedObject != null) {
+                return forwardedObject;
+            }
+        }
+        TLObject object = messageObject.getFromPeerObject();
+        if (object != null) {
+            return object;
+        }
+        long dialogId = messageObject.getDialogId();
+        if (DialogObject.isUserDialog(dialogId)) {
+            return MessagesController.getInstance(messageObject.currentAccount).getUser(dialogId);
+        } else if (!DialogObject.isEncryptedDialog(dialogId)) {
+            return MessagesController.getInstance(messageObject.currentAccount).getChat(-dialogId);
+        }
+        return null;
+    }
+
+    private TLObject getPlayerPeerObject(int currentAccount, TLRPC.Peer peer) {
+        if (peer instanceof TLRPC.TL_peerUser) {
+            return MessagesController.getInstance(currentAccount).getUser(peer.user_id);
+        } else if (peer instanceof TLRPC.TL_peerChat) {
+            return MessagesController.getInstance(currentAccount).getChat(peer.chat_id);
+        } else if (peer instanceof TLRPC.TL_peerChannel) {
+            return MessagesController.getInstance(currentAccount).getChat(peer.channel_id);
+        }
+        return null;
     }
 
     public void checkImport(boolean create) {
