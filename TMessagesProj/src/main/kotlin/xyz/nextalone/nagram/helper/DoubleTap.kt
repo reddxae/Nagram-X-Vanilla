@@ -19,10 +19,6 @@ object DoubleTap {
         4
     const val DOUBLE_TAP_ACTION_SAVE =
         5
-    const val DOUBLE_TAP_ACTION_REPEAT =
-        6
-    const val DOUBLE_TAP_ACTION_REPEAT_AS_COPY =
-        7
     const val DOUBLE_TAP_ACTION_EDIT =
         8
     const val DOUBLE_TAP_ACTION_TRANSLATE_LLM =
@@ -54,14 +50,6 @@ object DoubleTap {
         doubleTapActionMap[DOUBLE_TAP_ACTION_SAVE] =
             getString(
                 R.string.AddToSavedMessages
-            )
-        doubleTapActionMap[DOUBLE_TAP_ACTION_REPEAT] =
-            getString(
-                R.string.Repeat
-            )
-        doubleTapActionMap[DOUBLE_TAP_ACTION_REPEAT_AS_COPY] =
-            getString(
-                R.string.RepeatAsCopy
             )
         doubleTapActionMap[DOUBLE_TAP_ACTION_EDIT] =
             getString(

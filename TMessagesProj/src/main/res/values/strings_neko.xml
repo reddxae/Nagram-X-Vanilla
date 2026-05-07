@@ -15,7 +15,6 @@
     <string name="NameOrder">Name Order</string>
     <string name="FirstLast">First Last</string>
     <string name="LastFirst">Last First</string>
-    <string name="Repeat">Repost</string>
     <string name="AddToSavedMessages">Save</string>
     <string name="CreateMention">Create Mention</string>
     <string name="TransparentStatusBar">Transparent Status Bar</string>
@@ -262,8 +261,6 @@
     <string name="DeleteDownloadedFileExternal">External file is skipped.</string>
     <string name="useCustomEmoji">Use Custom Emoji</string>
     <string name="useCustomEmojiInvalid">Not a valid emoji pack.</string>
-    <string name="repeatConfirm">Ask Before Repost</string>
-    <string name="repeatConfirmText">Are you sure you want to Repost?</string>
     <string name="valuesLargeAvatarInDrawer">Default\nAvatar\nWallpaper</string>
     <string name="rememberAllBackMessages">Remember All Clicked Replies</string>
     <string name="DisableInstantCamera">Disable Instant Camera</string>

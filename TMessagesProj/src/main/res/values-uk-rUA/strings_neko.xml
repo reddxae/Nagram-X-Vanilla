@@ -15,7 +15,6 @@
     <string name="NameOrder">Порядок імен</string>
     <string name="FirstLast">Ім\'я Прізвище</string>
     <string name="LastFirst">Прізвище Ім\'я</string>
-    <string name="Repeat">Повторити</string>
     <string name="AddToSavedMessages">Зберегти</string>
     <string name="CreateMention">Згадати</string>
     <string name="TransparentStatusBar">Прозорий рядок стану</string>
@@ -257,8 +256,6 @@
     <string name="DeleteDownloadedFileExternal">Зовнішній файл пропущено.</string>
     <string name="useCustomEmoji">Власні емодзі</string>
     <string name="useCustomEmojiInvalid">Недійсний набір емодзі.</string>
-    <string name="repeatConfirm">Запитувати перед повтором</string>
-    <string name="repeatConfirmText">Ви хочете повторити повідомлення?</string>
     <string name="valuesLargeAvatarInDrawer">Типовий\nАватар\nШпалери</string>
     <string name="rememberAllBackMessages">Запам’ятати всі натиснуті відповіді</string>
     <string name="DisableInstantCamera">Приховати прев\'ю з камери на панелі «Прикріпити»</string>

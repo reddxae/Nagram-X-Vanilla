@@ -122,12 +122,6 @@ object NaConfig {
             ConfigItem.configTypeBool,
             false
         )
-    val showRepeatAsCopy =
-        addConfig(
-            "RepeatAsCopy",
-            ConfigItem.configTypeBool,
-            false
-        )
     val doubleTapAction =
         addConfig(
             "DoubleTapAction",

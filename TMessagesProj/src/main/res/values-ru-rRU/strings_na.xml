@@ -5,7 +5,6 @@
     <string name="CombineMessage">Объединить сообщения</string>
     <string name="TextStyle">Стиль текста</string>
     <string name="NoiseSuppressAndVoiceEnhance">Улучшение голоса</string>
-    <string name="RepeatAsCopy">Повторить как копию</string>
     <string name="DoubleTapAction">Действия при двойном нажатии</string>
     <string name="SendReactions">Отправить реакцию</string>
     <string name="ShowReactions">Показать реакции</string>

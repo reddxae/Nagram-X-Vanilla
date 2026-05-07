@@ -195,8 +195,6 @@ public class NekoChatSettingsActivity extends BaseNekoXSettingsActivity implemen
             add(new ConfigCellTextCheckIcon(NaConfig.INSTANCE.getShowAddToFavorites(), R.drawable.msg_fave));
             add(new ConfigCellTextCheckIcon(NaConfig.INSTANCE.getShowSetReminder(), R.drawable.msg_calendar2));
             add(new ConfigCellTextCheckIcon(NekoConfig.showAddToSavedMessages, getString(R.string.AddToSavedMessages), R.drawable.msg_saved));
-            add(new ConfigCellTextCheckIcon(NekoConfig.showRepeat, getString(R.string.Repeat), R.drawable.msg_repeat));
-            add(new ConfigCellTextCheckIcon(NaConfig.INSTANCE.getShowRepeatAsCopy(), R.drawable.msg_repeat));
             add(new ConfigCellTextCheckIcon(NekoConfig.showDeleteDownloadedFile, getString(R.string.DeleteDownloadedFile), R.drawable.msg_clear));
             add(new ConfigCellTextCheckIcon(NekoConfig.showViewHistory, getString(R.string.ViewHistory), R.drawable.menu_recent));
             add(new ConfigCellTextCheckIcon(NekoConfig.showTranslate, getString(R.string.Translate), R.drawable.msg_translate));
@@ -462,7 +460,6 @@ public class NekoChatSettingsActivity extends BaseNekoXSettingsActivity implemen
     private final AbstractConfigCell skipOpenLinkConfirmRow = cellGroup.appendCell(new ConfigCellTextCheck(NekoConfig.skipOpenLinkConfirm));
     private final AbstractConfigCell confirmAVRow = cellGroup.appendCell(new ConfigCellTextCheck(NekoConfig.confirmAVMessage));
     private final AbstractConfigCell askBeforeCallRow = cellGroup.appendCell(new ConfigCellTextCheck(NekoConfig.askBeforeCall));
-    private final AbstractConfigCell repeatConfirmRow = cellGroup.appendCell(new ConfigCellTextCheck(NekoConfig.repeatConfirm));
     private final AbstractConfigCell disableClickCommandToSendRow = cellGroup.appendCell(new ConfigCellTextCheck(NaConfig.INSTANCE.getDisableClickCommandToSend()));
     private final AbstractConfigCell confirmAllLinksRow = cellGroup.appendCell(new ConfigCellTextCheck(NaConfig.INSTANCE.getConfirmAllLinks(), getString(R.string.ConfirmAllLinksDescription)));
     private final AbstractConfigCell dividerConfirmation = cellGroup.appendCell(new ConfigCellDivider());
@@ -630,10 +627,6 @@ public class NekoChatSettingsActivity extends BaseNekoXSettingsActivity implemen
                     types.add(DoubleTap.DOUBLE_TAP_ACTION_REPLY);
                     arrayList.add(getString(R.string.AddToSavedMessages));
                     types.add(DoubleTap.DOUBLE_TAP_ACTION_SAVE);
-                    arrayList.add(getString(R.string.Repeat));
-                    types.add(DoubleTap.DOUBLE_TAP_ACTION_REPEAT);
-                    arrayList.add(getString(R.string.RepeatAsCopy));
-                    types.add(DoubleTap.DOUBLE_TAP_ACTION_REPEAT_AS_COPY);
                     if (position == cellGroup.rows.indexOf(doubleTapActionOutRow)) {
                         arrayList.add(getString(R.string.Edit));
                         types.add(DoubleTap.DOUBLE_TAP_ACTION_EDIT);
@@ -991,9 +984,9 @@ public class NekoChatSettingsActivity extends BaseNekoXSettingsActivity implemen
                         if (position == cellGroup.rows.indexOf(maxRecentStickerCountRow)) {
                             textCell.setTextAndValue(getString(R.string.maxRecentStickerCount), String.valueOf(NekoConfig.maxRecentStickerCount.Int()), true);
                         } else if (position == cellGroup.rows.indexOf(doubleTapActionRow)) {
-                            textCell.setTextAndValue(getString(R.string.DoubleTapIncoming), DoubleTap.doubleTapActionMap.get(NaConfig.INSTANCE.getDoubleTapAction().Int()), true);
+                            textCell.setTextAndValue(getString(R.string.DoubleTapIncoming), DoubleTap.doubleTapActionMap.getOrDefault(NaConfig.INSTANCE.getDoubleTapAction().Int(), getString(R.string.Disable)), true);
                         } else if (position == cellGroup.rows.indexOf(doubleTapActionOutRow)) {
-                            textCell.setTextAndValue(getString(R.string.DoubleTapOutgoing), DoubleTap.doubleTapActionMap.get(NaConfig.INSTANCE.getDoubleTapActionOut().Int()), true);
+                            textCell.setTextAndValue(getString(R.string.DoubleTapOutgoing), DoubleTap.doubleTapActionMap.getOrDefault(NaConfig.INSTANCE.getDoubleTapActionOut().Int(), getString(R.string.Disable)), true);
                         } else if (position == cellGroup.rows.indexOf(transcribeProviderCfCredentialsRow)) {
                             textCell.setTextAndValue(getString(R.string.CloudflareCredentials), "", true);
                         } else if (position == cellGroup.rows.indexOf(transcribeProviderGeminiApiKeyRow)) {

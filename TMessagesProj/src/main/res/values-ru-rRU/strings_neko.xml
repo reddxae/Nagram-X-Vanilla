@@ -15,7 +15,6 @@
     <string name="NameOrder">Сортировать контакты</string>
     <string name="FirstLast">По имени</string>
     <string name="LastFirst">По фамилии</string>
-    <string name="Repeat">Повторить</string>
     <string name="AddToSavedMessages">Сохранить</string>
     <string name="CreateMention">Упомянуть</string>
     <string name="TransparentStatusBar">Прозрачная строка состояния</string>
@@ -258,8 +257,6 @@
     <string name="DeleteDownloadedFileExternal">Внешний файл пропущен.</string>
     <string name="useCustomEmoji">Свой набор эмодзи</string>
     <string name="useCustomEmojiInvalid">Недопустимый набор эмодзи.</string>
-    <string name="repeatConfirm">Спрашивать перед повтором</string>
-    <string name="repeatConfirmText">Вы хотите повторить сообщение?</string>
     <string name="valuesLargeAvatarInDrawer">По умолчанию\nАватар\nОбои</string>
     <string name="rememberAllBackMessages">Запомнить все нажатые ответы</string>
     <string name="DisableInstantCamera">Отключить мгновенную камеру</string>

@@ -341,31 +341,6 @@ public class MessageHelper extends BaseController {
         }
     }
 
-    public MessageObject getMessageForRepeat(MessageObject selectedObject, MessageObject.GroupedMessages selectedObjectGroup) {
-        MessageObject messageObject = null;
-        if (selectedObjectGroup != null && !selectedObjectGroup.isDocuments) {
-            messageObject = getTargetMessageObjectFromGroup(selectedObjectGroup);
-        } else if (!TextUtils.isEmpty(selectedObject.messageOwner.message) || selectedObject.isAnyKindOfSticker()) {
-            messageObject = selectedObject;
-        }
-        return messageObject;
-    }
-
-    private MessageObject getTargetMessageObjectFromGroup(MessageObject.GroupedMessages selectedObjectGroup) {
-        MessageObject messageObject = null;
-        for (MessageObject object : selectedObjectGroup.messages) {
-            if (!TextUtils.isEmpty(object.messageOwner.message)) {
-                if (messageObject != null) {
-                    messageObject = null;
-                    break;
-                } else {
-                    messageObject = object;
-                }
-            }
-        }
-        return messageObject;
-    }
-
     public void createDeleteHistoryAlert(BaseFragment fragment, TLRPC.Chat chat, TLRPC.TL_forumTopic forumTopic, long mergeDialogId, Theme.ResourcesProvider resourcesProvider) {
         createDeleteHistoryAlert(fragment, chat, forumTopic, mergeDialogId, -1, resourcesProvider);
     }

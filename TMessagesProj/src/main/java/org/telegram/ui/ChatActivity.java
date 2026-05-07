@@ -387,14 +387,12 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
     private final static int nkbtn_detail = 2012;
     private final static int nkbtn_deldlcache = 2013;
     private final static int nkbtn_view_history = 2014;
-    private final static int nkbtn_repeat = 2015;
     private final static int nkbtn_stickerdl = 2016;
     private final static int nkbtn_unpin = 2017;
     private final static int nkbtn_view_in_chat = 2018;
     private final static int nkbtn_editAdmin = 2019;
     private final static int nkbtn_editPermission = 2020;
     private final static int nkbtn_copy_link_in_pm = 2025;
-    private final static int nkbtn_repeatascopy = 2028;
     private final static int nkbtn_setReminder = 2029;
     private final static int nkbtn_reply_private = 2033;
     private final static int nkbtn_translate_llm = 2034;
@@ -1944,7 +1942,6 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                     allowEdit = captionsCount < 2;
                 }
                 boolean allowDelete = message.canDeleteMessage(chatMode == MODE_SCHEDULED, currentChat);
-                boolean allowRepeat;
                 switch (doubleTapAction) {
                     case DoubleTap.DOUBLE_TAP_ACTION_TRANSLATE:
                     case DoubleTap.DOUBLE_TAP_ACTION_TRANSLATE_LLM:
@@ -1957,14 +1954,6 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                         return message.getId() > 0 && allowChatActions && !isAyuDeleted;
                     case DoubleTap.DOUBLE_TAP_ACTION_SAVE:
                         return !message.isSponsored() && chatMode != MODE_SCHEDULED && !message.needDrawBluredPreview() && !message.isLiveLocation() && message.type != 16 && !noforwards && !UserObject.isUserSelf(currentUser) && !isAyuDeleted;
-                    case DoubleTap.DOUBLE_TAP_ACTION_REPEAT:
-                        allowRepeat = allowChatActions && (currentChat == null || ((!ChatObject.isNotInChat(currentChat) || isThreadChat()) && (!ChatObject.isChannel(currentChat) || currentChat.megagroup) && ChatObject.canSendMessages(currentChat))) && !isAyuDeleted &&
-                                (!isThreadChat() && !noforwards || getMessageHelper().getMessageForRepeat(message, selectedObjectGroup) != null);
-                        return allowRepeat && !message.isSponsored() && chatMode != MODE_SCHEDULED && !message.needDrawBluredPreview() && !message.isLiveLocation() && message.type != 16;
-                    case DoubleTap.DOUBLE_TAP_ACTION_REPEAT_AS_COPY:
-                        allowRepeat = allowChatActions && (currentChat == null || ((!ChatObject.isNotInChat(currentChat) || isThreadChat()) && (!ChatObject.isChannel(currentChat) || currentChat.megagroup) && ChatObject.canSendMessages(currentChat))) && !isAyuDeleted &&
-                                (!isThreadChat() || getMessageHelper().getMessageForRepeat(message, selectedObjectGroup) != null);
-                        return allowRepeat && !message.isSponsored() && chatMode != MODE_SCHEDULED && !message.needDrawBluredPreview() && !message.isLiveLocation() && message.type != 16;
                     case DoubleTap.DOUBLE_TAP_ACTION_EDIT:
                         return allowEdit && !isAyuDeleted;
                     case DoubleTap.DOUBLE_TAP_ACTION_DELETE:
@@ -2045,12 +2034,6 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                         break;
                     case DoubleTap.DOUBLE_TAP_ACTION_SAVE:
                         processSelectedOption(nkbtn_savemessage);
-                        break;
-                    case DoubleTap.DOUBLE_TAP_ACTION_REPEAT:
-                        processSelectedOption(nkbtn_repeat);
-                        break;
-                    case DoubleTap.DOUBLE_TAP_ACTION_REPEAT_AS_COPY:
-                        processSelectedOption(nkbtn_repeatascopy);
                         break;
                     case DoubleTap.DOUBLE_TAP_ACTION_EDIT:
                         if (messageObject.isTodo()) {
@@ -10876,12 +10859,6 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         actionModeOtherItem.addSubItem(nkbtn_unpin, R.drawable.msg_unpin, LocaleController.getString(R.string.UnpinMessage));
         if (!noforward) {
             actionModeOtherItem.addSubItem(nkbtn_savemessage, R.drawable.menu_saved, LocaleController.getString(R.string.AddToSavedMessages));
-        }
-        if (!noforward && NekoConfig.showRepeat.Bool()) {
-            actionModeOtherItem.addSubItem(nkbtn_repeat, R.drawable.msg_repeat, LocaleController.getString(R.string.Repeat));
-        }
-        if (!noforward && NaConfig.INSTANCE.getShowRepeatAsCopy().Bool()) {
-            actionModeOtherItem.addSubItem(nkbtn_repeatascopy, R.drawable.msg_repeat, LocaleController.getString(R.string.RepeatAsCopy));
         }
         if (NekoConfig.showMessageHide.Bool()) {
             actionModeOtherItem.addSubItem(nkbtn_hide, R.drawable.msg_disable, LocaleController.getString(R.string.Hide));
@@ -20184,12 +20161,8 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 ActionBarMenuItem combineMessageItem = actionBar.createActionMode().getItem(combine_message);
 
                 ActionBarMenuSubItem saveMessageItem = null;
-                ActionBarMenuSubItem repeatItem = null;
-                ActionBarMenuSubItem RepeatAsCopyItem = null;
                 if (actionModeOtherItem != null) {
                     saveMessageItem = actionModeOtherItem.getSubItem(nkbtn_savemessage);
-                    repeatItem = actionModeOtherItem.getSubItem(nkbtn_repeat);
-                    RepeatAsCopyItem = actionModeOtherItem.getSubItem(nkbtn_repeatascopy);
                 }
 
                 boolean hasSelectedAyuDeletedMessage = hasSelectedAyuDeletedMessage();
@@ -20199,12 +20172,6 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
 
                 if (saveMessageItem != null) {
                     saveMessageItem.setVisibility(canForward);
-                }
-                if (repeatItem != null) {
-                    repeatItem.setVisibility(canForward);
-                }
-                if (RepeatAsCopyItem != null) {
-                    RepeatAsCopyItem.setVisibility(canForward);
                 }
 
                 createBottomMessagesActionButtons();
@@ -35449,14 +35416,6 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 });
                 return 1;
             }
-            case nkbtn_repeat: {
-                repeatMessage(true, false);
-                return 2;
-            }
-            case nkbtn_repeatascopy: {
-                repeatMessage(true, true);
-                return 2;
-            }
         }
         return 0;
     }
@@ -45061,12 +45020,6 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             if (!getMessagesController().checkCanOpenChat(args, ChatActivity.this))
                 return;
             presentFragment(new ChatActivity(args), true);
-        } else if (id == nkbtn_repeat) {
-            repeatMessage(false, false);
-            clearSelectionMode();
-        } else if (id == nkbtn_repeatascopy) {
-            repeatMessage(false, true);
-            clearSelectionMode();
         } else if (id == nkheaderbtn_hide_title) {
             if (avatarContainer != null) {
                 avatarContainer.setTitle("");
@@ -45117,14 +45070,6 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         // from "items"
         createUndoView();
         switch (id) {
-            case nkbtn_repeat: {
-                repeatMessage(false,false);
-                break;
-            }
-            case nkbtn_repeatascopy: {
-                repeatMessage(false, true);
-                break;
-            }
             case nkbtn_forward_nocaption: {
                 noForwardQuote = false;
                 noForwardCaption = true;
@@ -45326,69 +45271,6 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 break;
             }
         }
-    }
-
-    private void repeatMessage(boolean isLongClick, boolean isRepeatasCopy) {
-        if (checkSlowMode(chatActivityEnterView.getSendButton())) {
-            return;
-        }
-        final ArrayList<MessageObject> messages = new ArrayList<>();
-        if (selectedObject != null) {
-            messages.add(selectedObject);
-        } else {
-            for (int k = 0; k < selectedMessagesIds[0].size(); k++) {
-                if (selectedMessagesIds[0].get(selectedMessagesIds[0].keyAt(k)) != null) {
-                    messages.add(selectedMessagesIds[0].get(selectedMessagesIds[0].keyAt(k)));
-                }
-            }
-        }
-        if (!NekoConfig.repeatConfirm.Bool()) {
-            doRepeatMessage(isLongClick, messages, isRepeatasCopy);
-            return;
-        }
-
-        AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
-        builder.setTitle(LocaleController.getString("Repeat", R.string.Repeat));
-        builder.setMessage(LocaleController.getString("repeatConfirmText", R.string.repeatConfirmText));
-        builder.setPositiveButton(LocaleController.getString("OK", R.string.OK), (dialogInterface, i) -> {
-            doRepeatMessage(isLongClick, messages, isRepeatasCopy);
-        });
-        builder.setNegativeButton(LocaleController.getString("Cancel", R.string.Cancel), null);
-        showDialog(builder.create());
-    }
-
-    private void doRepeatMessage(boolean isLongClick, ArrayList<MessageObject> messages, boolean isRepeatAsCopy) {
-        boolean noforwards = getMessagesController().isChatNoForwards(currentChat);
-        if (selectedObject == null && noforwards && !messages.isEmpty()) {
-            selectedObject = messages.get(0);
-        }
-        if (selectedObject != null && selectedObject.messageOwner != null && (isLongClick || (isThreadChat() && !isTopic) || noforwards)) {
-            // If selected message contains `replyTo`:
-            // When longClick it will reply to the `replyMessage` of selectedMessage
-            // When not LongClick but in a threadchat: reply to the Thread
-            MessageObject replyTo = selectedObject.replyMessageObject != null ? isLongClick ? selectedObject.replyMessageObject : getThreadMessage() : getThreadMessage();
-            if (replyTo != null || noforwards) {
-                if (selectedObject.type == 0 || selectedObject.isAnimatedEmoji() || getMessageCaption(selectedObject, selectedObjectGroup) != null) {
-                    CharSequence caption = getMessageCaption(selectedObject, selectedObjectGroup);
-                    if (caption == null) {
-                        caption = getMessageContent(selectedObject, 0, false);
-                    }
-                    if (!TextUtils.isEmpty(caption)) {
-                        SendMessagesHelper.getInstance(currentAccount)
-                                .sendMessage(caption.toString(), dialog_id, replyTo,
-                                        getThreadMessage(), null,
-                                        false, selectedObject.messageOwner.entities, null, null,
-                                        true, 0, null, false);
-                    }
-                } else if ((selectedObject.isSticker() || selectedObject.isAnimatedSticker()) && selectedObject.getDocument() != null) {
-                    SendMessagesHelper.getInstance(currentAccount)
-                            .sendSticker(selectedObject.getDocument(), null, dialog_id, replyTo, getThreadMessage(), null, replyingQuote, null, true, 0, false, null, quickReplyShortcut, getQuickReplyId());
-                }
-                return;
-            }
-        }
-
-        forwardMessages(messages, isLongClick || isRepeatAsCopy, false, true, 0, 0);
     }
 
     public void setScrollToMessage() {
@@ -47303,17 +47185,6 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                         items.add(getString(R.string.AddToSavedMessages));
                         options.add(nkbtn_savemessage);
                         icons.add(R.drawable.msg_saved);
-                    }
-                    boolean allowRepeat = currentUser != null || (currentChat != null && ChatObject.canSendMessages(currentChat));
-                    if (allowRepeat && !noforwards && selectedObject.canForwardMessage() && NekoConfig.showRepeat.Bool()) {
-                        items.add(LocaleController.getString(R.string.Repeat));
-                        options.add(nkbtn_repeat);
-                        icons.add(R.drawable.msg_repeat);
-                    }
-                    if (allowRepeat && !isAyuDeleted && !selectedObject.needDrawBluredPreview() && (NaConfig.INSTANCE.getShowRepeatAsCopy().Bool() || (NekoConfig.showRepeat.Bool() && noforwards))){
-                        items.add(LocaleController.getString(R.string.RepeatAsCopy));
-                        options.add(nkbtn_repeatascopy);
-                        icons.add(R.drawable.msg_repeat);
                     }
                     if (NekoConfig.showDeleteDownloadedFile.Bool() && getMessageHelper().messageObjectIsFile(type, selectedObject)) {
                         items.add(LocaleController.getString(R.string.DeleteDownloadedFile));
