@@ -113,7 +113,7 @@ public class MusicPlayerService extends Service implements NotificationCenter.No
             mediaSession = new MediaSession(this, "telegramAudioPlayer");
             playbackState = new PlaybackState.Builder();
             albumArtPlaceholder = Bitmap.createBitmap(AndroidUtilities.dp(102), AndroidUtilities.dp(102), Bitmap.Config.ARGB_8888);
-            Drawable placeholder = getResources().getDrawable(R.drawable.nocover_big);
+            Drawable placeholder = getResources().getDrawable(R.drawable.nocover_big_dark);
             placeholder.setBounds(0, 0, albumArtPlaceholder.getWidth(), albumArtPlaceholder.getHeight());
             placeholder.draw(new Canvas(albumArtPlaceholder));
             mediaSession.setCallback(new MediaSession.Callback() {
@@ -498,9 +498,9 @@ public class MusicPlayerService extends Service implements NotificationCenter.No
                     notification.bigContentView.setImageViewBitmap(R.id.player_album_art, albumArt);
                 }
             } else {
-                notification.contentView.setImageViewResource(R.id.player_album_art, R.drawable.nocover_small);
+                notification.contentView.setImageViewResource(R.id.player_album_art, R.drawable.nocover_small_dark);
                 if (supportBigNotifications) {
-                    notification.bigContentView.setImageViewResource(R.id.player_album_art, R.drawable.nocover_big);
+                    notification.bigContentView.setImageViewResource(R.id.player_album_art, R.drawable.nocover_big_dark);
                 }
             }
             if (MediaController.getInstance().isDownloadingCurrentMessage()) {

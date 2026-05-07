@@ -19,6 +19,7 @@ import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.LinearGradient;
@@ -168,6 +169,7 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
     private float audioSwipeStartY;
     private boolean audioSwipeTracking;
     private boolean audioSwipeStarted;
+    private boolean playerDisallowingParentIntercept;
     private boolean supportsCalls = true;
     private AvatarsImageView avatars;
 
@@ -1115,6 +1117,22 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
     }
 
     @Override
+    public boolean dispatchTouchEvent(MotionEvent event) {
+        int action = event.getActionMasked();
+        boolean playerPanelTouch = currentStyle == STYLE_AUDIO_PLAYER;
+        if (playerPanelTouch && action == MotionEvent.ACTION_DOWN) {
+            requestParentInterceptForPlayer(true);
+        } else if (!playerPanelTouch && playerDisallowingParentIntercept) {
+            requestParentInterceptForPlayer(false);
+        }
+        boolean handled = super.dispatchTouchEvent(event);
+        if (action == MotionEvent.ACTION_UP || action == MotionEvent.ACTION_CANCEL) {
+            requestParentInterceptForPlayer(false);
+        }
+        return handled;
+    }
+
+    @Override
     public boolean onTouchEvent(MotionEvent event) {
         if (currentStyle == STYLE_AUDIO_PLAYER && lastMessageObject != null && lastMessageObject.isMusic()) {
             final float x = event.getX();
@@ -1131,9 +1149,7 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
                 final float dy = y - audioSwipeStartY;
                 if (!audioSwipeStarted && Math.abs(dx) > touchSlop && Math.abs(dx) > Math.abs(dy) * 1.5f) {
                     audioSwipeStarted = true;
-                    if (getParent() != null) {
-                        getParent().requestDisallowInterceptTouchEvent(true);
-                    }
+                    requestParentInterceptForPlayer(true);
                     MotionEvent cancel = MotionEvent.obtain(event);
                     cancel.setAction(MotionEvent.ACTION_CANCEL);
                     super.onTouchEvent(cancel);
@@ -1149,9 +1165,6 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
                 final float dx = x - audioSwipeStartX;
                 audioSwipeTracking = false;
                 audioSwipeStarted = false;
-                if (getParent() != null) {
-                    getParent().requestDisallowInterceptTouchEvent(false);
-                }
                 if (consumeSwipe) {
                     if (dx < 0) {
                         MediaController.getInstance().playNextMusicMessageNoWrap();
@@ -1166,6 +1179,16 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
             audioSwipeStarted = false;
         }
         return super.onTouchEvent(event);
+    }
+
+    private void requestParentInterceptForPlayer(boolean disallow) {
+        if (playerDisallowingParentIntercept == disallow) {
+            return;
+        }
+        playerDisallowingParentIntercept = disallow;
+        if (getParent() != null) {
+            getParent().requestDisallowInterceptTouchEvent(disallow);
+        }
     }
 
     private void playbackSpeedChanged(boolean byTap, float oldValue, float newValue) {
@@ -1437,6 +1460,7 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
 
     @Override
     protected void onDetachedFromWindow() {
+        requestParentInterceptForPlayer(false);
         super.onDetachedFromWindow();
         if (animatorSet != null) {
             animatorSet.cancel();
@@ -1457,10 +1481,13 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
                 NotificationCenter.getInstance(a).removeObserver(this, NotificationCenter.messagePlayingDidReset);
                 NotificationCenter.getInstance(a).removeObserver(this, NotificationCenter.messagePlayingPlayStateChanged);
                 NotificationCenter.getInstance(a).removeObserver(this, NotificationCenter.messagePlayingDidStart);
+                NotificationCenter.getInstance(a).removeObserver(this, NotificationCenter.fileLoaded);
+                NotificationCenter.getInstance(a).removeObserver(this, NotificationCenter.httpFileDidLoad);
                 NotificationCenter.getInstance(a).removeObserver(this, NotificationCenter.groupCallUpdated);
                 NotificationCenter.getInstance(a).removeObserver(this, NotificationCenter.groupCallTypingsUpdated);
                 NotificationCenter.getInstance(a).removeObserver(this, NotificationCenter.historyImportProgressChanged);
             }
+            NotificationCenter.getGlobalInstance().removeObserver(this, NotificationCenter.didSetNewTheme);
             NotificationCenter.getGlobalInstance().removeObserver(this, NotificationCenter.messagePlayingSpeedChanged);
             NotificationCenter.getGlobalInstance().removeObserver(this, NotificationCenter.didStartedCall);
             NotificationCenter.getGlobalInstance().removeObserver(this, NotificationCenter.didEndCall);
@@ -1493,10 +1520,13 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
                 NotificationCenter.getInstance(a).addObserver(this, NotificationCenter.messagePlayingDidReset);
                 NotificationCenter.getInstance(a).addObserver(this, NotificationCenter.messagePlayingPlayStateChanged);
                 NotificationCenter.getInstance(a).addObserver(this, NotificationCenter.messagePlayingDidStart);
+                NotificationCenter.getInstance(a).addObserver(this, NotificationCenter.fileLoaded);
+                NotificationCenter.getInstance(a).addObserver(this, NotificationCenter.httpFileDidLoad);
                 NotificationCenter.getInstance(a).addObserver(this, NotificationCenter.groupCallUpdated);
                 NotificationCenter.getInstance(a).addObserver(this, NotificationCenter.groupCallTypingsUpdated);
                 NotificationCenter.getInstance(a).addObserver(this, NotificationCenter.historyImportProgressChanged);
             }
+            NotificationCenter.getGlobalInstance().addObserver(this, NotificationCenter.didSetNewTheme);
             NotificationCenter.getGlobalInstance().addObserver(this, NotificationCenter.messagePlayingSpeedChanged);
             NotificationCenter.getGlobalInstance().addObserver(this, NotificationCenter.didStartedCall);
             NotificationCenter.getGlobalInstance().addObserver(this, NotificationCenter.didEndCall);
@@ -1613,6 +1643,11 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
             checkImport(false);
         } else if (id == NotificationCenter.messagePlayingSpeedChanged) {
             updatePlaybackButton(true);
+        } else if (id == NotificationCenter.fileLoaded || id == NotificationCenter.httpFileDidLoad) {
+            updatePlayerPreviewAfterFileLoad(account, args);
+        } else if (id == NotificationCenter.didSetNewTheme) {
+            updatePlayerTextColorsForThemeChange();
+            updatePlayerPreviewForThemeChange();
         } else if (id == NotificationCenter.webRtcMicAmplitudeEvent) {
             if (VoIPService.getSharedInstance() == null || VoIPService.getSharedInstance().isMicMute()) {
                 micAmplitude = 0;
@@ -2046,11 +2081,15 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
     }
 
     private void updatePlayerPreview(MessageObject messageObject, boolean animated) {
+        updatePlayerPreview(messageObject, animated, false);
+    }
+
+    private void updatePlayerPreview(MessageObject messageObject, boolean animated, boolean crossfadeOnly) {
         if (playerPreviewImageViews[0] == null || messageObject == null) {
             return;
         }
         final int nextIndex;
-        if (animated) {
+        if (animated && !crossfadeOnly) {
             nextIndex = playerPreviewActiveIndex == 0 ? 1 : 0;
         } else {
             nextIndex = playerPreviewActiveIndex;
@@ -2061,16 +2100,17 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
             imageView.setRoundRadius(dp(2));
             AudioInfo audioInfo = MediaController.getInstance().getAudioInfo();
             if (audioInfo != null && audioInfo.getCover() != null) {
-                imageView.setImageBitmap(audioInfo.getCover());
+                setPlayerPreviewBitmap(imageView, audioInfo.getCover(), crossfadeOnly);
             } else {
                 ImageLocation thumbImageLocation = getPlayerArtworkThumbImageLocation(messageObject);
                 String artworkUrl = messageObject.getArtworkUrl(false);
+                Drawable placeholder = getPlayerNoCoverDrawable();
                 if (!TextUtils.isEmpty(artworkUrl)) {
-                    imageView.setImage(ImageLocation.getForPath(artworkUrl), null, thumbImageLocation, null, null, null, 0, 1, messageObject);
+                    imageView.setImage(ImageLocation.getForPath(artworkUrl), null, thumbImageLocation, null, placeholder, null, 0, 1, messageObject);
                 } else if (thumbImageLocation != null) {
-                    imageView.setImage(null, null, thumbImageLocation, null, null, null, 0, 1, messageObject);
+                    imageView.setImage(null, null, thumbImageLocation, null, placeholder, null, 0, 1, messageObject);
                 } else {
-                    imageView.setImageResource(R.drawable.nocover_small);
+                    imageView.setImageDrawable(placeholder);
                 }
             }
         } else {
@@ -2088,7 +2128,7 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
                 imageView.setImageDrawable(avatarDrawable);
             }
         }
-        if (animated) {
+        if (animated && !crossfadeOnly) {
             switchPlayerPreview(nextIndex);
         } else {
             playerPreviewActiveIndex = nextIndex;
@@ -2098,6 +2138,75 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
                 playerPreviewImageViews[i].setScaleY(1f);
                 playerPreviewImageViews[i].setTranslationY(0);
                 playerPreviewImageViews[i].setVisibility(i == playerPreviewActiveIndex && currentStyle == STYLE_AUDIO_PLAYER ? VISIBLE : INVISIBLE);
+            }
+        }
+    }
+
+    private void setPlayerPreviewBitmap(BackupImageView imageView, Bitmap bitmap, boolean crossfade) {
+        if (crossfade) {
+            imageView.getImageReceiver().setCrossfadeWithOldImage(true);
+            imageView.getImageReceiver().setForceCrossfade(true);
+        }
+        imageView.setImageBitmap(bitmap);
+        if (crossfade) {
+            imageView.getImageReceiver().setForceCrossfade(false);
+            imageView.getImageReceiver().setCrossfadeWithOldImage(false);
+        }
+    }
+
+    private Drawable getPlayerNoCoverDrawable() {
+        return getResources().getDrawable(getPlayerNoCoverSmallResource());
+    }
+
+    private int getPlayerNoCoverSmallResource() {
+        boolean dark = resourcesProvider != null ? resourcesProvider.isDark() : Theme.isCurrentThemeDark();
+        return dark ? R.drawable.nocover_small_dark : R.drawable.nocover_small_light;
+    }
+
+    private void updatePlayerPreviewAfterFileLoad(int account, Object... args) {
+        if (currentStyle != STYLE_AUDIO_PLAYER || lastMessageObject == null || !lastMessageObject.isMusic() || lastMessageObject.currentAccount != account) {
+            return;
+        }
+        if (args.length == 0 || !(args[0] instanceof String)) {
+            return;
+        }
+        TLRPC.Document document = lastMessageObject.getDocument();
+        String documentFileName = document != null ? FileLoader.getAttachFileName(document) : null;
+        String loadedFileName = (String) args[0];
+        if (TextUtils.isEmpty(documentFileName) || !documentFileName.equals(loadedFileName)) {
+            return;
+        }
+        AndroidUtilities.runOnUIThread(() -> {
+            MessageObject messageObject = MediaController.getInstance().getPlayingMessageObject();
+            AudioInfo audioInfo = MediaController.getInstance().getAudioInfo();
+            if (messageObject == lastMessageObject && messageObject != null && messageObject.isMusic() && audioInfo != null && audioInfo.getCover() != null) {
+                updatePlayerPreview(messageObject, false, true);
+            }
+        });
+    }
+
+    private void updatePlayerPreviewForThemeChange() {
+        if (currentStyle != STYLE_AUDIO_PLAYER || lastMessageObject == null || !lastMessageObject.isMusic()) {
+            return;
+        }
+        AudioInfo audioInfo = MediaController.getInstance().getAudioInfo();
+        if (audioInfo == null || audioInfo.getCover() == null) {
+            updatePlayerPreview(lastMessageObject, false);
+        }
+    }
+
+    private void updatePlayerTextColorsForThemeChange() {
+        if (currentStyle != STYLE_AUDIO_PLAYER) {
+            return;
+        }
+        for (int i = 0; i < 2; i++) {
+            TextView title = i == 0 ? titleTextView.getTextView() : titleTextView.getNextTextView();
+            TextView subtitle = i == 0 ? subtitleTextView.getTextView() : subtitleTextView.getNextTextView();
+            if (title != null) {
+                title.setTextColor(getThemedColor(Theme.key_inappPlayerPerformer));
+            }
+            if (subtitle != null) {
+                subtitle.setTextColor(getThemedColor(Theme.key_chat_topPanelMessage));
             }
         }
     }
