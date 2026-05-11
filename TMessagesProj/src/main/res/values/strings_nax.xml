@@ -281,7 +281,7 @@
     <string name="VideoMessagesStartCamera">Default Rear Camera</string>
     <string name="VideoMessagesStartCameraUnavailable">No camera modules available</string>
     <string name="VideoMessagesSeamlessSwitching">Seamless Switching</string>
-    <string name="VideoMessagesSeamlessSwitchingDescription">Record from both Front and Rear cameras at once for instant switching. May increase battery usage.</string>
+    <string name="VideoMessagesSeamlessSwitchingDescription">Record from both cameras at once for instant switching. May increase battery usage.</string>
     <string name="VideoMessagesSeamlessSwitchingUnsupported">Simultaneous Front and Back camera capture isn\'t available on this device.</string>
     <string name="VideoMessagesStabilization">Stabilization</string>
     <string name="VideoMessagesStabilizationDescription">Some devices may only support video stabilization on one of the cameras.</string>

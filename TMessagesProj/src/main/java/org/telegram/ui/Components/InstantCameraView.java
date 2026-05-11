@@ -585,9 +585,22 @@ public class InstantCameraView extends FrameLayout implements NotificationCenter
         textureOverlayView = new BackupImageView(getContext()) {
 
             CellFlickerDrawable flickerDrawable = new CellFlickerDrawable();
+            private final Path roundClipPath = new Path();
+
+            @Override
+            protected void onSizeChanged(int w, int h, int oldw, int oldh) {
+                super.onSizeChanged(w, h, oldw, oldh);
+                roundClipPath.reset();
+                float radius = Math.min(w, h) / 2f;
+                roundClipPath.addCircle(w / 2f, h / 2f, radius, Path.Direction.CW);
+            }
 
             @Override
             protected void onDraw(Canvas canvas) {
+                int saveCount = canvas.save();
+                if (getWidth() > 0 && getHeight() > 0) {
+                    canvas.clipPath(roundClipPath);
+                }
                 super.onDraw(canvas);
                 if (needDrawFlickerStub) {
                     flickerDrawable.setParentWidth(textureViewSize);
@@ -598,6 +611,7 @@ public class InstantCameraView extends FrameLayout implements NotificationCenter
                     flickerDrawable.draw(canvas, AndroidUtilities.rectTmp, rad, null);
                     invalidate();
                 }
+                canvas.restoreToCount(saveCount);
             }
         };
         addView(textureOverlayView, new LayoutParams(AndroidUtilities.roundPlayingMessageSize, AndroidUtilities.roundPlayingMessageSize, Gravity.CENTER));
