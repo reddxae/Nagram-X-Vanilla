@@ -14,6 +14,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffColorFilter;
+import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Build;
@@ -64,6 +65,7 @@ import org.telegram.ui.Cells.ShadowSectionCell;
 import org.telegram.ui.Cells.TextCell;
 import org.telegram.ui.Cells.TextInfoPrivacyCell;
 import org.telegram.ui.Cells.TextSettingsCell;
+import org.telegram.ui.Components.CombinedDrawable;
 import org.telegram.ui.Components.EditTextBoldCursor;
 import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.RecyclerListView;
@@ -480,7 +482,7 @@ public class NekoSettingsActivity extends BaseFragment {
                             view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
                             break;
                         case VIEW_TYPE_BOTTOM:
-                            view = new ShadowSectionCell(getContext());
+                            view = new ShadowSectionCell(getContext(), 12, getThemedColor(Theme.key_windowBackgroundGray), resourceProvider);
                             break;
                         case VIEW_TYPE_TEXT:
                             view = new TextCell(getContext());
@@ -491,7 +493,7 @@ public class NekoSettingsActivity extends BaseFragment {
                             view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
                             break;
                         case VIEW_TYPE_INFO:
-                            view = new TextInfoPrivacyCell(getContext());
+                            view = new TextInfoPrivacyCell(getContext(), 10, resourceProvider);
                             break;
                     }
                     //noinspection ConstantConditions
@@ -525,9 +527,6 @@ public class NekoSettingsActivity extends BaseFragment {
                             break;
                         }
                         case VIEW_TYPE_BOTTOM: {
-                            if (position == configureBottomRow || position == backupsBottomRow || position == otherBottomRow) {
-                                holder.itemView.setBackground(Theme.getThemedDrawable(getContext(), R.drawable.greydivider, Theme.key_windowBackgroundGrayShadow));
-                            }
                             break;
                         }
                         case VIEW_TYPE_TEXT: {
@@ -571,10 +570,12 @@ public class NekoSettingsActivity extends BaseFragment {
                                 cell.getTextView().setMaxLines(Integer.MAX_VALUE);
                                 cell.getTextView().setTextColor(getThemedColor(Theme.key_windowBackgroundWhiteGrayText3));
                                 cell.getTextView().setMovementMethod(null);
-                                cell.setTopPadding(14);
-                                cell.setBottomPadding(10);
                                 cell.setText(ApplicationLoader.applicationContext.getString(R.string.NagramVanillaAboutFooter, BuildConfig.VERSION_CODE));
-                                cell.setBackground(Theme.getThemedDrawable(getContext(), R.drawable.greydivider_bottom, getThemedColor(Theme.key_windowBackgroundGrayShadow)));
+                                cell.getTextView().setPadding(0, AndroidUtilities.dp(14), 0, AndroidUtilities.dp(14));
+                                Drawable shadowDrawable = Theme.getThemedDrawable(getContext(), R.drawable.greydivider_bottom, getThemedColor(Theme.key_windowBackgroundGrayShadow));
+                                CombinedDrawable background = new CombinedDrawable(new ColorDrawable(getThemedColor(Theme.key_windowBackgroundGray)), shadowDrawable);
+                                background.setFullsize(true);
+                                cell.setBackground(background);
                             } else {
                                 cell.setBackground(null);
                             }
