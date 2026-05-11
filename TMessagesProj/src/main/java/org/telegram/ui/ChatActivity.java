@@ -10827,9 +10827,6 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         int maxActionBarItems = (int) (Math.ceil(displayMetrics.widthPixels  / (double) AndroidUtilities.dp(54))) - 2;
         isActionBarTooNarrow = maxActionBarItems < 6;
         ActionBarMenuItem replyActionModeItem = actionMode.addItemWithWidth(nkactionbarbtn_reply, R.drawable.input_reply, AndroidUtilities.dp(54), LocaleController.getString(R.string.Reply));
-        if (replyActionModeItem.getIconView() != null) {
-            replyActionModeItem.getIconView().setScaleX(-1f);
-        }
         actionModeViews.add(replyActionModeItem);
         actionModeViews.add(actionMode.addItemWithWidth(edit, R.drawable.msg_edit, AndroidUtilities.dp(54), LocaleController.getString(R.string.Edit)));
         actionModeViews.add(actionMode.addItemWithWidth(nkactionbarbtn_selectBetween, R.drawable.ic_select_between, AndroidUtilities.dp(54), LocaleController.getString(R.string.SelectBetween)));
