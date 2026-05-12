@@ -4455,8 +4455,10 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
         bottom += chatSearchExpandOffset;
 
         if (allowBlur) {
-            backgroundPaint.setColor(useTranslucentPanelBackground() ? getThemedColor(Theme.key_chat_messagePanelBackground) : makeOpaqueColor(getThemedColor(Theme.key_chat_messagePanelBackground)));
-            if (useTranslucentPanelBackground() && sizeNotifierLayout != null) {
+            int panelColor = getThemedColor(Theme.key_chat_messagePanelBackground);
+            boolean drawTranslucentPanel = useTranslucentPanelBackground() && sizeNotifierLayout != null;
+            backgroundPaint.setColor(drawTranslucentPanel ? panelColor : makeOpaqueColor(panelColor));
+            if (drawTranslucentPanel) {
                 blurBounds.set(0, bottom, getWidth(), getHeight());
                 sizeNotifierLayout.drawBlurRect(canvas, getTop(), blurBounds, backgroundPaint, false);
             } else {

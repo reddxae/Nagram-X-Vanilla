@@ -58,7 +58,7 @@ public class BlurredFrameLayout extends FrameLayout {
 
     private void updateBackgroundColor() {
         if (translucentPanelMode != TRANSLUCENT_PANEL_DEFAULT && sizeNotifierFrameLayout != null) {
-            super.setBackgroundColor(useTranslucentPanelBackground() ? Color.TRANSPARENT : makeOpaqueColor(backgroundColor));
+            super.setBackgroundColor(Color.TRANSPARENT);
         } else if (SharedConfig.chatBlurEnabled() && sizeNotifierFrameLayout != null) {
             super.setBackgroundColor(Color.TRANSPARENT);
         } else {
