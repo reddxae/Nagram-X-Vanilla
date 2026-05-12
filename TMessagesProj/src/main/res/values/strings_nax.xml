@@ -270,6 +270,7 @@
     <string name="Camera">Camera</string>
     <string name="CameraHardwareSettings">Hardware settings</string>
     <string name="CameraRecordingOptions">Recording options</string>
+    <string name="VideoMessagesAdaptiveBitrate">Adaptive Quality</string>
     <string name="Resolution">Resolution</string>
     <string name="Bitrate">Bitrate</string>
     <string name="VideoMessagesCamera2Api">Use Camera2 API</string>
@@ -281,10 +282,9 @@
     <string name="VideoMessagesStartCamera">Default Rear Camera</string>
     <string name="VideoMessagesStartCameraUnavailable">No camera modules available</string>
     <string name="VideoMessagesSeamlessSwitching">Seamless Switching</string>
-    <string name="VideoMessagesSeamlessSwitchingDescription">Record from both cameras at once for instant switching. May increase battery usage.</string>
+    <string name="VideoMessagesSeamlessSwitchingDescription">Record from both cameras for instant switching. May increase battery usage.</string>
     <string name="VideoMessagesSeamlessSwitchingUnsupported">Simultaneous Front and Back camera capture isn\'t available on this device.</string>
     <string name="VideoMessagesStabilization">Stabilization</string>
-    <string name="VideoMessagesStabilizationDescription">Some devices may only support video stabilization on one of the cameras.</string>
     <string name="VideoMessagesStabilizationUnsupported">Native video stabilization is not available for video messages on this device.</string>
     <string name="VideoMessagesStabilizationDisabled">Disabled</string>
     <string name="VideoMessagesBoth">Both</string>
@@ -298,7 +298,9 @@
     <string name="VideoMessagesSaveZoomPositionDescription">Keeps the current zoom level until you change it manually.</string>
     <string name="VideoMessagesBlurCameraSwitch">Blur While Switching Cameras</string>
     <string name="VideoMessagesBlurCameraSwitchDescription">Smooth blur on recording when flipping cameras instead of a laggy gap.</string>
+    <string name="VideoMessagesResetQualityDefaults">Reset to defaults</string>
     <string name="CameraVideoMessagesNotice">Video messages larger than 10 MB will be sent as regular videos automatically to bypass the server-side limit.</string>
+    <string name="CameraVideoMessagesAdaptiveNotice">Video messages larger than 10 MB will be automatically compressed with best quality possible within the server-side limit.</string>
     <string name="NagramVanillaAboutFooter">Vanilla, a Nagram fork\nbuild %1$d</string>
     <string name="DisableGooeyAvatarAnimation">Disable \"Gooey\" Avatar Animation</string>
     <string name="ExportSettingsIncludeApiKeys">Include API Keys</string>

@@ -285,6 +285,7 @@
     <string name="Camera">Камера</string>
     <string name="CameraHardwareSettings">Аппаратные настройки</string>
     <string name="CameraRecordingOptions">Параметры записи</string>
+    <string name="VideoMessagesAdaptiveBitrate">Адаптивное качество</string>
     <string name="Resolution">Разрешение</string>
     <string name="Bitrate">Битрейт</string>
     <string name="VideoMessagesCamera2Api">Use Camera2 API</string>
@@ -296,10 +297,9 @@
     <string name="VideoMessagesStartCamera">Задняя камера по умолчанию</string>
     <string name="VideoMessagesStartCameraUnavailable">Модули камеры недоступны</string>
     <string name="VideoMessagesSeamlessSwitching">Плавное переключение</string>
-    <string name="VideoMessagesSeamlessSwitchingDescription">Записывает одновременно с обеих камер для мгновенного переключения во время видеосообщений. Может увеличить расход батареи и нагрузку на процессор.</string>
+    <string name="VideoMessagesSeamlessSwitchingDescription">Записывает с обеих камер для мгновенного переключения во время видеосообщений. Может увеличить расход батареи и нагрузку на процессор.</string>
     <string name="VideoMessagesSeamlessSwitchingUnsupported">Одновременная съёмка с фронтальной и основной камер недоступна на этом устройстве.</string>
     <string name="VideoMessagesStabilization">Стабилизация</string>
-    <string name="VideoMessagesStabilizationDescription">Некоторые устройства могут поддерживать видеостабилизацию только на одной из камер.</string>
     <string name="VideoMessagesStabilizationUnsupported">Нативная видеостабилизация недоступна для видеосообщений на этом устройстве.</string>
     <string name="VideoMessagesStabilizationDisabled">Выключено</string>
     <string name="VideoMessagesCameraModuleMain">Основной</string>
@@ -312,6 +312,8 @@
     <string name="VideoMessagesSaveZoomPositionDescription">Сохраняет текущий уровень зума после отпускания пальцев, пока вы не измените его вручную.</string>
     <string name="VideoMessagesBlurCameraSwitch">Размытие при смене камеры</string>
     <string name="VideoMessagesBlurCameraSwitchDescription">Добавляет быстрое размытие прямо в записываемое видео во время переключения камеры.</string>
+    <string name="VideoMessagesResetQualityDefaults">Сбросить к значениям по умолчанию</string>
     <string name="CameraVideoMessagesNotice">Видеосообщения размером более 10 МБ будут автоматически отправляться как обычные видео, чтобы обойти серверное ограничение.</string>
+    <string name="CameraVideoMessagesAdaptiveNotice">Видеосообщения размером более 10 МБ будут автоматически сжаты с максимально возможным качеством в рамках серверного ограничения.</string>
     <string name="DisableGooeyAvatarAnimation">Отключить анимацию аватара «Gooey»</string>
 </resources>

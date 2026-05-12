@@ -51,9 +51,11 @@ import android.opengl.GLES11Ext;
 import android.opengl.GLES20;
 import android.opengl.GLUtils;
 import android.os.Build;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
+import android.util.Range;
 import android.view.Gravity;
 import android.view.HapticFeedbackConstants;
 import android.view.MotionEvent;
@@ -97,7 +99,11 @@ import org.telegram.messenger.camera.CameraInfo;
 import org.telegram.messenger.camera.CameraSession;
 import org.telegram.messenger.camera.Size;
 import org.telegram.messenger.video.MP4Builder;
+import org.telegram.messenger.video.MediaCodecVideoConvertor;
 import org.telegram.messenger.video.Mp4Movie;
+import org.telegram.messenger.video.RoundVideoBitrateController;
+import org.telegram.messenger.video.RoundVideoEncodingOptions;
+import org.telegram.messenger.video.RoundVideoFileUtils;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.Theme;
@@ -108,7 +114,6 @@ import org.telegram.ui.Stories.recorder.StoryEntry;
 
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -127,6 +132,7 @@ import javax.microedition.khronos.egl.EGLDisplay;
 import javax.microedition.khronos.egl.EGLSurface;
 
 import tw.nekomimi.nekogram.NekoConfig;
+import xyz.nextalone.nagram.NaConfig;
 
 @TargetApi(18)
 public class InstantCameraView extends FrameLayout implements NotificationCenter.NotificationCenterDelegate {
@@ -134,6 +140,7 @@ public class InstantCameraView extends FrameLayout implements NotificationCenter
     private static final int FRONT_CAMERA_INDEX = 0;
     private static final int BACK_CAMERA_INDEX = 1;
     private static final int START_CAMERA_OVERRIDE_NONE = -1;
+    private static final long VIDEO_NOTE_RECORD_LIMIT_MS = 59_500L;
     private static volatile int nextSessionStartCameraOverride = START_CAMERA_OVERRIDE_NONE;
 
     public boolean WRITE_TO_FILE_IN_BACKGROUND;
@@ -170,6 +177,7 @@ public class InstantCameraView extends FrameLayout implements NotificationCenter
     private final int[] position = new int[2];
     private final int[] cameraTexture = new int[] { Integer.MIN_VALUE, Integer.MIN_VALUE };
     private final int[] oldCameraTexture = new int[1];
+    private int seamlessOldCameraTexture = Integer.MIN_VALUE;
     private float cameraTextureAlpha = 1.0f;
 
     private AnimatorSet animatorSet;
@@ -182,6 +190,19 @@ public class InstantCameraView extends FrameLayout implements NotificationCenter
     private long recordPlusTime;
     private boolean recording;
     private long recordedTime;
+    private boolean recordLimitStopRequested;
+    private final Runnable recordLimitStopRunnable = () -> {
+        if (!recording || recordLimitStopRequested) {
+            return;
+        }
+        updateRecordedTime(true);
+        if (recordedTime < VIDEO_NOTE_RECORD_LIMIT_MS) {
+            scheduleRecordLimitStop();
+            return;
+        }
+        recordLimitStopRequested = true;
+        send(3, true, 0, 0, 0, 0);
+    };
     private boolean cancelled;
 
     private CameraGLThread cameraThread;
@@ -221,18 +242,31 @@ public class InstantCameraView extends FrameLayout implements NotificationCenter
         if (!useCamera2) {
             return;
         }
+        prepareRoundVideoCameraSelection(true);
+        prepareRoundVideoCameraSelection(false);
+    }
+
+    private void prepareRoundVideoCameraSelection(boolean front) {
+        if (!useCamera2) {
+            return;
+        }
         int roundVideoSize = MessagesController.getInstance(UserConfig.selectedAccount).roundVideoSize;
         String selectedKey = NekoConfig.videoMessagesStartCamera.String();
-        roundVideoCameraSelections[FRONT_CAMERA_INDEX] = Camera2Session.resolveRoundVideoCameraSelectionForFacing(true, selectedKey, roundVideoSize, roundVideoSize);
-        roundVideoCameraSelections[BACK_CAMERA_INDEX] = Camera2Session.resolveRoundVideoCameraSelectionForFacing(false, selectedKey, roundVideoSize, roundVideoSize);
-        defaultZoomValues[FRONT_CAMERA_INDEX] = roundVideoCameraSelections[FRONT_CAMERA_INDEX] != null ? roundVideoCameraSelections[FRONT_CAMERA_INDEX].initialZoom : 1f;
-        defaultZoomValues[BACK_CAMERA_INDEX] = roundVideoCameraSelections[BACK_CAMERA_INDEX] != null ? roundVideoCameraSelections[BACK_CAMERA_INDEX].initialZoom : 1f;
+        int index = getCameraIndex(front);
+        roundVideoCameraSelections[index] = Camera2Session.resolveRoundVideoCameraSelectionForFacing(
+                front,
+                selectedKey,
+                roundVideoSize,
+                roundVideoSize,
+                !front && bothCameras
+        );
+        defaultZoomValues[index] = roundVideoCameraSelections[index] != null ? roundVideoCameraSelections[index].initialZoom : 1f;
     }
 
     private Camera2Session.RoundVideoCameraSelection getRoundVideoCameraSelection(boolean front) {
         Camera2Session.RoundVideoCameraSelection selection = roundVideoCameraSelections[getCameraIndex(front)];
         if (selection == null && useCamera2) {
-            prepareRoundVideoCameraSelections();
+            prepareRoundVideoCameraSelection(front);
             selection = roundVideoCameraSelections[getCameraIndex(front)];
         }
         return selection;
@@ -377,9 +411,14 @@ public class InstantCameraView extends FrameLayout implements NotificationCenter
                     "   gl_FragColor = vec4(color.rgb, color.a * alpha);\n" +
                     "}\n";
 
+    private static FloatBuffer createTextureBuffer() {
+        return ByteBuffer.allocateDirect(8 * 4).order(ByteOrder.nativeOrder()).asFloatBuffer();
+    }
+
     private FloatBuffer vertexBuffer;
     private FloatBuffer textureBuffer;
-    private FloatBuffer oldTextureTextureBuffer;
+    private final FloatBuffer[] textureBuffers = new FloatBuffer[]{createTextureBuffer(), createTextureBuffer()};
+    private final FloatBuffer oldTextureTextureBuffer = createTextureBuffer();
     private float scaleX;
     private float scaleY;
 
@@ -509,7 +548,7 @@ public class InstantCameraView extends FrameLayout implements NotificationCenter
         switchCameraButton.setContentDescription(LocaleController.getString(R.string.AccDescrSwitchCamera));
         addView(switchCameraButton, LayoutHelper.createFrame(62, 62, Gravity.LEFT | Gravity.BOTTOM, 8, 0, 0, 0));
         switchCameraButton.setOnClickListener(v -> {
-            if (!cameraReady || !isCameraSessionInitiated() || cameraThread == null) {
+            if (flipAnimationInProgress || !cameraReady || !isCameraSessionInitiated() || cameraThread == null) {
                 return;
             }
             if (!bothCameras) {
@@ -770,6 +809,7 @@ public class InstantCameraView extends FrameLayout implements NotificationCenter
     }
 
     public void destroy(boolean async) {
+        cancelRecordLimitStop();
         if (useCamera2) {
             for (int a = 0; a < camera2Sessions.length; ++a) {
                 if (camera2Sessions[a] != null) {
@@ -802,8 +842,11 @@ public class InstantCameraView extends FrameLayout implements NotificationCenter
         float y = cameraContainer.getY();
         rect.set(x - dp(8), y - dp(8), x + cameraContainer.getMeasuredWidth() + dp(8), y + cameraContainer.getMeasuredHeight() + dp(8));
         if (recording) {
-            recordedTime = System.currentTimeMillis() - recordStartTime + recordPlusTime;
-            progress = Math.min(1f, recordedTime / 60000.0f);
+            updateRecordedTime(true);
+            if (!recordLimitStopRequested && recordedTime >= VIDEO_NOTE_RECORD_LIMIT_MS) {
+                recordLimitStopRequested = true;
+                send(3, true, 0, 0, 0, 0);
+            }
             invalidate();
         }
 
@@ -815,6 +858,22 @@ public class InstantCameraView extends FrameLayout implements NotificationCenter
             canvas.drawArc(rect, -90, 360 * progress, false, paint);
             canvas.restore();
         }
+    }
+
+    private void updateRecordedTime(boolean clampToLimit) {
+        long elapsed = System.currentTimeMillis() - recordStartTime + recordPlusTime;
+        recordedTime = clampToLimit ? Math.min(elapsed, VIDEO_NOTE_RECORD_LIMIT_MS) : elapsed;
+        progress = Math.min(1f, recordedTime / 60000.0f);
+    }
+
+    private void scheduleRecordLimitStop() {
+        AndroidUtilities.cancelRunOnUIThread(recordLimitStopRunnable);
+        long delay = Math.max(0, VIDEO_NOTE_RECORD_LIMIT_MS - recordedTime);
+        AndroidUtilities.runOnUIThread(recordLimitStopRunnable, delay);
+    }
+
+    private void cancelRecordLimitStop() {
+        AndroidUtilities.cancelRunOnUIThread(recordLimitStopRunnable);
     }
 
     private boolean setVisibilityFromPause;
@@ -854,6 +913,7 @@ public class InstantCameraView extends FrameLayout implements NotificationCenter
 
     public void togglePause() {
         if (recording) {
+            cancelRecordLimitStop();
             cancelled = recordedTime < 800;
             recording = false;
             updateFlash();
@@ -921,17 +981,23 @@ public class InstantCameraView extends FrameLayout implements NotificationCenter
         cameraReady = false;
         selectedCamera = null;
         if (!fromPaused) {
-            if (useCamera2) {
-                prepareRoundVideoCameraSelections();
-            }
             isFrontface = resolveStartFrontfaceForNewSession();
             surfaceIndex = FRONT_CAMERA_INDEX;
+            if (useCamera2) {
+                bothCameras = shouldUseSeamlessSwitching();
+                if (bothCameras) {
+                    prepareRoundVideoCameraSelections();
+                } else {
+                    prepareRoundVideoCameraSelection(isFrontface);
+                }
+            }
             currentZoomValue = getDefaultZoomValue(isFrontface);
             pinchStartZoom = currentZoomValue;
             pinchScale = currentZoomValue;
             updateFlash();
             recordedTime = 0;
             progress = 0;
+            recordLimitStopRequested = false;
         }
         cancelled = false;
         file = null;
@@ -971,7 +1037,9 @@ public class InstantCameraView extends FrameLayout implements NotificationCenter
         }
 
         if (useCamera2) {
-            bothCameras = shouldUseSeamlessSwitching();
+            if (fromPaused) {
+                bothCameras = shouldUseSeamlessSwitching();
+            }
             if (bothCameras) {
                 if (camera2Sessions[FRONT_CAMERA_INDEX] == null) {
                     camera2Sessions[FRONT_CAMERA_INDEX] = createCamera2RoundSession(true, FRONT_CAMERA_INDEX);
@@ -1017,6 +1085,7 @@ public class InstantCameraView extends FrameLayout implements NotificationCenter
                     cameraThread.surfaceWidth = width;
                     cameraThread.surfaceHeight = height;
                     cameraThread.updateScale();
+                    cameraThread.updateTextureBuffer();
                 }
             }
 
@@ -1154,6 +1223,7 @@ public class InstantCameraView extends FrameLayout implements NotificationCenter
         if (textureView == null) {
             return;
         }
+        cancelRecordLimitStop();
         stopProgressTimer();
         if (videoPlayer != null) {
             videoPlayer.releasePlayer(true);
@@ -1206,6 +1276,9 @@ public class InstantCameraView extends FrameLayout implements NotificationCenter
             }
             MediaController.getInstance().requestRecordAudioFocus(false);
         } else {
+            if (recording) {
+                updateRecordedTime(true);
+            }
             cancelled = recordedTime < 800;
             recording = false;
             flashing = false;
@@ -1257,6 +1330,7 @@ public class InstantCameraView extends FrameLayout implements NotificationCenter
     }
 
     public void cancel(boolean byGesture) {
+        cancelRecordLimitStop();
         stopProgressTimer();
         if (videoPlayer != null) {
             videoPlayer.releasePlayer(true);
@@ -1338,7 +1412,7 @@ public class InstantCameraView extends FrameLayout implements NotificationCenter
             videoEncoder.startCameraSwitchBlur();
         }
         isFrontface = !isFrontface;
-        if (shouldSaveZoomPosition()) {
+        if (!shouldSaveZoomPosition()) {
             currentZoomValue = getDefaultZoomValue(isFrontface);
             pinchStartZoom = currentZoomValue;
             pinchScale = currentZoomValue;
@@ -1348,15 +1422,13 @@ public class InstantCameraView extends FrameLayout implements NotificationCenter
             if (bothCameras) {
                 camera2SessionCurrent = camera2Sessions[getCameraIndex(isFrontface)];
                 if (camera2SessionCurrent != null) {
-                    camera2SessionCurrent.setZoom(Utilities.clamp(currentZoomValue, camera2SessionCurrent.getMaxZoom(), camera2SessionCurrent.getMinZoom()));
-                }
-                if (camera2SessionCurrent != null) {
-                    currentZoomValue = camera2SessionCurrent.getZoom();
+                    currentZoomValue = Utilities.clamp(currentZoomValue, camera2SessionCurrent.getMaxZoom(), camera2SessionCurrent.getMinZoom());
+                    camera2SessionCurrent.setZoom(currentZoomValue);
                     pinchStartZoom = currentZoomValue;
                     pinchScale = currentZoomValue;
                 }
                 cameraThread.setCurrentSession(camera2SessionCurrent);
-                cameraThread.flipSurfaces();
+                cameraThread.flipSurfaces(recording && shouldAnimateBlurCameraSwitch());
                 return;
             } else {
                 int previousIndex = getCameraIndex(!isFrontface);
@@ -1370,6 +1442,7 @@ public class InstantCameraView extends FrameLayout implements NotificationCenter
                     return;
                 }
                 camera2Sessions[getCameraIndex(isFrontface)] = camera2SessionCurrent;
+                updateFlash();
                 currentZoomValue = shouldSaveZoomPosition() ? currentZoomValue : getDefaultZoomValue(isFrontface);
                 pinchStartZoom = currentZoomValue;
                 pinchScale = currentZoomValue;
@@ -1726,7 +1799,6 @@ public class InstantCameraView extends FrameLayout implements NotificationCenter
         private final int DO_REINIT_MESSAGE = 2;
         private final int DO_SETSESSION_MESSAGE = 3;
         private final int DO_FLIP = 4;
-
         private int drawProgram;
         private int vertexMatrixHandle;
         private int textureMatrixHandle;
@@ -1772,8 +1844,33 @@ public class InstantCameraView extends FrameLayout implements NotificationCenter
                 scaleX = height / (float) surfaceWidth;
                 scaleY = 1.0f;
             }
-            FileLog.d("InstantCamera camera scaleX = " + scaleX + " scaleY = " + scaleY);
+            if (BuildVars.LOGS_ENABLED) {
+                FileLog.d("InstantCamera camera scaleX = " + scaleX + " scaleY = " + scaleY);
+            }
 
+        }
+
+        private void updateTextureBuffer() {
+            float tX = 1.0f / scaleX / 2.0f;
+            float tY = 1.0f / scaleY / 2.0f;
+            textureBuffer = textureBuffers[surfaceIndex];
+            textureBuffer.position(0);
+            textureBuffer.put(0.5f - tX).put(0.5f - tY);
+            textureBuffer.put(0.5f + tX).put(0.5f - tY);
+            textureBuffer.put(0.5f - tX).put(0.5f + tY);
+            textureBuffer.put(0.5f + tX).put(0.5f + tY);
+            textureBuffer.position(0);
+        }
+
+        private void copyCurrentTextureBufferToOld() {
+            if (textureBuffer == null) {
+                return;
+            }
+            textureBuffer.position(0);
+            oldTextureTextureBuffer.position(0);
+            oldTextureTextureBuffer.put(textureBuffer);
+            textureBuffer.position(0);
+            oldTextureTextureBuffer.position(0);
         }
 
         private boolean initGL() {
@@ -1862,20 +1959,11 @@ public class InstantCameraView extends FrameLayout implements NotificationCenter
             }
 
             updateScale();
-
-            float tX = 1.0f / scaleX / 2.0f;
-            float tY = 1.0f / scaleY / 2.0f;
             float[] verticesData = {
                     -1.0f, -1.0f, 0,
                     1.0f, -1.0f, 0,
                     -1.0f, 1.0f, 0,
                     1.0f, 1.0f, 0
-            };
-            float[] texData = {
-                    0.5f - tX, 0.5f - tY,
-                    0.5f + tX, 0.5f - tY,
-                    0.5f - tX, 0.5f + tY,
-                    0.5f + tX, 0.5f + tY
             };
 
             if (videoEncoder == null) {
@@ -1885,8 +1973,7 @@ public class InstantCameraView extends FrameLayout implements NotificationCenter
             vertexBuffer = ByteBuffer.allocateDirect(verticesData.length * 4).order(ByteOrder.nativeOrder()).asFloatBuffer();
             vertexBuffer.put(verticesData).position(0);
 
-            textureBuffer = ByteBuffer.allocateDirect(texData.length * 4).order(ByteOrder.nativeOrder()).asFloatBuffer();
-            textureBuffer.put(texData).position(0);
+            updateTextureBuffer();
 
             android.opengl.Matrix.setIdentityM(mSTMatrix, 0);
 
@@ -2005,11 +2092,10 @@ public class InstantCameraView extends FrameLayout implements NotificationCenter
             }
         }
 
-        public void flipSurfaces() {
+        public void flipSurfaces(boolean animated) {
             Handler handler = getHandler();
             if (handler != null) {
-                sendMessage(handler.obtainMessage(DO_FLIP), 0);
-                requestRender(true, true);
+                sendMessage(handler.obtainMessage(DO_FLIP, animated ? 1 : 0, 0), 0);
             }
         }
 
@@ -2032,7 +2118,10 @@ public class InstantCameraView extends FrameLayout implements NotificationCenter
             if (updateTexImage2) {
                 cameraSurface[1].updateTexImage();
             }
-
+            boolean activeFrameUpdated = (surfaceIndex == 0 && updateTexImage1) || (surfaceIndex == 1 && updateTexImage2);
+            if (bothCameras && !activeFrameUpdated) {
+                return;
+            }
             boolean captureFirstFrameThumb = false;
             if (!recording) {
                 if (videoEncoder == null) {
@@ -2064,11 +2153,11 @@ public class InstantCameraView extends FrameLayout implements NotificationCenter
                 updateFlash();
             }
 
-            if (videoEncoder != null && (surfaceIndex == 0 && updateTexImage1 || surfaceIndex == 1 && updateTexImage2)) {
+            cameraSurface[surfaceIndex].getTransformMatrix(mSTMatrix);
+
+            if (videoEncoder != null && ((surfaceIndex == 0 && updateTexImage1) || (surfaceIndex == 1 && updateTexImage2))) {
                 videoEncoder.frameAvailable(cameraSurface[surfaceIndex], bothCameras ? surfaceIndex : cameraId, System.nanoTime());
             }
-
-            cameraSurface[surfaceIndex].getTransformMatrix(mSTMatrix);
 
             GLES20.glUseProgram(drawProgram);
             GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
@@ -2082,7 +2171,6 @@ public class InstantCameraView extends FrameLayout implements NotificationCenter
 
             GLES20.glUniformMatrix4fv(textureMatrixHandle, 1, false, mSTMatrix, 0);
             GLES20.glUniformMatrix4fv(vertexMatrixHandle, 1, false, mMVPMatrix, 0);
-
             GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, 4);
 
             GLES20.glDisableVertexAttribArray(positionHandle);
@@ -2117,9 +2205,10 @@ public class InstantCameraView extends FrameLayout implements NotificationCenter
             int what = inputMessage.what;
 
             switch (what) {
-                case DO_RENDER_MESSAGE:
+                case DO_RENDER_MESSAGE: {
                     onDraw(inputMessage.arg1, (inputMessage.arg2 & 1) != 0, (inputMessage.arg2 & 2) != 0);
                     break;
+                }
                 case DO_SHUTDOWN_MESSAGE:
                     finish();
                     if (recording && (!(inputMessage.obj instanceof SendOptions) || ((SendOptions) inputMessage.obj).ttl != -2) && videoEncoder != null) {
@@ -2145,7 +2234,7 @@ public class InstantCameraView extends FrameLayout implements NotificationCenter
                         oldCameraTexture[0] = cameraTexture[0];
                         cameraTextureAlpha = 0.0f;
                         cameraTexture[0] = 0;
-                        oldTextureTextureBuffer = textureBuffer.duplicate();
+                        copyCurrentTextureBufferToOld();
                         oldTexturePreviewSize = previewSize[0];
                     }
                     cameraId++;
@@ -2163,19 +2252,7 @@ public class InstantCameraView extends FrameLayout implements NotificationCenter
                     createCamera(0, cameraSurface[0]);
 
                     updateScale();
-
-                    float tX = 1.0f / scaleX / 2.0f;
-                    float tY = 1.0f / scaleY / 2.0f;
-
-                    float[] texData = {
-                            0.5f - tX, 0.5f - tY,
-                            0.5f + tX, 0.5f - tY,
-                            0.5f - tX, 0.5f + tY,
-                            0.5f + tX, 0.5f + tY
-                    };
-
-                    textureBuffer = ByteBuffer.allocateDirect(texData.length * 4).order(ByteOrder.nativeOrder()).asFloatBuffer();
-                    textureBuffer.put(texData).position(0);
+                    updateTextureBuffer();
                     break;
                 }
                 case DO_SETSESSION_MESSAGE: {
@@ -2202,22 +2279,20 @@ public class InstantCameraView extends FrameLayout implements NotificationCenter
                     break;
                 }
                 case DO_FLIP: {
+                    if (inputMessage.arg1 == 1 && bothCameras && cameraSurface[surfaceIndex] != null && textureBuffer != null) {
+                        cameraSurface[surfaceIndex].getTransformMatrix(moldSTMatrix);
+                        copyCurrentTextureBufferToOld();
+                        oldTexturePreviewSize = previewSize[surfaceIndex];
+                        seamlessOldCameraTexture = cameraTexture[surfaceIndex];
+                        cameraTextureAlpha = 0.0f;
+                    } else {
+                        seamlessOldCameraTexture = Integer.MIN_VALUE;
+                        cameraTextureAlpha = 1.0f;
+                    }
                     surfaceIndex = 1 - surfaceIndex;
 
                     updateScale();
-
-                    float tX = 1.0f / scaleX / 2.0f;
-                    float tY = 1.0f / scaleY / 2.0f;
-
-                    float[] texData = {
-                            0.5f - tX, 0.5f - tY,
-                            0.5f + tX, 0.5f - tY,
-                            0.5f - tX, 0.5f + tY,
-                            0.5f + tX, 0.5f + tY
-                    };
-
-                    textureBuffer = ByteBuffer.allocateDirect(texData.length * 4).order(ByteOrder.nativeOrder()).asFloatBuffer();
-                    textureBuffer.put(texData).position(0);
+                    updateTextureBuffer();
                     break;
                 }
             }
@@ -2360,7 +2435,6 @@ public class InstantCameraView extends FrameLayout implements NotificationCenter
 
     private class VideoRecorder implements Runnable {
 
-        private static final String VIDEO_MIME_TYPE = "video/avc";
         private static final String AUDIO_MIME_TYPE = "audio/mp4a-latm";
         private static final int FRAME_RATE = 30;
         private static final long FRAME_DURATION_NS = 1_000_000_000L / FRAME_RATE;
@@ -2370,6 +2444,12 @@ public class InstantCameraView extends FrameLayout implements NotificationCenter
         private static final long CAMERA_SWITCH_BLUR_HOLD_DURATION_NS = 55_000_000L;
         private static final long CAMERA_SWITCH_BLUR_SETTLE_DURATION_NS = 180_000_000L;
         private static final long CAMERA_SWITCH_BLUR_OUT_DURATION_NS = 120_000_000L;
+        private static final long CAMERA_SWITCH_SEAMLESS_BLUR_IN_DURATION_NS = 25_000_000L;
+        private static final long CAMERA_SWITCH_SEAMLESS_BLUR_HOLD_DURATION_NS = 35_000_000L;
+        private static final long CAMERA_SWITCH_SEAMLESS_BLUR_SETTLE_DURATION_NS = 75_000_000L;
+        private static final long CAMERA_SWITCH_SEAMLESS_BLUR_OUT_DURATION_NS = 100_000_000L;
+        private static final long CAMERA_SWITCH_SEAMLESS_ALPHA_DURATION_NS = 150_000_000L;
+        private static final long CAMERA_SWITCH_ALPHA_DURATION_NS = 200_000_000L;
 
         private File videoFile;
         private File fileToWrite;
@@ -2377,6 +2457,9 @@ public class InstantCameraView extends FrameLayout implements NotificationCenter
         private int videoWidth;
         private int videoHeight;
         private int videoBitrate;
+        private String videoMimeType = RoundVideoEncodingOptions.AVC_MIME_TYPE;
+        private boolean adaptiveBitrate;
+        private final RoundVideoBitrateController bitrateController = new RoundVideoBitrateController();
         private boolean videoConvertFirstWrite = true;
         private boolean blendEnabled;
 
@@ -2580,8 +2663,9 @@ public class InstantCameraView extends FrameLayout implements NotificationCenter
             }
 
             started = true;
-            int resolution = MessagesController.getInstance(currentAccount).roundVideoSize;
-            int bitrate = MessagesController.getInstance(currentAccount).roundVideoBitrate * 1024;
+            adaptiveBitrate = NaConfig.INSTANCE.getCameraVideoNoteAdaptiveBitrate().Bool();
+            int resolution = adaptiveBitrate ? RoundVideoEncodingOptions.getAdaptiveResolution() : MessagesController.getInstance(currentAccount).roundVideoSize;
+            int bitrate = (adaptiveBitrate ? RoundVideoEncodingOptions.HIGH_QUALITY_MASTER_BITRATE : MessagesController.getInstance(currentAccount).roundVideoBitrate) * 1024;
             AndroidUtilities.runOnUIThread(() -> {
                 NotificationCenter.getInstance(currentAccount).postNotificationName(NotificationCenter.stopAllHeavyOperations, 512);
             });
@@ -2590,6 +2674,8 @@ public class InstantCameraView extends FrameLayout implements NotificationCenter
             videoWidth = resolution;
             videoHeight = resolution;
             videoBitrate = bitrate;
+            bitrateController.reset(bitrate);
+            videoMimeType = RoundVideoEncodingOptions.getVideoMimeType(resolution);
             sharedEglContext = sharedContext;
 
             synchronized (sync) {
@@ -2683,8 +2769,8 @@ public class InstantCameraView extends FrameLayout implements NotificationCenter
         }
 
         private void startCameraSwitchBlurOnNewCamera(long timestampNanos) {
-            recordedCameraSwitchBlurStartedAt = timestampNanos - CAMERA_SWITCH_BLUR_IN_DURATION_NS;
-            recordedCameraSwitchBlurReadyAt = timestampNanos + CAMERA_SWITCH_BLUR_HOLD_DURATION_NS;
+            recordedCameraSwitchBlurStartedAt = timestampNanos - getCameraSwitchBlurInDuration();
+            recordedCameraSwitchBlurReadyAt = timestampNanos + getCameraSwitchBlurHoldDuration();
             recordedCameraSwitchBlurFadeOutAt = -1L;
             recordedCameraSwitchBlurPendingStart = false;
             recordedCameraSwitchBlurWaitingForFadeOut = true;
@@ -2694,7 +2780,7 @@ public class InstantCameraView extends FrameLayout implements NotificationCenter
             if (!recordedCameraSwitchBlurWaitingForFadeOut || recordedCameraSwitchBlurStartedAt < 0 || recordedCameraSwitchBlurFadeOutAt >= 0) {
                 return;
             }
-            recordedCameraSwitchBlurFadeOutAt = Math.max(timestampNanos + CAMERA_SWITCH_BLUR_SETTLE_DURATION_NS, recordedCameraSwitchBlurReadyAt);
+            recordedCameraSwitchBlurFadeOutAt = Math.max(timestampNanos + getCameraSwitchBlurSettleDuration(), recordedCameraSwitchBlurReadyAt);
             recordedCameraSwitchBlurWaitingForFadeOut = false;
         }
 
@@ -2730,15 +2816,31 @@ public class InstantCameraView extends FrameLayout implements NotificationCenter
                 return 0f;
             }
             if (recordedCameraSwitchBlurFadeOutAt >= 0 && timestampNanos >= recordedCameraSwitchBlurFadeOutAt) {
-                float progress = (float) (timestampNanos - recordedCameraSwitchBlurFadeOutAt) / CAMERA_SWITCH_BLUR_OUT_DURATION_NS;
+                float progress = (float) (timestampNanos - recordedCameraSwitchBlurFadeOutAt) / getCameraSwitchBlurOutDuration();
                 if (progress >= 1f) {
                     resetCameraSwitchBlur();
                     return 0f;
                 }
                 return Math.max(0f, 1f - progress);
             }
-            float progress = (float) (timestampNanos - recordedCameraSwitchBlurStartedAt) / CAMERA_SWITCH_BLUR_IN_DURATION_NS;
+            float progress = (float) (timestampNanos - recordedCameraSwitchBlurStartedAt) / getCameraSwitchBlurInDuration();
             return Math.max(0f, Math.min(1f, progress));
+        }
+
+        private long getCameraSwitchBlurInDuration() {
+            return bothCameras ? CAMERA_SWITCH_SEAMLESS_BLUR_IN_DURATION_NS : CAMERA_SWITCH_BLUR_IN_DURATION_NS;
+        }
+
+        private long getCameraSwitchBlurHoldDuration() {
+            return bothCameras ? CAMERA_SWITCH_SEAMLESS_BLUR_HOLD_DURATION_NS : CAMERA_SWITCH_BLUR_HOLD_DURATION_NS;
+        }
+
+        private long getCameraSwitchBlurSettleDuration() {
+            return bothCameras ? CAMERA_SWITCH_SEAMLESS_BLUR_SETTLE_DURATION_NS : CAMERA_SWITCH_BLUR_SETTLE_DURATION_NS;
+        }
+
+        private long getCameraSwitchBlurOutDuration() {
+            return bothCameras ? CAMERA_SWITCH_SEAMLESS_BLUR_OUT_DURATION_NS : CAMERA_SWITCH_BLUR_OUT_DURATION_NS;
         }
 
         @Override
@@ -2956,6 +3058,7 @@ public class InstantCameraView extends FrameLayout implements NotificationCenter
                 pendingVideoFrameDuration = 0;
             }
             currentTimestamp += dt;
+            maybeUpdateAdaptiveVideoBitrate();
             if (cameraChanged && recordedCameraSwitchBlurPendingStart) {
                 startCameraSwitchBlurOnNewCamera(timestampNanos);
             }
@@ -2996,8 +3099,12 @@ public class InstantCameraView extends FrameLayout implements NotificationCenter
             boolean holdCurrentTextureUntilNewFrame = !bothCameras
                     && oldCameraTexture[0] != 0
                     && recordedCameraSwitchBlurPendingStart;
+            boolean drawSeamlessOldTexture = bothCameras
+                    && seamlessOldCameraTexture != Integer.MIN_VALUE
+                    && oldTextureBuffer != null
+                    && cameraTextureAlpha < 1.0f;
 
-            if (oldCameraTexture[0] != 0 && oldTextureBuffer != null && !bothCameras) {
+            if ((!bothCameras && oldCameraTexture[0] != 0 && oldTextureBuffer != null) || drawSeamlessOldTexture) {
                 if (!blendEnabled) {
                     GLES20.glEnable(GLES20.GL_BLEND);
                     blendEnabled = true;
@@ -3011,7 +3118,7 @@ public class InstantCameraView extends FrameLayout implements NotificationCenter
                 GLES20.glUniformMatrix4fv(textureMatrixHandle, 1, false, moldSTMatrix, 0);
                 GLES20.glUniform1f(alphaHandle, 1.0f);
                 GLES20.glUniform1f(switchBlurHandle, 0.0f);
-                GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, oldCameraTexture[0]);
+                GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, drawSeamlessOldTexture ? seamlessOldCameraTexture : oldCameraTexture[0]);
                 GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, 4);
             }
 
@@ -3022,8 +3129,9 @@ public class InstantCameraView extends FrameLayout implements NotificationCenter
 
             final int tex = cameraTexture[surfaceIndex];
             if (tex != Integer.MIN_VALUE && !holdCurrentTextureUntilNewFrame) {
+                GLES20.glVertexAttribPointer(textureHandle, 2, GLES20.GL_FLOAT, false, 8, textureBuffer);
                 GLES20.glUniformMatrix4fv(textureMatrixHandle, 1, false, mSTMatrix, 0);
-                GLES20.glUniform1f(alphaHandle, cameraTextureAlpha);
+                GLES20.glUniform1f(alphaHandle, ((!bothCameras && oldCameraTexture[0] != 0) || drawSeamlessOldTexture) ? cameraTextureAlpha : 1.0f);
                 GLES20.glUniform1f(switchBlurHandle, switchBlurAmount);
                 GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, tex);
                 GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, 4);
@@ -3047,14 +3155,20 @@ public class InstantCameraView extends FrameLayout implements NotificationCenter
             createKeyframeThumb();
             frameCount++;
 
-            if (oldCameraTexture[0] != 0 && cameraTextureAlpha < 1.0f && !bothCameras && !holdCurrentTextureUntilNewFrame) {
-                cameraTextureAlpha += alphaDt / 200000000.0f;
+            boolean hasSwitchTexture = (!bothCameras && oldCameraTexture[0] != 0) || (bothCameras && seamlessOldCameraTexture != Integer.MIN_VALUE);
+            if (hasSwitchTexture && cameraTextureAlpha < 1.0f && !holdCurrentTextureUntilNewFrame) {
+                float alphaDuration = bothCameras ? CAMERA_SWITCH_SEAMLESS_ALPHA_DURATION_NS : CAMERA_SWITCH_ALPHA_DURATION_NS;
+                cameraTextureAlpha += alphaDt / alphaDuration;
                 if (cameraTextureAlpha > 1) {
                     GLES20.glDisable(GLES20.GL_BLEND);
                     blendEnabled = false;
                     cameraTextureAlpha = 1;
-                    GLES20.glDeleteTextures(1, oldCameraTexture, 0);
-                    oldCameraTexture[0] = 0;
+                    if (bothCameras) {
+                        seamlessOldCameraTexture = Integer.MIN_VALUE;
+                    } else {
+                        GLES20.glDeleteTextures(1, oldCameraTexture, 0);
+                        oldCameraTexture[0] = 0;
+                    }
                     if (!cameraReady) {
                         cameraReady = true;
                         AndroidUtilities.runOnUIThread(() -> textureOverlayView.animate().setDuration(120).alpha(0.0f).setInterpolator(new DecelerateInterpolator()).start());
@@ -3254,9 +3368,121 @@ public class InstantCameraView extends FrameLayout implements NotificationCenter
 
         private boolean sentMedia;
 
+        private boolean isAdaptiveBitrate() {
+            return adaptiveBitrate;
+        }
+
+        private int calculateFinalRoundVideoBitrate(long durationMs) {
+            int audioBitrate = MessagesController.getInstance(currentAccount).roundAudioBitrate * 1024;
+            return bitrateController.calculateFinalVideoBitrate(durationMs, audioBitrate);
+        }
+
+        private long getRecordedEncodingDurationMs() {
+            long encoderDuration = currentTimestamp > 0 ? currentTimestamp / 1_000_000L : 0;
+            return Math.max(recordedTime, encoderDuration);
+        }
+
+        private long getAdaptiveEncodingDurationMs() {
+            return Math.max(1000L, Math.min(getRecordedEncodingDurationMs(), VIDEO_NOTE_RECORD_LIMIT_MS));
+        }
+
+        private void updateMuxedSizeEstimate(long availableSize) {
+            bitrateController.updateMuxedSizeEstimate(availableSize);
+        }
+
+        private void maybeUpdateAdaptiveVideoBitrate() {
+            if (!isAdaptiveBitrate() || videoEncoder == null || Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT || currentTimestamp <= 0) {
+                return;
+            }
+            int targetBitrate = bitrateController.getLiveBitrateUpdate(currentTimestamp);
+            if (targetBitrate == RoundVideoBitrateController.NO_BITRATE_UPDATE) {
+                return;
+            }
+            try {
+                Bundle params = new Bundle();
+                params.putInt(MediaCodec.PARAMETER_KEY_VIDEO_BITRATE, targetBitrate);
+                videoEncoder.setParameters(params);
+                bitrateController.onBitrateApplied(targetBitrate);
+            } catch (Exception e) {
+                FileLog.e(e);
+            }
+        }
+
+        private boolean convertRoundVideoToAvc(File sourceFile, File convertedFile, int bitrate) {
+            long duration = getAdaptiveEncodingDurationMs();
+            VideoEditedInfo convertInfo = new VideoEditedInfo();
+            convertInfo.roundVideo = true;
+            convertInfo.originalDuration = duration;
+            convertInfo.estimatedDuration = duration;
+            convertInfo.account = currentAccount;
+            MediaCodecVideoConvertor.ConvertVideoParams params = MediaCodecVideoConvertor.ConvertVideoParams.of(
+                    sourceFile.getAbsolutePath(),
+                    convertedFile,
+                    0,
+                    isSecretChat,
+                    videoWidth,
+                    videoHeight,
+                    videoWidth,
+                    videoHeight,
+                    FRAME_RATE,
+                    bitrate,
+                    videoBitrate,
+                    -1,
+                    -1,
+                    -1,
+                    true,
+                    duration,
+                    null,
+                    convertInfo
+            );
+            return !new MediaCodecVideoConvertor().convertVideo(params);
+        }
+
+        private boolean replaceVideoFile(File convertedFile) {
+            if (!RoundVideoFileUtils.replaceFile(convertedFile, videoFile, "InstantCamera AVC replacement")) {
+                return false;
+            }
+            size = videoFile.length();
+            videoMimeType = RoundVideoEncodingOptions.AVC_MIME_TYPE;
+            return true;
+        }
+
+        private boolean ensureAdaptiveRoundVideoFitsLimit() {
+            if (videoFile == null || !videoFile.exists()) {
+                return false;
+            }
+            size = videoFile.length();
+            if (size <= RoundVideoEncodingOptions.SERVER_FILE_SIZE_LIMIT_BYTES && getRecordedEncodingDurationMs() <= VIDEO_NOTE_RECORD_LIMIT_MS) {
+                return true;
+            }
+            File parent = videoFile.getParentFile();
+            File convertedFile = new File(parent != null ? parent : FileLoader.getDirectory(FileLoader.MEDIA_DIR_CACHE), videoFile.getName() + ".avc.mp4");
+            int bitrate = calculateFinalRoundVideoBitrate(getAdaptiveEncodingDurationMs());
+            boolean converted = false;
+            for (int attempt = 0; attempt < 3; attempt++) {
+                if (!RoundVideoFileUtils.deleteIfExists(convertedFile, "InstantCamera unable to delete previous AVC conversion output")) {
+                    break;
+                }
+                if (!convertRoundVideoToAvc(videoFile, convertedFile, bitrate) || !convertedFile.exists() || convertedFile.length() <= 0) {
+                    break;
+                }
+                if (convertedFile.length() <= RoundVideoEncodingOptions.SERVER_FILE_SIZE_LIMIT_BYTES) {
+                    converted = replaceVideoFile(convertedFile);
+                    break;
+                }
+                bitrate = bitrateController.getRetryVideoBitrate(bitrate, convertedFile.length());
+            }
+            if (!converted) {
+                RoundVideoFileUtils.deleteIfExists(convertedFile, "InstantCamera unable to delete failed AVC conversion output");
+                FileLog.e("InstantCamera unable to fit adaptive round video into server limit, sending original file");
+            }
+            return true;
+        }
+
         private void handleStopRecording(final int send, final SendOptions sendOptions) {
+            final long finalRecordedDuration = isAdaptiveBitrate() ? getAdaptiveEncodingDurationMs() : recordedTime;
             final boolean runDone;
-            if (send == ENCODER_SEND_SEND && (videoEditedInfo == null || !videoEditedInfo.needConvert()) && !delegate.isInScheduleMode()) {
+            if (!isAdaptiveBitrate() && send == ENCODER_SEND_SEND && (videoEditedInfo == null || !videoEditedInfo.needConvert()) && !delegate.isInScheduleMode()) {
                 runDone = false;
                 if (!sentMedia) {
                     sentMedia = true;
@@ -3276,7 +3502,7 @@ public class InstantCameraView extends FrameLayout implements NotificationCenter
                         videoEditedInfo.originalPath = videoFile.getAbsolutePath();
                         videoEditedInfo.notReadyYet = true;
                         videoEditedInfo.thumb = firstFrameThumb;
-                        videoEditedInfo.estimatedDuration = recordedTime;
+                        videoEditedInfo.estimatedDuration = finalRecordedDuration;
                         firstFrameThumb = null;
                         MediaController.PhotoEntry entry = new MediaController.PhotoEntry(0, 0, 0, videoFile.getAbsolutePath(), 0, true, 0, 0, 0);
                         if (sendOptions != null) {
@@ -3351,26 +3577,12 @@ public class InstantCameraView extends FrameLayout implements NotificationCenter
                 }
                 FileLog.d("InstantCamera handleStopRecording finish muxer");
                 if (writingToDifferentFile) {
-                    if (videoFile.exists()) {
-                        try {
-                            videoFile.delete();
-                        } catch (Exception e) {
-                            FileLog.e("InstantCamera copying fileToWrite to videoFile, deleting videoFile error " + videoFile);
-                            FileLog.e(e);
-                        }
-                    }
-                    if (!fileToWrite.renameTo(videoFile)) {
-                        FileLog.e("InstantCamera unable to rename file, try move file");
-                        try {
-                            AndroidUtilities.copyFile(fileToWrite, videoFile);
-                            fileToWrite.delete();
-                        } catch (IOException e) {
-                            FileLog.e(e);
-                            FileLog.e("InstantCamera unable to move file");
-                        }
+                    if (!RoundVideoFileUtils.replaceFile(fileToWrite, videoFile, "InstantCamera final file move")) {
+                        FileLog.e("InstantCamera unable to move final video file");
                     }
                 }
             }
+            boolean readyToSend = send == ENCODER_SEND_CANCEL || !isAdaptiveBitrate() || ensureAdaptiveRoundVideoFitsLimit();
             if (send != 2) {
                 if (generateKeyframeThumbsQueue != null) {
                     generateKeyframeThumbsQueue.cleanupQueue();
@@ -3379,7 +3591,7 @@ public class InstantCameraView extends FrameLayout implements NotificationCenter
                 }
             }
             FileLog.d("InstantCamera handleStopRecording send " + send);
-            if (send == ENCODER_SEND_CANCEL) {
+            if (send == ENCODER_SEND_CANCEL || !readyToSend) {
                 FileLoader.getInstance(currentAccount).cancelFileUpload(videoFile.getAbsolutePath(), false);
                 try {
                     fileToWrite.delete();
@@ -3387,6 +3599,12 @@ public class InstantCameraView extends FrameLayout implements NotificationCenter
                 try {
                     videoFile.delete();
                 } catch (Throwable ignore) {}
+                if (!readyToSend) {
+                    AndroidUtilities.runOnUIThread(() -> {
+                        MediaController.getInstance().requestRecordAudioFocus(false);
+                        startAnimation(false, false);
+                    });
+                }
             } else {
                 if (runDone && (send != ENCODER_SEND_SEND || !sentMedia)) {
                     sentMedia = true;
@@ -3451,7 +3669,7 @@ public class InstantCameraView extends FrameLayout implements NotificationCenter
                             videoEditedInfo = null;
                         } else {
                             setupVideoPlayer(videoFile);
-                            info.estimatedDuration = recordedTime;
+                            info.estimatedDuration = finalRecordedDuration;
                             NotificationCenter.getInstance(currentAccount).postNotificationName(NotificationCenter.audioDidSent, recordingGuid, info, videoFile.getAbsolutePath(), keyframeThumbs);
                         }
                     });
@@ -3495,10 +3713,10 @@ public class InstantCameraView extends FrameLayout implements NotificationCenter
                 SharedConfig.recordViaSco = false;
                 SharedConfig.saveConfig();
             }
-            if (am.isBluetoothScoAvailableOffCall() && SharedConfig.recordViaSco || !scoOn) {
+            if ((am.isBluetoothScoAvailableOffCall() && SharedConfig.recordViaSco) || !scoOn) {
                 BluetoothAdapter btAdapter = BluetoothAdapter.getDefaultAdapter();
                 try {
-                    if (btAdapter != null && btAdapter.getProfileConnectionState(BluetoothProfile.HEADSET) == BluetoothProfile.STATE_CONNECTED || !scoOn) {
+                    if ((btAdapter != null && btAdapter.getProfileConnectionState(BluetoothProfile.HEADSET) == BluetoothProfile.STATE_CONNECTED) || !scoOn) {
                         if (scoOn && !am.isBluetoothScoOn()) {
                             am.startBluetoothSco();
                         } else if (!scoOn && am.isBluetoothScoOn()) {
@@ -3516,6 +3734,63 @@ public class InstantCameraView extends FrameLayout implements NotificationCenter
                         FileLog.e(e2);
                     }
                 }
+            }
+        }
+
+        private MediaFormat createVideoEncoderFormat() {
+            MediaFormat format = MediaFormat.createVideoFormat(videoMimeType, videoWidth, videoHeight);
+            format.setInteger(MediaFormat.KEY_COLOR_FORMAT, MediaCodecInfo.CodecCapabilities.COLOR_FormatSurface);
+            format.setInteger(MediaFormat.KEY_BIT_RATE, videoBitrate);
+            format.setInteger(MediaFormat.KEY_FRAME_RATE, FRAME_RATE);
+            format.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, IFRAME_INTERVAL);
+            return format;
+        }
+
+        private boolean applyVideoEncoderQualityHints(MediaFormat format) {
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP || videoEncoder == null) {
+                return false;
+            }
+            boolean applied = false;
+            try {
+                MediaCodecInfo.CodecCapabilities capabilities = videoEncoder.getCodecInfo().getCapabilitiesForType(videoMimeType);
+                if (RoundVideoEncodingOptions.AVC_MIME_TYPE.equals(videoMimeType) && capabilities != null && capabilities.profileLevels != null) {
+                    for (MediaCodecInfo.CodecProfileLevel profileLevel : capabilities.profileLevels) {
+                        if (profileLevel != null && profileLevel.profile == MediaCodecInfo.CodecProfileLevel.AVCProfileHigh) {
+                            format.setInteger(MediaFormat.KEY_PROFILE, MediaCodecInfo.CodecProfileLevel.AVCProfileHigh);
+                            applied = true;
+                            break;
+                        }
+                    }
+                }
+                MediaCodecInfo.EncoderCapabilities encoderCapabilities = capabilities != null ? capabilities.getEncoderCapabilities() : null;
+                Range<Integer> complexityRange = encoderCapabilities != null ? encoderCapabilities.getComplexityRange() : null;
+                if (complexityRange != null && complexityRange.getUpper() > complexityRange.getLower()) {
+                    format.setInteger(MediaFormat.KEY_COMPLEXITY, complexityRange.getUpper());
+                    applied = true;
+                }
+            } catch (Exception e) {
+                FileLog.e(e);
+            }
+            return applied;
+        }
+
+        private void configureVideoEncoder() throws Exception {
+            MediaFormat format = createVideoEncoderFormat();
+            boolean qualityHintsApplied = applyVideoEncoderQualityHints(format);
+            try {
+                videoEncoder.configure(format, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE);
+            } catch (Exception e) {
+                if (!qualityHintsApplied) {
+                    throw e;
+                }
+                FileLog.e("InstantCamera unable to configure H.264 encoder with quality hints, falling back to default format", e);
+                try {
+                    videoEncoder.release();
+                } catch (Exception releaseException) {
+                    FileLog.e(releaseException);
+                }
+                videoEncoder = MediaCodec.createEncoderByType(videoMimeType);
+                videoEncoder.configure(createVideoEncoderFormat(), null, null, MediaCodec.CONFIGURE_FLAG_ENCODE);
             }
         }
 
@@ -3583,23 +3858,9 @@ public class InstantCameraView extends FrameLayout implements NotificationCenter
                 audioEncoder.configure(audioFormat, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE);
                 audioEncoder.start();
 
-                videoEncoder = MediaCodec.createEncoderByType(VIDEO_MIME_TYPE);
+                videoEncoder = MediaCodec.createEncoderByType(videoMimeType);
                 firstEncode = true;
-
-                MediaFormat format = MediaFormat.createVideoFormat(VIDEO_MIME_TYPE, videoWidth, videoHeight);
-
-                format.setInteger(MediaFormat.KEY_COLOR_FORMAT, MediaCodecInfo.CodecCapabilities.COLOR_FormatSurface);
-                format.setInteger(MediaFormat.KEY_BIT_RATE, videoBitrate);
-                format.setInteger(MediaFormat.KEY_FRAME_RATE, FRAME_RATE);
-                format.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, IFRAME_INTERVAL);
-                    /*if (Build.VERSION.SDK_INT >= 21) {
-                        format.setInteger(MediaFormat.KEY_PROFILE, MediaCodecInfo.CodecProfileLevel.AVCProfileHigh);
-                        if (Build.VERSION.SDK_INT >= 23) {
-                            format.setInteger(MediaFormat.KEY_LEVEL, MediaCodecInfo.CodecProfileLevel.AVCLevel5);
-                        }
-                    }*/
-
-                videoEncoder.configure(format, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE);
+                configureVideoEncoder();
                 surface = videoEncoder.createInputSurface();
                 videoEncoder.start();
 
@@ -3624,7 +3885,7 @@ public class InstantCameraView extends FrameLayout implements NotificationCenter
                     movie.setRotation(0);
                     movie.setSize(videoWidth, videoHeight);
                     mediaMuxer = new MP4Builder().createMovie(movie, isSecretChat, false);
-                    mediaMuxer.setAllowSyncFiles(allowSendingWhileRecording = SharedConfig.deviceIsHigh());
+                    mediaMuxer.setAllowSyncFiles(allowSendingWhileRecording = !isAdaptiveBitrate() && SharedConfig.deviceIsHigh());
                 }
 
                 AndroidUtilities.runOnUIThread(() -> {
@@ -3640,6 +3901,8 @@ public class InstantCameraView extends FrameLayout implements NotificationCenter
                     recordPlusTime = fromPause ? recordedTime : 0;
                     recordStartTime = System.currentTimeMillis();
                     recording = true;
+                    updateRecordedTime(true);
+                    scheduleRecordLimitStop();
                     updateFlash();
                     invalidate();
                     NotificationCenter.getInstance(currentAccount).postNotificationName(NotificationCenter.recordStarted, recordingGuid, false);
@@ -3796,7 +4059,7 @@ public class InstantCameraView extends FrameLayout implements NotificationCenter
                         if (newFormat.containsKey(MediaFormat.KEY_PREPEND_HEADER_TO_SYNC_FRAMES) && newFormat.getInteger(MediaFormat.KEY_PREPEND_HEADER_TO_SYNC_FRAMES) == 1) {
                             ByteBuffer spsBuff = newFormat.getByteBuffer("csd-0");
                             ByteBuffer ppsBuff = newFormat.getByteBuffer("csd-1");
-                            prependHeaderSize = spsBuff.limit() + ppsBuff.limit();
+                            prependHeaderSize = (spsBuff == null ? 0 : spsBuff.limit()) + (ppsBuff == null ? 0 : ppsBuff.limit());
                         }
                     }
                 } else if (encoderStatus >= 0) {
@@ -3816,22 +4079,7 @@ public class InstantCameraView extends FrameLayout implements NotificationCenter
                                 videoBufferInfo.size -= prependHeaderSize;
                             }
                             if (firstEncode && (videoBufferInfo.flags & MediaCodec.BUFFER_FLAG_KEY_FRAME) != 0) {
-                                if (videoBufferInfo.size > 100) {
-                                    encodedData.position(videoBufferInfo.offset);
-                                    byte[] temp = new byte[100];
-                                    encodedData.get(temp);
-                                    int nalCount = 0;
-                                    for (int a = 0; a < temp.length - 4; a++) {
-                                        if (temp[a] == 0 && temp[a + 1] == 0 && temp[a + 2] == 0 && temp[a + 3] == 1) {
-                                            nalCount++;
-                                            if (nalCount > 1) {
-                                                videoBufferInfo.offset += a;
-                                                videoBufferInfo.size -= a;
-                                                break;
-                                            }
-                                        }
-                                    }
-                                }
+                                MediaCodecVideoConvertor.cutOfNalData(videoMimeType, encodedData, videoBufferInfo);
                                 firstEncode = false;
                             }
                             if (WRITE_TO_FILE_IN_BACKGROUND) {
@@ -3848,12 +4096,14 @@ public class InstantCameraView extends FrameLayout implements NotificationCenter
                                     } catch (Exception e) {
                                         e.printStackTrace();
                                     }
+                                    updateMuxedSizeEstimate(availableSize);
                                     if (availableSize != 0 && !writingToDifferentFile && allowSendingWhileRecording) {
                                         didWriteData(videoFile, availableSize, false);
                                     }
                                 });
                             } else {
                                 long availableSize = mediaMuxer.writeSampleData(videoTrackIndex, encodedData, videoBufferInfo, true);
+                                updateMuxedSizeEstimate(availableSize);
                                 if (availableSize != 0 && !writingToDifferentFile && allowSendingWhileRecording) {
                                     didWriteData(videoFile, availableSize, false);
                                 }
@@ -3879,7 +4129,7 @@ public class InstantCameraView extends FrameLayout implements NotificationCenter
                                 }
                             }
 
-                            MediaFormat newFormat = MediaFormat.createVideoFormat("video/avc", videoWidth, videoHeight);
+                            MediaFormat newFormat = MediaFormat.createVideoFormat(videoMimeType, videoWidth, videoHeight);
                             if (sps != null && pps != null) {
                                 newFormat.setByteBuffer("csd-0", sps);
                                 newFormat.setByteBuffer("csd-1", pps);
@@ -3940,6 +4190,7 @@ public class InstantCameraView extends FrameLayout implements NotificationCenter
                                 } catch (Exception e) {
                                     e.printStackTrace();
                                 }
+                                updateMuxedSizeEstimate(availableSize);
                                 if (availableSize != 0 && !writingToDifferentFile && allowSendingWhileRecording) {
                                     didWriteData(videoFile, availableSize, false);
                                 }
@@ -3949,6 +4200,7 @@ public class InstantCameraView extends FrameLayout implements NotificationCenter
                             }
                         } else {
                             long availableSize = mediaMuxer.writeSampleData(audioTrackIndex, encodedData, audioBufferInfo, false);
+                            updateMuxedSizeEstimate(availableSize);
                             if (availableSize != 0 && !writingToDifferentFile && allowSendingWhileRecording) {
                                 didWriteData(videoFile, availableSize, false);
                             }

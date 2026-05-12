@@ -10,6 +10,7 @@ import org.telegram.messenger.AndroidUtilities
 import org.telegram.messenger.ApplicationLoader
 import org.telegram.messenger.BuildVars
 import org.telegram.messenger.R
+import org.telegram.messenger.video.RoundVideoEncodingOptions
 import tw.nekomimi.nekogram.NekoConfig
 import tw.nekomimi.nekogram.config.ConfigItem
 import tw.nekomimi.nekogram.config.ConfigItemKeyLinked
@@ -1354,13 +1355,19 @@ object NaConfig {
         addConfig(
             "CameraVideoNoteBitrate",
             ConfigItem.configTypeInt,
-            1200
+            RoundVideoEncodingOptions.DEFAULT_BITRATE
+        )
+    val cameraVideoNoteAdaptiveBitrate =
+        addConfig(
+            "CameraVideoNoteAdaptiveBitrate",
+            ConfigItem.configTypeBool,
+            false
         )
     val cameraVideoNoteResolution =
         addConfig(
             "CameraVideoNoteResolution",
             ConfigItem.configTypeInt,
-            512
+            RoundVideoEncodingOptions.DEFAULT_RESOLUTION
         )
     val disableGooeyAvatarAnimation =
         addConfig(

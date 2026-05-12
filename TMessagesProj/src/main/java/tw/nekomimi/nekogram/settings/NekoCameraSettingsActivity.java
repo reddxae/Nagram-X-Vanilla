@@ -4,6 +4,7 @@ import static org.telegram.messenger.LocaleController.getString;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.graphics.Canvas;
 import android.os.Build;
 import android.text.TextUtils;
 import android.util.TypedValue;
@@ -19,9 +20,11 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.ApplicationLoader;
+import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.R;
 import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.camera.Camera2Session;
+import org.telegram.messenger.video.RoundVideoEncodingOptions;
 import org.telegram.ui.ActionBar.ActionBar;
 import org.telegram.ui.ActionBar.ActionBarMenuSubItem;
 import org.telegram.ui.ActionBar.Theme;
@@ -29,6 +32,7 @@ import org.telegram.ui.ActionBar.ThemeDescription;
 import org.telegram.ui.Cells.EmptyCell;
 import org.telegram.ui.Cells.NotificationsCheckCell;
 import org.telegram.ui.Cells.ShadowSectionCell;
+import org.telegram.ui.Cells.TextCell;
 import org.telegram.ui.Cells.TextCheckCell;
 import org.telegram.ui.Cells.TextDetailSettingsCell;
 import org.telegram.ui.Cells.TextInfoPrivacyCell;
@@ -37,6 +41,7 @@ import org.telegram.ui.Components.BlurredRecyclerView;
 import org.telegram.ui.Components.CubicBezierInterpolator;
 import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.RecyclerListView;
+import org.telegram.ui.Components.SlideChooseView;
 import org.telegram.ui.Stories.recorder.DualCameraView;
 
 import java.util.ArrayList;
@@ -58,8 +63,8 @@ import xyz.nextalone.nagram.NaConfig;
 @SuppressLint("RtlHardcoded")
 @SuppressWarnings("unused")
 public class NekoCameraSettingsActivity extends BaseNekoXSettingsActivity {
-    private static final int[] VIDEO_NOTE_BITRATE_VALUES = {600, 800, 1000, 1200, 1400};
-    private static final int[] VIDEO_NOTE_RESOLUTION_VALUES = {128, 256, 384, 512, 640};
+    private static final int ITEM_TYPE_VIDEO_NOTE_SLIDER = 1001;
+    private static final int ITEM_TYPE_VIDEO_NOTE_SEPARATOR = 1002;
 
     private final CellGroup cellGroup = new CellGroup(this);
     private final ArrayList<Camera2Session.RoundVideoCameraOption> startCameraOptions = new ArrayList<>();
@@ -96,8 +101,16 @@ public class NekoCameraSettingsActivity extends BaseNekoXSettingsActivity {
     private final AbstractConfigCell blurCameraSwitchRow = cellGroup.appendCell(new VideoMessagesToggleCell(NekoConfig.videoMessagesBlurCameraSwitch, R.string.VideoMessagesBlurCameraSwitch, ToggleType.BLUR_CAMERA_SWITCH));
     private final AbstractConfigCell dividerRecordingOptions = cellGroup.appendCell(new ConfigCellDivider());
     private final AbstractConfigCell headerQuality = cellGroup.appendCell(new ConfigCellHeader(getString(R.string.Quality)));
-    private final AbstractConfigCell cameraResolutionRow = cellGroup.appendCell(new ConfigCellCustom("CameraResolution", CellGroup.ITEM_TYPE_TEXT_SETTINGS_CELL, true));
-    private final AbstractConfigCell cameraBitrateRow = cellGroup.appendCell(new ConfigCellCustom("CameraBitrate", CellGroup.ITEM_TYPE_TEXT_SETTINGS_CELL, true));
+    private final AbstractConfigCell adaptiveBitrateRow = cellGroup.appendCell(new VideoMessagesToggleCell(NaConfig.INSTANCE.getCameraVideoNoteAdaptiveBitrate(), R.string.VideoMessagesAdaptiveBitrate, ToggleType.ADAPTIVE_BITRATE));
+    private final AbstractConfigCell cameraResolutionHeaderRow = cellGroup.appendCell(new ConfigCellHeader("Resolution (in px)"));
+    private final AbstractConfigCell cameraResolutionRow = cellGroup.appendCell(new ConfigCellCustom("CameraResolution", ITEM_TYPE_VIDEO_NOTE_SLIDER, true));
+    private final AbstractConfigCell cameraQualitySeparatorRow = cellGroup.appendCell(new ConfigCellCustom("CameraQualitySeparator", ITEM_TYPE_VIDEO_NOTE_SEPARATOR, false));
+    private final AbstractConfigCell cameraBitrateHeaderRow = cellGroup.appendCell(new ConfigCellHeader("Bitrate (in kbps)"));
+    private final AbstractConfigCell cameraBitrateRow = cellGroup.appendCell(new ConfigCellCustom("CameraBitrate", ITEM_TYPE_VIDEO_NOTE_SLIDER, true));
+    private final AbstractConfigCell cameraResetDefaultsSeparatorRow = cellGroup.appendCell(new ConfigCellCustom("CameraResetDefaultsSeparator", ITEM_TYPE_VIDEO_NOTE_SEPARATOR, false));
+    private final AbstractConfigCell cameraResetDefaultsRow = cellGroup.appendCell(new ResetVideoNoteDefaultsCell());
+    private final AbstractConfigCell cameraBitrateSeparatorRow = cellGroup.appendCell(new ConfigCellCustom("CameraBitrateSeparator", ITEM_TYPE_VIDEO_NOTE_SEPARATOR, false));
+    private boolean animateCameraVideoMessagesNotice;
     private final AbstractConfigCell cameraVideoMessagesNoticeRow = cellGroup.appendCell(new AbstractConfigCell() {
         @Override
         public int getType() {
@@ -117,7 +130,8 @@ public class NekoCameraSettingsActivity extends BaseNekoXSettingsActivity {
             cell.getTextView().setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
             cell.setTextColorByKey(Theme.key_windowBackgroundWhiteGrayText4);
             cell.setBackground(Theme.getThemedDrawable(getContext(), R.drawable.greydivider_bottom, Theme.key_windowBackgroundGrayShadow));
-            cell.setText(getString(R.string.CameraVideoMessagesNotice));
+            setCameraVideoMessagesNoticeText(cell, animateCameraVideoMessagesNotice);
+            animateCameraVideoMessagesNotice = false;
         }
     });
     private ListAdapter listAdapter;
@@ -183,20 +197,8 @@ public class NekoCameraSettingsActivity extends BaseNekoXSettingsActivity {
                 dropdownCell.onClick(view);
             } else if (a instanceof VideoMessagesToggleCell toggleCell) {
                 toggleCell.onClick((TextCheckCell) view);
-            } else if (a instanceof ConfigCellCustom) {
-                if (position == cellGroup.rows.indexOf(cameraResolutionRow)) {
-                    showVideoNoteValuePopup(view, VIDEO_NOTE_RESOLUTION_VALUES, false, value -> {
-                        NaConfig.INSTANCE.getCameraVideoNoteResolution().setConfigInt(value);
-                        getMessagesController().applyCustomRoundVideoEncodingSettings();
-                        listAdapter.notifyItemChanged(position);
-                    });
-                } else if (position == cellGroup.rows.indexOf(cameraBitrateRow)) {
-                    showVideoNoteValuePopup(view, VIDEO_NOTE_BITRATE_VALUES, true, value -> {
-                        NaConfig.INSTANCE.getCameraVideoNoteBitrate().setConfigInt(value);
-                        getMessagesController().applyCustomRoundVideoEncodingSettings();
-                        listAdapter.notifyItemChanged(position);
-                    });
-                }
+            } else if (a instanceof ResetVideoNoteDefaultsCell resetCell) {
+                resetCell.onClick();
             }
         });
 
@@ -217,6 +219,7 @@ public class NekoCameraSettingsActivity extends BaseNekoXSettingsActivity {
     @SuppressLint("NotifyDataSetChanged")
     @Override
     protected void updateRows() {
+        getMessagesController().applyCustomRoundVideoEncodingSettings();
         normalizeSelectedStartCamera();
         normalizeStabilizationSelection();
         rebuildRows();
@@ -230,6 +233,7 @@ public class NekoCameraSettingsActivity extends BaseNekoXSettingsActivity {
     @Override
     public void onResume() {
         super.onResume();
+        getMessagesController().applyCustomRoundVideoEncodingSettings();
         normalizeSelectedStartCamera();
         normalizeStabilizationSelection();
         rebuildRows();
@@ -255,8 +259,19 @@ public class NekoCameraSettingsActivity extends BaseNekoXSettingsActivity {
         cellGroup.rows.add(blurCameraSwitchRow);
         cellGroup.rows.add(dividerRecordingOptions);
         cellGroup.rows.add(headerQuality);
-        cellGroup.rows.add(cameraResolutionRow);
-        cellGroup.rows.add(cameraBitrateRow);
+        if (!isAdaptiveVideoNoteEnabled()) {
+            cellGroup.rows.add(cameraResolutionHeaderRow);
+            cellGroup.rows.add(cameraResolutionRow);
+            cellGroup.rows.add(cameraQualitySeparatorRow);
+            cellGroup.rows.add(cameraBitrateHeaderRow);
+            cellGroup.rows.add(cameraBitrateRow);
+            if (!isVideoNoteDefaultQualitySelected()) {
+                cellGroup.rows.add(cameraResetDefaultsSeparatorRow);
+                cellGroup.rows.add(cameraResetDefaultsRow);
+            }
+            cellGroup.rows.add(cameraBitrateSeparatorRow);
+        }
+        cellGroup.rows.add(adaptiveBitrateRow);
         cellGroup.rows.add(cameraVideoMessagesNoticeRow);
     }
 
@@ -287,6 +302,126 @@ public class NekoCameraSettingsActivity extends BaseNekoXSettingsActivity {
         }
     }
 
+    private List<AbstractConfigCell> getAdaptiveBitrateDependentRows() {
+        List<AbstractConfigCell> rows = new ArrayList<>(Arrays.asList(cameraResolutionHeaderRow, cameraResolutionRow, cameraQualitySeparatorRow, cameraBitrateHeaderRow, cameraBitrateRow));
+        if (!isVideoNoteDefaultQualitySelected()) {
+            rows.add(cameraResetDefaultsSeparatorRow);
+            rows.add(cameraResetDefaultsRow);
+        }
+        rows.add(cameraBitrateSeparatorRow);
+        return rows;
+    }
+
+    private void setAdaptiveBitrateDependentRowsVisible(boolean visible) {
+        List<AbstractConfigCell> dependentRows = getAdaptiveBitrateDependentRows();
+        boolean currentlyVisible = cellGroup.rows.contains(cameraResolutionHeaderRow);
+        if (visible == currentlyVisible || listAdapter == null) {
+            return;
+        }
+        if (visible) {
+            int insertIndex = cellGroup.rows.indexOf(adaptiveBitrateRow);
+            cellGroup.rows.addAll(insertIndex, dependentRows);
+            addRowsToMap(cellGroup);
+            listAdapter.notifyItemRangeInserted(insertIndex, dependentRows.size());
+        } else {
+            int removeIndex = cellGroup.rows.indexOf(cameraResolutionHeaderRow);
+            cellGroup.rows.removeAll(dependentRows);
+            addRowsToMap(cellGroup);
+            listAdapter.notifyItemRangeRemoved(removeIndex, dependentRows.size());
+        }
+        int adaptiveRowIndex = cellGroup.rows.indexOf(adaptiveBitrateRow);
+        if (adaptiveRowIndex >= 0) {
+            listAdapter.notifyItemChanged(adaptiveRowIndex);
+        }
+        int noticeIndex = cellGroup.rows.indexOf(cameraVideoMessagesNoticeRow);
+        if (noticeIndex >= 0) {
+            animateCameraVideoMessagesNotice = true;
+            listAdapter.notifyItemChanged(noticeIndex);
+        }
+    }
+
+    private List<AbstractConfigCell> getResetDefaultsRows() {
+        return Arrays.asList(cameraResetDefaultsSeparatorRow, cameraResetDefaultsRow);
+    }
+
+    private boolean isVideoNoteDefaultQualitySelected() {
+        return NaConfig.INSTANCE.getCameraVideoNoteResolution().Int() == RoundVideoEncodingOptions.DEFAULT_RESOLUTION
+                && NaConfig.INSTANCE.getCameraVideoNoteBitrate().Int() == RoundVideoEncodingOptions.DEFAULT_BITRATE;
+    }
+
+    private void setResetDefaultsRowsVisible(boolean visible) {
+        if (isAdaptiveVideoNoteEnabled() || !cellGroup.rows.contains(cameraBitrateRow) || listAdapter == null) {
+            return;
+        }
+        List<AbstractConfigCell> resetRows = getResetDefaultsRows();
+        boolean currentlyVisible = cellGroup.rows.contains(cameraResetDefaultsRow);
+        if (visible == currentlyVisible) {
+            return;
+        }
+        if (visible) {
+            int insertIndex = cellGroup.rows.indexOf(cameraBitrateRow) + 1;
+            cellGroup.rows.addAll(insertIndex, resetRows);
+            addRowsToMap(cellGroup);
+            listAdapter.notifyItemRangeInserted(insertIndex, resetRows.size());
+        } else {
+            int removeIndex = cellGroup.rows.indexOf(cameraResetDefaultsSeparatorRow);
+            cellGroup.rows.removeAll(resetRows);
+            addRowsToMap(cellGroup);
+            listAdapter.notifyItemRangeRemoved(removeIndex, resetRows.size());
+        }
+    }
+
+    private void notifyVideoNoteSliderRowsChanged() {
+        int resolutionIndex = cellGroup.rows.indexOf(cameraResolutionRow);
+        if (resolutionIndex >= 0) {
+            listAdapter.notifyItemChanged(resolutionIndex);
+        }
+        int bitrateIndex = cellGroup.rows.indexOf(cameraBitrateRow);
+        if (bitrateIndex >= 0) {
+            listAdapter.notifyItemChanged(bitrateIndex);
+        }
+    }
+
+    private void resetVideoNoteDefaults() {
+        if (isVideoNoteDefaultQualitySelected()) {
+            return;
+        }
+        NaConfig.INSTANCE.getCameraVideoNoteResolution().setConfigInt(RoundVideoEncodingOptions.DEFAULT_RESOLUTION);
+        NaConfig.INSTANCE.getCameraVideoNoteBitrate().setConfigInt(RoundVideoEncodingOptions.DEFAULT_BITRATE);
+        getMessagesController().applyCustomRoundVideoEncodingSettings();
+        if (listAdapter != null) {
+            notifyVideoNoteSliderRowsChanged();
+            setResetDefaultsRowsVisible(false);
+        }
+    }
+
+    private void setCameraVideoMessagesNoticeText(TextInfoPrivacyCell cell, boolean animated) {
+        CharSequence text = getString(isAdaptiveVideoNoteEnabled() ? R.string.CameraVideoMessagesAdaptiveNotice : R.string.CameraVideoMessagesNotice);
+        cell.getTextView().animate().cancel();
+        if (animated && !TextUtils.isEmpty(cell.getText()) && !TextUtils.equals(cell.getText(), text)) {
+            cell.getTextView().animate()
+                    .alpha(0f)
+                    .translationY(-AndroidUtilities.dp(4))
+                    .setDuration(120)
+                    .setInterpolator(CubicBezierInterpolator.EASE_OUT_QUINT)
+                    .withEndAction(() -> {
+                        cell.setText(text);
+                        cell.getTextView().setTranslationY(AndroidUtilities.dp(4));
+                        cell.getTextView().animate()
+                                .alpha(1f)
+                                .translationY(0f)
+                                .setDuration(180)
+                                .setInterpolator(CubicBezierInterpolator.EASE_OUT_QUINT)
+                                .start();
+                    })
+                    .start();
+        } else {
+            cell.getTextView().setAlpha(1f);
+            cell.getTextView().setTranslationY(0f);
+            cell.setText(text);
+        }
+    }
+
     @Override
     public int getDrawable() {
         return R.drawable.msg_camera;
@@ -300,7 +435,7 @@ public class NekoCameraSettingsActivity extends BaseNekoXSettingsActivity {
     @Override
     public ArrayList<ThemeDescription> getThemeDescriptions() {
         ArrayList<ThemeDescription> themeDescriptions = new ArrayList<>();
-        themeDescriptions.add(new ThemeDescription(listView, ThemeDescription.FLAG_CELLBACKGROUNDCOLOR, new Class[]{EmptyCell.class, TextSettingsCell.class, TextCheckCell.class, HeaderCell.class, TextDetailSettingsCell.class, NotificationsCheckCell.class}, null, null, null, Theme.key_windowBackgroundWhite));
+        themeDescriptions.add(new ThemeDescription(listView, ThemeDescription.FLAG_CELLBACKGROUNDCOLOR, new Class[]{EmptyCell.class, TextCell.class, TextSettingsCell.class, TextCheckCell.class, HeaderCell.class, TextDetailSettingsCell.class, NotificationsCheckCell.class, SlideChooseView.class}, null, null, null, Theme.key_windowBackgroundWhite));
         themeDescriptions.add(new ThemeDescription(fragmentView, ThemeDescription.FLAG_BACKGROUND, null, null, null, null, Theme.key_windowBackgroundGray));
 
         themeDescriptions.add(new ThemeDescription(actionBar, ThemeDescription.FLAG_BACKGROUND, null, null, null, null, Theme.key_avatar_backgroundActionBarBlue));
@@ -314,6 +449,8 @@ public class NekoCameraSettingsActivity extends BaseNekoXSettingsActivity {
         themeDescriptions.add(new ThemeDescription(listView, ThemeDescription.FLAG_SELECTOR, null, null, null, null, Theme.key_listSelector));
         themeDescriptions.add(new ThemeDescription(listView, 0, new Class[]{View.class}, Theme.dividerPaint, null, null, Theme.key_divider));
         themeDescriptions.add(new ThemeDescription(listView, ThemeDescription.FLAG_BACKGROUNDFILTER, new Class[]{ShadowSectionCell.class}, null, null, null, Theme.key_windowBackgroundGrayShadow));
+        themeDescriptions.add(new ThemeDescription(listView, 0, new Class[]{TextCell.class}, new String[]{"textView"}, null, null, null, Theme.key_windowBackgroundWhiteBlackText));
+        themeDescriptions.add(new ThemeDescription(listView, 0, new Class[]{TextCell.class}, new String[]{"imageView"}, null, null, null, Theme.key_windowBackgroundWhiteGrayIcon));
         themeDescriptions.add(new ThemeDescription(listView, 0, new Class[]{TextSettingsCell.class}, new String[]{"textView"}, null, null, null, Theme.key_windowBackgroundWhiteBlackText));
         themeDescriptions.add(new ThemeDescription(listView, 0, new Class[]{TextSettingsCell.class}, new String[]{"valueTextView"}, null, null, null, Theme.key_windowBackgroundWhiteValueText));
         themeDescriptions.add(new ThemeDescription(listView, 0, new Class[]{TextCheckCell.class}, new String[]{"textView"}, null, null, null, Theme.key_windowBackgroundWhiteBlackText));
@@ -323,6 +460,9 @@ public class NekoCameraSettingsActivity extends BaseNekoXSettingsActivity {
         themeDescriptions.add(new ThemeDescription(listView, 0, new Class[]{HeaderCell.class}, new String[]{"textView"}, null, null, null, Theme.key_windowBackgroundWhiteBlueHeader));
         themeDescriptions.add(new ThemeDescription(listView, 0, new Class[]{TextDetailSettingsCell.class}, new String[]{"textView"}, null, null, null, Theme.key_windowBackgroundWhiteBlackText));
         themeDescriptions.add(new ThemeDescription(listView, 0, new Class[]{TextDetailSettingsCell.class}, new String[]{"valueTextView"}, null, null, null, Theme.key_windowBackgroundWhiteGrayText2));
+        themeDescriptions.add(new ThemeDescription(listView, 0, new Class[]{SlideChooseView.class}, null, null, null, Theme.key_switchTrack));
+        themeDescriptions.add(new ThemeDescription(listView, 0, new Class[]{SlideChooseView.class}, null, null, null, Theme.key_switchTrackChecked));
+        themeDescriptions.add(new ThemeDescription(listView, 0, new Class[]{SlideChooseView.class}, null, null, null, Theme.key_windowBackgroundWhiteGrayText));
         return themeDescriptions;
     }
 
@@ -382,7 +522,8 @@ public class NekoCameraSettingsActivity extends BaseNekoXSettingsActivity {
     private enum ToggleType {
         SEAMLESS_SWITCHING,
         SAVE_ZOOM_POSITION,
-        BLUR_CAMERA_SWITCH
+        BLUR_CAMERA_SWITCH,
+        ADAPTIVE_BITRATE
     }
 
     private class RecordFromDropdownCell extends AbstractConfigCell {
@@ -537,6 +678,10 @@ public class NekoCameraSettingsActivity extends BaseNekoXSettingsActivity {
             boolean newValue = bindConfig.toggleConfigBool();
             cell.setChecked(newValue);
             cellGroup.runCallback(bindConfig.getKey(), newValue);
+            if (toggleType == ToggleType.ADAPTIVE_BITRATE) {
+                getMessagesController().applyCustomRoundVideoEncodingSettings();
+                setAdaptiveBitrateDependentRowsVisible(!newValue);
+            }
         }
 
         private String getSubtitle() {
@@ -578,13 +723,10 @@ public class NekoCameraSettingsActivity extends BaseNekoXSettingsActivity {
         public void onBindViewHolder(RecyclerView.ViewHolder holder) {
             TextSettingsCell cell = (TextSettingsCell) holder.itemView;
             cell.setCanDisable(true);
-            cell.setTextAndValueAndDescription(
+            cell.setTextAndValue(
                     getString(R.string.VideoMessagesStabilization),
                     getStabilizationSummary(),
-                    getString(R.string.VideoMessagesStabilizationDescription),
-                    false,
-                    cellGroup.needSetDivider(this),
-                    false
+                    cellGroup.needSetDivider(this)
             );
             cell.setEnabled(isEnabled(), null);
         }
@@ -654,6 +796,29 @@ public class NekoCameraSettingsActivity extends BaseNekoXSettingsActivity {
         }
     }
 
+    private class ResetVideoNoteDefaultsCell extends AbstractConfigCell {
+        @Override
+        public int getType() {
+            return CellGroup.ITEM_TYPE_TEXT_CHECK_ICON;
+        }
+
+        @Override
+        public boolean isEnabled() {
+            return true;
+        }
+
+        @Override
+        public void onBindViewHolder(RecyclerView.ViewHolder holder) {
+            TextCell cell = (TextCell) holder.itemView;
+            cell.setEnabled(true);
+            cell.setTextAndIcon(getString(R.string.VideoMessagesResetQualityDefaults), R.drawable.msg_reset, false);
+        }
+
+        private void onClick() {
+            resetVideoNoteDefaults();
+        }
+    }
+
     private String getStabilizationSummary() {
         if (!isCamera2Enabled()) {
             return getString(R.string.VideoMessagesCamera2Required);
@@ -708,25 +873,70 @@ public class NekoCameraSettingsActivity extends BaseNekoXSettingsActivity {
         return title;
     }
 
-    private void showVideoNoteValuePopup(View view, int[] values, boolean bitrate, ValueConsumer onSelected) {
-        ArrayList<String> items = new ArrayList<>(values.length);
-        for (int value : values) {
-            items.add(formatVideoNoteValue(value, bitrate));
+    private boolean isAdaptiveVideoNoteEnabled() {
+        return NaConfig.INSTANCE.getCameraVideoNoteAdaptiveBitrate().Bool();
+    }
+
+    private int getVideoNoteResolutionValue() {
+        return isAdaptiveVideoNoteEnabled() ? RoundVideoEncodingOptions.getAdaptiveResolution() : NaConfig.INSTANCE.getCameraVideoNoteResolution().Int();
+    }
+
+    private int getVideoNoteBitrateValue() {
+        return isAdaptiveVideoNoteEnabled() ? RoundVideoEncodingOptions.HIGH_QUALITY_MASTER_BITRATE : NaConfig.INSTANCE.getCameraVideoNoteBitrate().Int();
+    }
+
+    private void bindVideoNoteSlider(SlideChooseView slideView, boolean bitrate) {
+        int[] values = bitrate ? RoundVideoEncodingOptions.getBitrateValues() : RoundVideoEncodingOptions.getResolutionValues();
+        String[] labels = new String[values.length];
+        for (int i = 0; i < values.length; i++) {
+            labels[i] = String.valueOf(values[i]);
         }
-        PopupBuilder builder = new PopupBuilder(view);
-        builder.setItems(items, (index, str) -> {
-            onSelected.accept(values[index]);
-            return Unit.INSTANCE;
+        int selectedIndex = findValueIndex(values, bitrate ? getVideoNoteBitrateValue() : getVideoNoteResolutionValue());
+        slideView.setCallback(index -> {
+            if (index < 0 || index >= values.length || isAdaptiveVideoNoteEnabled()) {
+                return;
+            }
+            ConfigItem config = bitrate ? NaConfig.INSTANCE.getCameraVideoNoteBitrate() : NaConfig.INSTANCE.getCameraVideoNoteResolution();
+            if (config.Int() == values[index]) {
+                return;
+            }
+            config.setConfigInt(values[index]);
+            getMessagesController().applyCustomRoundVideoEncodingSettings();
+            setResetDefaultsRowsVisible(!isVideoNoteDefaultQualitySelected());
         });
-        builder.show();
+        slideView.setOptions(selectedIndex, labels);
     }
 
-    private String formatVideoNoteValue(int value, boolean bitrate) {
-        return bitrate ? value + " kbps" : value + " px";
+    private int findValueIndex(int[] values, int value) {
+        int bestIndex = 0;
+        long bestDistance = Math.abs((long) value - values[0]);
+        for (int i = 1; i < values.length; i++) {
+            long distance = Math.abs((long) value - values[i]);
+            if (distance < bestDistance) {
+                bestDistance = distance;
+                bestIndex = i;
+            }
+        }
+        return bestIndex;
     }
 
-    private interface ValueConsumer {
-        void accept(int value);
+    private static class VideoNoteSeparatorCell extends View {
+        public VideoNoteSeparatorCell(Context context) {
+            super(context);
+            setWillNotDraw(false);
+            setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
+        }
+
+        @Override
+        protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+            setMeasuredDimension(MeasureSpec.getSize(widthMeasureSpec), 1);
+        }
+
+        @Override
+        protected void onDraw(Canvas canvas) {
+            int offset = AndroidUtilities.dp(20);
+            canvas.drawLine(LocaleController.isRTL ? 0 : offset, 0, getMeasuredWidth() - (LocaleController.isRTL ? offset : 0), 0, Theme.dividerPaint);
+        }
     }
 
     private class ListAdapter extends RecyclerListView.SelectionAdapter {
@@ -758,13 +968,11 @@ public class NekoCameraSettingsActivity extends BaseNekoXSettingsActivity {
         public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
             AbstractConfigCell a = cellGroup.rows.get(position);
             if (a != null) {
-                if (a instanceof ConfigCellCustom) {
-                    if (holder.itemView instanceof TextSettingsCell textCell) {
-                        if (position == cellGroup.rows.indexOf(cameraResolutionRow)) {
-                            textCell.setTextAndValue(getString(R.string.Resolution), formatVideoNoteValue(NaConfig.INSTANCE.getCameraVideoNoteResolution().Int(), false), true);
-                        } else if (position == cellGroup.rows.indexOf(cameraBitrateRow)) {
-                            textCell.setTextAndValue(getString(R.string.Bitrate), formatVideoNoteValue(NaConfig.INSTANCE.getCameraVideoNoteBitrate().Int(), true), false);
-                        }
+                if (a instanceof ConfigCellCustom && holder.itemView instanceof SlideChooseView slideView) {
+                    if (position == cellGroup.rows.indexOf(cameraResolutionRow)) {
+                        bindVideoNoteSlider(slideView, false);
+                    } else if (position == cellGroup.rows.indexOf(cameraBitrateRow)) {
+                        bindVideoNoteSlider(slideView, true);
                     }
                 } else {
                     a.onBindViewHolder(holder);
@@ -788,6 +996,10 @@ public class NekoCameraSettingsActivity extends BaseNekoXSettingsActivity {
                     view = new TextCheckCell(mContext);
                     view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
                     break;
+                case CellGroup.ITEM_TYPE_TEXT_CHECK_ICON:
+                    view = new TextCell(mContext);
+                    view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
+                    break;
                 case CellGroup.ITEM_TYPE_HEADER:
                     view = new HeaderCell(mContext);
                     view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
@@ -798,6 +1010,13 @@ public class NekoCameraSettingsActivity extends BaseNekoXSettingsActivity {
                     break;
                 case CellGroup.ITEM_TYPE_TEXT:
                     view = new TextInfoPrivacyCell(mContext);
+                    break;
+                case ITEM_TYPE_VIDEO_NOTE_SLIDER:
+                    view = new SlideChooseView(mContext);
+                    view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
+                    break;
+                case ITEM_TYPE_VIDEO_NOTE_SEPARATOR:
+                    view = new VideoNoteSeparatorCell(mContext);
                     break;
             }
             view.setLayoutParams(new RecyclerView.LayoutParams(RecyclerView.LayoutParams.MATCH_PARENT, RecyclerView.LayoutParams.WRAP_CONTENT));

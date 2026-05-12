@@ -53,6 +53,7 @@ import org.telegram.SQLite.SQLitePreparedStatement;
 import org.telegram.messenger.browser.Browser;
 import org.telegram.messenger.support.LongSparseIntArray;
 import org.telegram.messenger.support.LongSparseLongArray;
+import org.telegram.messenger.video.RoundVideoEncodingOptions;
 import org.telegram.messenger.voip.GroupCallMessagesController;
 import org.telegram.messenger.voip.VoIPDebugToSend;
 import org.telegram.messenger.voip.VoIPPreNotificationService;
@@ -5025,8 +5026,21 @@ public class MessagesController extends BaseController implements NotificationCe
 
     private boolean applyCustomRoundVideoEncodingSettings(SharedPreferences.Editor editor) {
         boolean changed = false;
-        int customRoundVideoSize = NaConfig.INSTANCE.getCameraVideoNoteResolution().Int();
-        int customRoundVideoBitrate = NaConfig.INSTANCE.getCameraVideoNoteBitrate().Int();
+        boolean adaptiveBitrate = NaConfig.INSTANCE.getCameraVideoNoteAdaptiveBitrate().Bool();
+        int configuredRoundVideoSize = NaConfig.INSTANCE.getCameraVideoNoteResolution().Int();
+        int configuredRoundVideoBitrate = NaConfig.INSTANCE.getCameraVideoNoteBitrate().Int();
+        int customRoundVideoSize = adaptiveBitrate
+                ? RoundVideoEncodingOptions.getAdaptiveResolution()
+                : RoundVideoEncodingOptions.normalizeResolution(configuredRoundVideoSize);
+        int customRoundVideoBitrate = adaptiveBitrate
+                ? RoundVideoEncodingOptions.HIGH_QUALITY_MASTER_BITRATE
+                : RoundVideoEncodingOptions.normalizeBitrate(configuredRoundVideoBitrate);
+        if (!adaptiveBitrate && customRoundVideoSize != configuredRoundVideoSize) {
+            NaConfig.INSTANCE.getCameraVideoNoteResolution().setConfigInt(customRoundVideoSize);
+        }
+        if (!adaptiveBitrate && customRoundVideoBitrate != configuredRoundVideoBitrate) {
+            NaConfig.INSTANCE.getCameraVideoNoteBitrate().setConfigInt(customRoundVideoBitrate);
+        }
         if (roundVideoSize != customRoundVideoSize) {
             roundVideoSize = customRoundVideoSize;
             editor.putInt("roundVideoSize", roundVideoSize);
