@@ -40,8 +40,6 @@ import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.UserConfig;
 import org.telegram.ui.ActionBar.ActionBar;
 import org.telegram.ui.ActionBar.ActionBarLayout;
-import org.telegram.ui.ActionBar.ActionBarMenu;
-import org.telegram.ui.ActionBar.ActionBarMenuItem;
 import org.telegram.ui.ActionBar.INavigationLayout;
 import org.telegram.ui.ActionBar.SimpleTextView;
 import org.telegram.ui.ActionBar.Theme;
@@ -94,11 +92,11 @@ import tw.nekomimi.nekogram.helpers.remote.EmojiHelper;
 @SuppressLint("RtlHardcoded")
 @SuppressWarnings("unused")
 public class NekoAppearanceSettingsActivity extends BaseNekoXSettingsActivity implements NotificationCenter.NotificationCenterDelegate, EmojiHelper.EmojiPacksLoadedListener {
+    private static final float DEFAULT_STICKER_SIZE = 14.0f;
 
     private final CellGroup cellGroup = new CellGroup(this);
 
     private ListAdapter listAdapter;
-    private ActionBarMenuItem menuItem;
     private DrawerProfilePreviewCell profilePreviewCell;
     private ChatBlurAlphaSeekBar chatBlurAlphaSeekbar;
     private StickerSizeCell stickerSizeCell;
@@ -235,6 +233,7 @@ public class NekoAppearanceSettingsActivity extends BaseNekoXSettingsActivity im
     // Stickers and Messages
     private final AbstractConfigCell headerStickersAndMessages = cellGroup.appendCell(new ConfigCellHeader(getString(R.string.AppearanceStickersAndMessages)));
     private final AbstractConfigCell stickerSizeRow = cellGroup.appendCell(new ConfigCellCustom("StickerSize", ConfigCellCustom.CUSTOM_ITEM_StickerSize, false));
+    private final AbstractConfigCell stickerSizeResetRow = cellGroup.appendCell(new ResetStickerSizeCell(), !isDefaultStickerSize());
     private final AbstractConfigCell hideTimeForStickerRow = cellGroup.appendCell(new ConfigCellTextCheck(NekoConfig.hideTimeForSticker));
     private final AbstractConfigCell showTimeHintRow = cellGroup.appendCell(new ConfigCellTextCheck(NaConfig.INSTANCE.getShowTimeHint()));
     private final AbstractConfigCell disableReplyBackgroundRow = cellGroup.appendCell(new ConfigCellTextCheck(NaConfig.INSTANCE.getMessageColoredBackground()));
@@ -339,27 +338,11 @@ public class NekoAppearanceSettingsActivity extends BaseNekoXSettingsActivity im
             actionBar.setOccupyStatusBar(false);
         }
 
-        if (cellGroup.rows.contains(stickerSizeRow)) {
-            ActionBarMenu menu = actionBar.createMenu();
-            menuItem = menu.addItem(0, R.drawable.ic_ab_other);
-            menuItem.setContentDescription(getString(R.string.AccDescrMoreOptions));
-            menuItem.addSubItem(1, R.drawable.msg_reset, getString(R.string.ResetStickerSize));
-            menuItem.setVisibility(NekoConfig.stickerSize.Float() != 14.0f ? View.VISIBLE : View.GONE);
-        }
-
         actionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
             @Override
             public void onItemClick(int id) {
                 if (id == -1) {
                     finishFragment();
-                } else if (id == 1) {
-                    NekoConfig.stickerSize.setConfigFloat(14.0f);
-                    if (menuItem != null) {
-                        menuItem.setVisibility(View.GONE);
-                    }
-                    if (stickerSizeCell != null) {
-                        stickerSizeCell.invalidate();
-                    }
                 }
             }
         });
@@ -408,6 +391,8 @@ public class NekoAppearanceSettingsActivity extends BaseNekoXSettingsActivity im
                 }
             } else if (a instanceof ConfigCellTextCheckIcon) {
                 ((ConfigCellTextCheckIcon) a).onClick();
+            } else if (a instanceof ResetStickerSizeCell) {
+                ((ResetStickerSizeCell) a).onClick();
             } else if (a instanceof ConfigCellTextCheck2) {
                 ((ConfigCellTextCheck2) a).onClick();
             } else if (a instanceof ConfigCellCheckBox) {
@@ -550,6 +535,49 @@ public class NekoAppearanceSettingsActivity extends BaseNekoXSettingsActivity im
         }
     }
 
+    private boolean isDefaultStickerSize() {
+        return Math.abs(NekoConfig.stickerSize.Float() - DEFAULT_STICKER_SIZE) < 0.001f;
+    }
+
+    private ArrayList<AbstractConfigCell> getStickerSizeResetRows() {
+        ArrayList<AbstractConfigCell> rows = new ArrayList<>();
+        rows.add(stickerSizeResetRow);
+        return rows;
+    }
+
+    private void setStickerSizeResetRowsVisible(boolean visible) {
+        if (listAdapter == null || !cellGroup.rows.contains(stickerSizeRow)) {
+            return;
+        }
+        boolean currentlyVisible = cellGroup.rows.contains(stickerSizeResetRow);
+        if (visible == currentlyVisible) {
+            return;
+        }
+        ArrayList<AbstractConfigCell> rows = getStickerSizeResetRows();
+        if (visible) {
+            int insertIndex = cellGroup.rows.indexOf(stickerSizeRow) + 1;
+            cellGroup.rows.addAll(insertIndex, rows);
+            addRowsToMap(cellGroup);
+            listAdapter.notifyItemRangeInserted(insertIndex, rows.size());
+        } else {
+            int removeIndex = cellGroup.rows.indexOf(stickerSizeResetRow);
+            cellGroup.rows.removeAll(rows);
+            addRowsToMap(cellGroup);
+            listAdapter.notifyItemRangeRemoved(removeIndex, rows.size());
+        }
+    }
+
+    private void resetStickerSize() {
+        if (isDefaultStickerSize()) {
+            return;
+        }
+        NekoConfig.stickerSize.setConfigFloat(DEFAULT_STICKER_SIZE);
+        if (stickerSizeCell != null) {
+            stickerSizeCell.invalidate();
+        }
+        setStickerSizeResetRowsVisible(false);
+    }
+
     @SuppressLint("NotifyDataSetChanged")
     @Override
     public void onResume() {
@@ -669,6 +697,29 @@ public class NekoAppearanceSettingsActivity extends BaseNekoXSettingsActivity im
         }
     }
 
+    private class ResetStickerSizeCell extends AbstractConfigCell {
+        @Override
+        public int getType() {
+            return CellGroup.ITEM_TYPE_TEXT_CHECK_ICON;
+        }
+
+        @Override
+        public boolean isEnabled() {
+            return true;
+        }
+
+        @Override
+        public void onBindViewHolder(RecyclerView.ViewHolder holder) {
+            TextCell cell = (TextCell) holder.itemView;
+            cell.setEnabled(true);
+            cell.setTextAndIcon(getString(R.string.ResetStickerSize), R.drawable.msg_reset, true);
+        }
+
+        private void onClick() {
+            resetStickerSize();
+        }
+    }
+
     private class StickerSizeCell extends FrameLayout {
 
         private final StickerSizePreviewMessagesCell messagesCell;
@@ -691,9 +742,7 @@ public class NekoAppearanceSettingsActivity extends BaseNekoXSettingsActivity im
             sizeBar.setDelegate((stop, progress) -> {
                 NekoConfig.stickerSize.setConfigFloat(startStickerSize + (endStickerSize - startStickerSize) * progress);
                 StickerSizeCell.this.invalidate();
-                if (menuItem != null) {
-                    menuItem.setVisibility(View.VISIBLE);
-                }
+                setStickerSizeResetRowsVisible(!isDefaultStickerSize());
             });
             addView(sizeBar, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 38, Gravity.LEFT | Gravity.TOP, 9, 5, 43, 11));
 

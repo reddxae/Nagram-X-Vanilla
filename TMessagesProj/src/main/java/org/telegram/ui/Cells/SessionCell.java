@@ -50,6 +50,7 @@ import org.telegram.ui.Components.CombinedDrawable;
 import org.telegram.ui.Components.DotDividerSpan;
 import org.telegram.ui.Components.FlickerLoadingView;
 import org.telegram.ui.Components.LayoutHelper;
+import org.telegram.ui.Components.RLottieDrawable;
 
 public class SessionCell extends FrameLayout {
 
@@ -304,6 +305,7 @@ public class SessionCell extends FrameLayout {
         String deviceModel = session.device_model.toLowerCase();
         int iconId;
         int colorKey, colorKey2;
+        boolean lottieIcon = false;
         if (deviceModel.contains("safari")) {
             iconId = R.drawable.device_web_safari;
             colorKey = Theme.key_avatar_backgroundPink;
@@ -333,13 +335,24 @@ public class SessionCell extends FrameLayout {
             colorKey = Theme.key_avatar_backgroundBlue;
             colorKey2 = Theme.key_avatar_background2Blue;
         } else if (platform.contains("windows")) {
-            iconId = R.drawable.device_desktop_win;
+            iconId = R.raw.windows_30;
             colorKey = Theme.key_avatar_backgroundCyan;
             colorKey2 = Theme.key_avatar_background2Cyan;
+            lottieIcon = true;
         } else if (platform.contains("macos")) {
             iconId = R.drawable.device_desktop_osx;
             colorKey = Theme.key_avatar_backgroundCyan;
             colorKey2 = Theme.key_avatar_background2Cyan;
+        } else if (platform.contains("ubuntu")) {
+            iconId = R.raw.ubuntu_30;
+            colorKey = Theme.key_avatar_backgroundBlue;
+            colorKey2 = Theme.key_avatar_background2Blue;
+            lottieIcon = true;
+        } else if (platform.contains("linux")) {
+            iconId = R.raw.linux_30;
+            colorKey = Theme.key_avatar_backgroundBlue;
+            colorKey2 = Theme.key_avatar_background2Blue;
+            lottieIcon = true;
         } else if (platform.contains("android")) {
             iconId = deviceModel.contains("tab") ? R.drawable.device_tablet_android : R.drawable.device_phone_android;
             colorKey = Theme.key_avatar_backgroundGreen;
@@ -381,8 +394,15 @@ public class SessionCell extends FrameLayout {
             colorKey = Theme.key_avatar_backgroundPink;
             colorKey2 = Theme.key_avatar_background2Pink;
         }
-        Drawable iconDrawable = ContextCompat.getDrawable(ApplicationLoader.applicationContext, iconId).mutate();
-        iconDrawable.setColorFilter(new PorterDuffColorFilter(Theme.getColor(Theme.key_avatar_text), PorterDuff.Mode.SRC_IN));
+        Drawable iconDrawable;
+        if (lottieIcon) {
+            int iconSize = Math.round(dp(sz) * 0.85f);
+            iconDrawable = new RLottieDrawable(iconId, "" + iconId, iconSize, iconSize, true, new int[]{0x000000, Theme.getColor(colorKey)});
+            ((RLottieDrawable) iconDrawable).setCurrentFrame(0, true, true);
+        } else {
+            iconDrawable = ContextCompat.getDrawable(ApplicationLoader.applicationContext, iconId).mutate();
+            iconDrawable.setColorFilter(new PorterDuffColorFilter(Theme.getColor(Theme.key_avatar_text), PorterDuff.Mode.SRC_IN));
+        }
         Drawable bgDrawable = new CircleGradientDrawable(dp(sz), colorKey == -1 ? 0xFF000000 : Theme.getColor(colorKey), colorKey2 == -1 ? 0xFF000000 : Theme.getColor(colorKey2));
         CombinedDrawable drawable = new CombinedDrawable(bgDrawable, iconDrawable);
         if (platform != null && platform.contains("fragment")) {

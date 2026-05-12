@@ -777,7 +777,10 @@ public class ActionBarLayout extends FrameLayout implements INavigationLayout, F
                 int overlayColor = ColorUtils.calculateLuminance(Theme.getColor(Theme.key_actionBarDefault)) > 0.7f ? AndroidUtilities.LIGHT_STATUS_BAR_OVERLAY : AndroidUtilities.DARK_STATUS_BAR_OVERLAY;
                 int oldStatusBarColor = prevFragment != null && prevFragment.hasForceLightStatusBar() ? Color.TRANSPARENT : overlayColor;
                 int newStatusBarColor = currFragment != null && currFragment.hasForceLightStatusBar() ? Color.TRANSPARENT : overlayColor;
-                parentActivity.getWindow().setStatusBarColor(ColorUtils.blendARGB(newStatusBarColor, oldStatusBarColor, ratio));
+                int statusBarColor = ColorUtils.blendARGB(newStatusBarColor, oldStatusBarColor, ratio);
+                if (parentActivity.getWindow().getStatusBarColor() != statusBarColor) {
+                    parentActivity.getWindow().setStatusBarColor(statusBarColor);
+                }
             }
         }
     }
@@ -1459,84 +1462,14 @@ public class ActionBarLayout extends FrameLayout implements INavigationLayout, F
             lastFrameTime = System.nanoTime() / 1000000;
         }
         if (USE_SPRING_ANIMATION) {
-            if (USE_ACTIONBAR_CROSSFADE) {
-                swipeProgress = open ? 1f : 0f;
-                invalidateActionBars();
-            }
             FloatValueHolder valueHolder = new FloatValueHolder(0);
             currentSpringAnimation = new SpringAnimation(valueHolder)
                     .setSpring(new SpringForce(SPRING_MULTIPLIER)
                             .setStiffness(preview ? open ? SPRING_STIFFNESS_PREVIEW : SPRING_STIFFNESS_PREVIEW_OUT : SPRING_STIFFNESS)
                             .setDampingRatio(preview ? 0.6f : 1f));
+            applySpringLayoutAnimationProgress(open, preview, 0f, false);
             currentSpringAnimation.addUpdateListener((animation, value, velocity) -> {
-                animationProgress = value / SPRING_MULTIPLIER;
-                if (USE_ACTIONBAR_CROSSFADE) {
-                    swipeProgress = MathUtils.clamp(open ? (1f - animationProgress) : animationProgress, 0f, 1f);
-                }
-                if (newFragment != null) {
-                    newFragment.onTransitionAnimationProgress(true, animationProgress);
-                }
-                if (oldFragment != null) {
-                    oldFragment.onTransitionAnimationProgress(false, animationProgress);
-                }
-                if (preview) {
-                    Integer oldNavigationBarColor = oldFragment != null ? oldFragment.getNavigationBarColor() : null;
-                    Integer newNavigationBarColor = newFragment != null ? newFragment.getNavigationBarColor() : null;
-                    if (newFragment != null && oldNavigationBarColor != null) {
-                        float ratio = MathUtils.clamp(4f * animationProgress, 0f, 1f);
-                        newFragment.setNavigationBarColor(ColorUtils.blendARGB(oldNavigationBarColor, newNavigationBarColor, ratio));
-                    }
-                }
-                float interpolated = animationProgress;
-                float widthNoPaddings = getWidth() - getPaddingLeft() - getPaddingRight();
-                if (open) {
-                    float clampedInterpolated = MathUtils.clamp(interpolated, 0, 1);
-                    if (preview) {
-                        containerView.setTranslationX(0);
-                        containerView.setTranslationY(0);
-
-                        float scale = 0.5f + interpolated * 0.5f;
-                        containerView.setScaleX(scale);
-                        containerView.setScaleY(scale);
-                        containerView.setAlpha(clampedInterpolated);
-
-                        if (previewMenu != null) {
-                            containerView.setTranslationY(AndroidUtilities.dp(40) * (1f - interpolated));
-                            previewMenu.setTranslationY(-AndroidUtilities.dp(40 + 30) * (1f - interpolated));
-                            previewMenu.setScaleX(0.95f + 0.05f * interpolated);
-                            previewMenu.setScaleY(0.95f + 0.05f * interpolated);
-                        }
-                        previewBackgroundDrawable.setAlpha((int) (0x2e * clampedInterpolated));
-                        Theme.moveUpDrawable.setAlpha((int) (255 * clampedInterpolated));
-                        containerView.invalidate();
-                        invalidate();
-                    } else {
-                        containerView.setTranslationX((1.0f - interpolated) * widthNoPaddings);
-                        containerViewBack.setTranslationX(-interpolated * 0.35f * widthNoPaddings);
-                        setInnerTranslationX((1.0f - interpolated) * widthNoPaddings);
-                    }
-                } else {
-                    float clampedReverseInterpolated = MathUtils.clamp(1f - interpolated, 0, 1);
-                    if (preview) {
-                        containerViewBack.setTranslationX(0);
-                        containerViewBack.setTranslationY(0);
-
-                        float scale = 0.5f + (1f - interpolated) * 0.5f;
-                        containerViewBack.setScaleX(scale);
-                        containerViewBack.setScaleY(scale);
-                        containerViewBack.setAlpha(clampedReverseInterpolated);
-                        previewBackgroundDrawable.setAlpha((int) (0x2e * clampedReverseInterpolated));
-                        if (previewMenu == null) {
-                            Theme.moveUpDrawable.setAlpha((int) (255 * clampedReverseInterpolated));
-                        }
-                        containerView.invalidate();
-                        invalidate();
-                    } else {
-                        containerViewBack.setTranslationX(interpolated * widthNoPaddings);
-                        containerView.setTranslationX(-(1f - interpolated) * 0.35f * widthNoPaddings);
-                        setInnerTranslationX(interpolated * widthNoPaddings);
-                    }
-                }
+                applySpringLayoutAnimationProgress(open, preview, value / SPRING_MULTIPLIER, true);
             });
             currentSpringAnimation.addEndListener((animation, canceled, value, velocity) -> {
                 onAnimationEndCheck(false);
@@ -1643,6 +1576,82 @@ public class ActionBarLayout extends FrameLayout implements INavigationLayout, F
                 }
             }
         });
+    }
+
+    private void applySpringLayoutAnimationProgress(final boolean open, final boolean preview, float progress, boolean notifyFragments) {
+        animationProgress = progress;
+        if (USE_ACTIONBAR_CROSSFADE) {
+            swipeProgress = MathUtils.clamp(open ? (1f - animationProgress) : animationProgress, 0f, 1f);
+        }
+        if (notifyFragments) {
+            if (newFragment != null) {
+                newFragment.onTransitionAnimationProgress(true, animationProgress);
+            }
+            if (oldFragment != null) {
+                oldFragment.onTransitionAnimationProgress(false, animationProgress);
+            }
+            if (preview) {
+                Integer oldNavigationBarColor = oldFragment != null ? oldFragment.getNavigationBarColor() : null;
+                Integer newNavigationBarColor = newFragment != null ? newFragment.getNavigationBarColor() : null;
+                if (newFragment != null && oldNavigationBarColor != null) {
+                    float ratio = MathUtils.clamp(4f * animationProgress, 0f, 1f);
+                    newFragment.setNavigationBarColor(ColorUtils.blendARGB(oldNavigationBarColor, newNavigationBarColor, ratio));
+                }
+            }
+        }
+        float interpolated = animationProgress;
+        float widthNoPaddings = getWidth() - getPaddingLeft() - getPaddingRight();
+        if (open) {
+            float clampedInterpolated = MathUtils.clamp(interpolated, 0, 1);
+            if (preview) {
+                containerView.setTranslationX(0);
+                containerView.setTranslationY(0);
+
+                float scale = 0.5f + interpolated * 0.5f;
+                containerView.setScaleX(scale);
+                containerView.setScaleY(scale);
+                containerView.setAlpha(clampedInterpolated);
+
+                if (previewMenu != null) {
+                    containerView.setTranslationY(AndroidUtilities.dp(40) * (1f - interpolated));
+                    previewMenu.setTranslationY(-AndroidUtilities.dp(40 + 30) * (1f - interpolated));
+                    previewMenu.setScaleX(0.95f + 0.05f * interpolated);
+                    previewMenu.setScaleY(0.95f + 0.05f * interpolated);
+                }
+                previewBackgroundDrawable.setAlpha((int) (0x2e * clampedInterpolated));
+                Theme.moveUpDrawable.setAlpha((int) (255 * clampedInterpolated));
+                containerView.invalidate();
+                invalidate();
+            } else {
+                containerView.setTranslationX((1.0f - interpolated) * widthNoPaddings);
+                containerViewBack.setTranslationX(-interpolated * 0.35f * widthNoPaddings);
+                setInnerTranslationX((1.0f - interpolated) * widthNoPaddings);
+            }
+        } else {
+            float clampedReverseInterpolated = MathUtils.clamp(1f - interpolated, 0, 1);
+            if (preview) {
+                containerViewBack.setTranslationX(0);
+                containerViewBack.setTranslationY(0);
+
+                float scale = 0.5f + (1f - interpolated) * 0.5f;
+                containerViewBack.setScaleX(scale);
+                containerViewBack.setScaleY(scale);
+                containerViewBack.setAlpha(clampedReverseInterpolated);
+                previewBackgroundDrawable.setAlpha((int) (0x2e * clampedReverseInterpolated));
+                if (previewMenu == null) {
+                    Theme.moveUpDrawable.setAlpha((int) (255 * clampedReverseInterpolated));
+                }
+                containerView.invalidate();
+                invalidate();
+            } else {
+                containerViewBack.setTranslationX(interpolated * widthNoPaddings);
+                containerView.setTranslationX(-(1f - interpolated) * 0.35f * widthNoPaddings);
+                setInnerTranslationX(interpolated * widthNoPaddings);
+            }
+        }
+        if (USE_ACTIONBAR_CROSSFADE) {
+            invalidateActionBars();
+        }
     }
 
     @Override
@@ -3215,7 +3224,7 @@ public class ActionBarLayout extends FrameLayout implements INavigationLayout, F
 
     // --- Spring Animation ---
     private static final boolean USE_SPRING_ANIMATION = NaConfig.INSTANCE.getSpringAnimation().Bool();
-    private static final boolean USE_ACTIONBAR_CROSSFADE = USE_SPRING_ANIMATION && NaConfig.INSTANCE.getSpringAnimationCrossfade().Bool();
+    private static final boolean USE_ACTIONBAR_CROSSFADE = false;
     private static final float SPRING_STIFFNESS = 700f;
     private static final float SPRING_STIFFNESS_PREVIEW = 650f;
     private static final float SPRING_STIFFNESS_PREVIEW_OUT = 800f;

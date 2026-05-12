@@ -666,6 +666,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
     private AnimatedEmojiDrawable.SwapAnimatedEmojiDrawable statusDrawable;
     private DrawerProfileCell.AnimatedStatusView animatedStatusView;
     public RightSlidingDialogContainer rightSlidingDialogContainer;
+    private boolean archiveCloseResumeUpdatesPending;
 
     public final Property<DialogsActivity, Float> SCROLL_Y = new AnimationProperties.FloatProperty<DialogsActivity>("animationValue") {
         @Override
@@ -7066,6 +7067,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
     @Override
     public void onResume() {
         super.onResume();
+        boolean deferArchiveCloseUpdates = shouldDeferArchiveCloseResumeUpdates();
         if (dialogStoriesCell != null) {
             dialogStoriesCell.onResume();
         }
@@ -7077,10 +7079,11 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
             blurredView.setBackground(null);
         }
         updateDrawerSwipeEnabled();
-        if (viewPages != null) {
-            for (int a = 0; a < viewPages.length; a++) {
-                viewPages[a].dialogsAdapter.notifyDataSetChanged();
-            }
+        if (deferArchiveCloseUpdates) {
+            archiveCloseResumeUpdatesPending = true;
+        } else {
+            archiveCloseResumeUpdatesPending = false;
+            notifyDialogAdaptersDataSetChanged();
         }
         if (commentView != null) {
             commentView.onResume();
@@ -7201,11 +7204,9 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                 if (viewPages[a].dialogsType == 0 && viewPages[a].archivePullViewState == ARCHIVE_ITEM_STATE_HIDDEN && viewPages[a].layoutManager.findFirstVisibleItemPosition() == 0 && hasHiddenArchive()) {
                     viewPages[a].layoutManager.scrollToPositionWithOffset(1, (int) scrollYOffset);
                 }
-                if (a == 0) {
-                    viewPages[a].dialogsAdapter.resume();
-                } else {
-                    viewPages[a].dialogsAdapter.pause();
-                }
+            }
+            if (!deferArchiveCloseUpdates) {
+                resumeVisibleDialogAdapter();
             }
         }
         showNextSupportedSuggestion();
@@ -7246,13 +7247,57 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         if (searchIsShowed) {
             AndroidUtilities.requestAdjustResize(getParentActivity(), classGuid);
         }
-        updateVisibleRows(0, false);
+        if (!deferArchiveCloseUpdates) {
+            updateVisibleRows(0, false);
+        }
         updateProxyButton(false, true);
-        updateStoriesVisibility(false);
+        if (!deferArchiveCloseUpdates) {
+            updateStoriesVisibility(false);
+        }
         if (NaConfig.INSTANCE.getDisableDialogsFloatingButton().Bool()) {
             hideFloatingButton(true);
         }
         checkSuggestClearDatabase();
+        if (!deferArchiveCloseUpdates) {
+            syncSelectedFilterTab();
+        }
+    }
+
+    private boolean shouldDeferArchiveCloseResumeUpdates() {
+        if (isArchive() || parentLayout == null || viewPages == null) {
+            return false;
+        }
+        List<BaseFragment> fragmentStack = parentLayout.getFragmentStack();
+        if (fragmentStack == null || fragmentStack.size() < 2 || fragmentStack.get(fragmentStack.size() - 2) != this) {
+            return false;
+        }
+        BaseFragment topFragment = fragmentStack.get(fragmentStack.size() - 1);
+        return topFragment instanceof DialogsActivity && ((DialogsActivity) topFragment).isArchive();
+    }
+
+    private void notifyDialogAdaptersDataSetChanged() {
+        if (viewPages == null) {
+            return;
+        }
+        for (int a = 0; a < viewPages.length; a++) {
+            viewPages[a].dialogsAdapter.notifyDataSetChanged();
+        }
+    }
+
+    private void resumeVisibleDialogAdapter() {
+        if (viewPages == null) {
+            return;
+        }
+        for (int a = 0; a < viewPages.length; a++) {
+            if (a == 0) {
+                viewPages[a].dialogsAdapter.resume();
+            } else {
+                viewPages[a].dialogsAdapter.pause();
+            }
+        }
+    }
+
+    private void syncSelectedFilterTab() {
         if (filterTabsView != null && viewPages[0] != null && viewPages[0].dialogsAdapter != null) {
             int dialogsType = viewPages[0].dialogsAdapter.getDialogsType();
             if (dialogsType == DIALOGS_TYPE_FOLDER1 || dialogsType == DIALOGS_TYPE_FOLDER2) {
@@ -7262,6 +7307,18 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                 }
             }
         }
+    }
+
+    private void runPendingArchiveCloseResumeUpdates() {
+        if (!archiveCloseResumeUpdatesPending || viewPages == null) {
+            return;
+        }
+        archiveCloseResumeUpdatesPending = false;
+        notifyDialogAdaptersDataSetChanged();
+        resumeVisibleDialogAdapter();
+        updateVisibleRows(0, false);
+        updateStoriesVisibility(false);
+        syncSelectedFilterTab();
     }
 
     @Override
@@ -7287,6 +7344,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
     @Override
     public void onPause() {
         super.onPause();
+        archiveCloseResumeUpdatesPending = false;
         if (storiesBulletin != null) {
             storiesBulletin.hide();
             storiesBulletin = null;
@@ -9137,9 +9195,13 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
 
     @Override
     public void onTransitionAnimationEnd(boolean isOpen, boolean backward) {
+        super.onTransitionAnimationEnd(isOpen, backward);
         if (rightSlidingDialogContainer != null && rightSlidingDialogContainer.hasFragment()) {
             rightSlidingDialogContainer.getFragment().onTransitionAnimationEnd(isOpen, backward);
         } else {
+            if (isOpen && backward) {
+                runPendingArchiveCloseResumeUpdates();
+            }
             if (isOpen && blurredView != null && blurredView.getVisibility() == View.VISIBLE) {
                 blurredView.setVisibility(View.GONE);
                 blurredView.setBackground(null);
@@ -12838,15 +12900,12 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
             }
             if (floatingButton2Container != null && USE_SPRING_ANIMATION) {
                 floatingButton2Container.setTranslationX((isDrawerTransition ? 1 : -1) * dp(slideAmplitudeDp) * (1f - slideFragmentProgress));
-                floatingButton2Container.invalidate();
             }
             if (floatingButtonContainer != null && USE_SPRING_ANIMATION) {
                 floatingButtonContainer.setTranslationX((isDrawerTransition ? 1 : -1) * dp(slideAmplitudeDp) * (1f - slideFragmentProgress));
-                floatingButtonContainer.invalidate();
             }
             if (updateButton != null && USE_SPRING_ANIMATION) {
                 updateButton.setTranslationX((isDrawerTransition ? 1 : -1) * dp(slideAmplitudeDp) * (1f - slideFragmentProgress));
-                updateButton.invalidate();
             }
             if (rightSlidingDialogContainer != null && rightSlidingDialogContainer.getFragmentView() != null) {
                 if (!rightFragmentTransitionInProgress) {

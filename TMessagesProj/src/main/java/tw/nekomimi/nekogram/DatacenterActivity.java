@@ -307,7 +307,7 @@ public class DatacenterActivity extends BaseNekoSettingsActivity implements Noti
             if (document != null) {
                 ImageLocation imageLocation = ImageLocation.getForDocument(document);
                 imageView.setImage(imageLocation, "130_130", "tgs", svgThumb, set);
-                imageView.getImageReceiver().setAutoRepeat(2);
+                imageView.getImageReceiver().setAutoRepeat(1);
             } else {
                 MediaDataController.getInstance(currentAccount).loadStickersByEmojiOrName(AndroidUtilities.STICKERS_PLACEHOLDER_PACK_NAME, false, set == null);
             }
