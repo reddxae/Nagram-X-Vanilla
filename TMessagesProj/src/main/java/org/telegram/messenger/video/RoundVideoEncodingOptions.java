@@ -10,15 +10,15 @@ import org.telegram.messenger.FileLog;
 public class RoundVideoEncodingOptions {
     public static final String AVC_MIME_TYPE = "video/avc";
     public static final int DEFAULT_RESOLUTION = 496;
-    public static final int DEFAULT_BITRATE = 1150;
+    public static final int DEFAULT_BITRATE = 1000;
     public static final int HIGH_QUALITY_RESOLUTION = 640;
     public static final int HIGH_QUALITY_FALLBACK_RESOLUTION = DEFAULT_RESOLUTION;
     public static final int HIGH_QUALITY_MASTER_BITRATE = 2000;
     public static final int HIGH_QUALITY_MAX_FINAL_BITRATE = 2000;
-    public static final int HIGH_QUALITY_MIN_FINAL_BITRATE = 1200;
+    public static final int HIGH_QUALITY_MIN_FINAL_BITRATE = 800;
     public static final long SERVER_FILE_SIZE_LIMIT_BYTES = 9_800_000L;
     private static final int[] RESOLUTION_VALUES = {128, 256, 384, DEFAULT_RESOLUTION, HIGH_QUALITY_RESOLUTION};
-    private static final int[] BITRATE_VALUES = {600, 800, DEFAULT_BITRATE, 1400, 1600, 1800, HIGH_QUALITY_MASTER_BITRATE};
+    private static final int[] BITRATE_VALUES = {600, 800, DEFAULT_BITRATE, 1200, 1400};
 
     private static Boolean highQualityAvcSupported;
 
