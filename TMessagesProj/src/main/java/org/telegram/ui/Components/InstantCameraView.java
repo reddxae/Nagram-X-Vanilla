@@ -1806,6 +1806,7 @@ public class InstantCameraView extends FrameLayout implements NotificationCenter
         private int textureHandle;
 
         private boolean recording;
+        private volatile boolean shutdownRequested;
 
         private Integer cameraId = 0;
 
@@ -2100,6 +2101,9 @@ public class InstantCameraView extends FrameLayout implements NotificationCenter
         }
 
         private void onDraw(Integer cameraId, boolean updateTexImage1, boolean updateTexImage2) {
+            if (shutdownRequested) {
+                return;
+            }
             if (!initied) {
                 return;
             }
@@ -2301,11 +2305,21 @@ public class InstantCameraView extends FrameLayout implements NotificationCenter
         public void shutdown(int send, boolean notify, int scheduleDate, int ttl, long effectId) {
             Handler handler = getHandler();
             if (handler != null) {
-                sendMessage(handler.obtainMessage(DO_SHUTDOWN_MESSAGE, send, 0, new SendOptions(notify, scheduleDate, ttl, effectId, 0)), 0);
+                Message message = handler.obtainMessage(DO_SHUTDOWN_MESSAGE, send, 0, new SendOptions(notify, scheduleDate, ttl, effectId, 0));
+                if (videoEncoder != null && videoEncoder.isAdaptiveBitrate()) {
+                    shutdownRequested = true;
+                    handler.removeMessages(DO_RENDER_MESSAGE);
+                    handler.sendMessageAtFrontOfQueue(message);
+                } else {
+                    sendMessage(message, 0);
+                }
             }
         }
 
         public void requestRender(boolean updateTexImage1, boolean updateTexImage2) {
+            if (shutdownRequested) {
+                return;
+            }
             Handler handler = getHandler();
             if (handler != null) {
                 sendMessage(handler.obtainMessage(DO_RENDER_MESSAGE, cameraId, (updateTexImage1 ? 1 : 0) + (updateTexImage2 ? 2 : 0)), 0);
@@ -2492,6 +2506,7 @@ public class InstantCameraView extends FrameLayout implements NotificationCenter
         private long pendingVideoFrameDuration;
 
         private volatile EncoderHandler handler;
+        private volatile boolean stopRecordingRequested;
 
         private final Object sync = new Object();
         public volatile boolean ready;
@@ -2663,6 +2678,7 @@ public class InstantCameraView extends FrameLayout implements NotificationCenter
             }
 
             started = true;
+            stopRecordingRequested = false;
             adaptiveBitrate = NaConfig.INSTANCE.getCameraVideoNoteAdaptiveBitrate().Bool();
             int resolution = adaptiveBitrate ? RoundVideoEncodingOptions.getAdaptiveResolution() : MessagesController.getInstance(currentAccount).roundVideoSize;
             int bitrate = (adaptiveBitrate ? RoundVideoEncodingOptions.HIGH_QUALITY_MASTER_BITRATE : MessagesController.getInstance(currentAccount).roundVideoBitrate) * 1024;
@@ -2711,7 +2727,14 @@ public class InstantCameraView extends FrameLayout implements NotificationCenter
         }
 
         public void stopRecording(int send, SendOptions options) {
-            handler.sendMessage(handler.obtainMessage(MSG_STOP_RECORDING, send, 0, options));
+            Message message = handler.obtainMessage(MSG_STOP_RECORDING, send, 0, options);
+            if (isAdaptiveBitrate()) {
+                stopRecordingRequested = true;
+                handler.removeMessages(MSG_VIDEOFRAME_AVAILABLE);
+                handler.sendMessageAtFrontOfQueue(message);
+            } else {
+                handler.sendMessage(message);
+            }
             AndroidUtilities.runOnUIThread(() -> {
                 NotificationCenter.getInstance(currentAccount).postNotificationName(NotificationCenter.stopAllHeavyOperations, 512);
             });
@@ -2733,6 +2756,9 @@ public class InstantCameraView extends FrameLayout implements NotificationCenter
 
         long prevTimestamp;
         public void frameAvailable(SurfaceTexture st, Integer cameraId, long timestampInternal) {
+            if (stopRecordingRequested) {
+                return;
+            }
             synchronized (sync) {
                 if (!ready) {
                     return;
@@ -2995,7 +3021,7 @@ public class InstantCameraView extends FrameLayout implements NotificationCenter
         }
 
         private void handleVideoFrameAvailable(long timestampNanos, Integer cameraId) {
-            if (pauseRecorder || !cameraTextureAvailable) {
+            if (pauseRecorder || stopRecordingRequested || !cameraTextureAvailable) {
                 return;
             }
             try {
@@ -3582,7 +3608,7 @@ public class InstantCameraView extends FrameLayout implements NotificationCenter
                     }
                 }
             }
-            boolean readyToSend = send == ENCODER_SEND_CANCEL || !isAdaptiveBitrate() || ensureAdaptiveRoundVideoFitsLimit();
+            boolean readyToSend = send == ENCODER_SEND_CANCEL || !isAdaptiveBitrate() || send == ENCODER_SEND_PLAYER || ensureAdaptiveRoundVideoFitsLimit();
             if (send != 2) {
                 if (generateKeyframeThumbsQueue != null) {
                     generateKeyframeThumbsQueue.cleanupQueue();
