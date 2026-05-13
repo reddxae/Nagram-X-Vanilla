@@ -81,6 +81,7 @@
     <string name="ResetStickerSize">Reset sticker size</string>
     <string name="RestartAppToTakeEffect">Restart app to apply changes.</string>
     <string name="DisableAppBarShadow">Disable Title Bar Shadow</string>
+    <string name="DisableBlurInMediaPicker">Disable Blur in Media Picker</string>
     <string name="MediaPreview">Media Preview in Chat List</string>
     <string name="AutoPauseVideo">Auto Pause Video</string>
     <string name="AutoPauseVideoAbout">Videos will be paused if you lock screen or close the app.</string>

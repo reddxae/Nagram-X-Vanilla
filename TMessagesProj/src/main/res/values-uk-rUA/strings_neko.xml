@@ -80,6 +80,7 @@
     <string name="ResetStickerSize">Скинути розмір наліпки</string>
     <string name="RestartAppToTakeEffect">Перезапустіть додаток для застосування змін.</string>
     <string name="DisableAppBarShadow">Вимкнути тінь панелі заголовку</string>
+    <string name="DisableBlurInMediaPicker">Вимкнути розмиття в медіапікері</string>
     <string name="MediaPreview">Попередній перегляд медіа в списку чатів</string>
     <string name="AutoPauseVideo">Призупинити відео</string>
     <string name="AutoPauseVideoAbout">При блокуванні екрана або згортанні програми.</string>
