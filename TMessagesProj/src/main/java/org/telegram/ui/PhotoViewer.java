@@ -11997,7 +11997,7 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
     }
 
     private void detectFaces() {
-        if (centerImage.getAnimation() != null || imagesArrLocals.isEmpty() || sendPhotoType == SELECT_TYPE_AVATAR) {
+        if (centerImage.getAnimation() != null || imagesArrLocals.isEmpty() || sendPhotoType == SELECT_TYPE_AVATAR || isCurrentVideo) {
             return;
         }
         String key = centerImage.getImageKey();
@@ -12011,10 +12011,14 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
 
     private void detectFaces(String key, ImageReceiver.BitmapHolder bitmap, int orientation) {
         if (key == null || bitmap == null || bitmap.bitmap == null) {
+            if (bitmap != null) {
+                bitmap.release();
+            }
             return;
         }
         Utilities.globalQueue.postRunnable(() -> {
             FaceDetector faceDetector = null;
+            final boolean[] releaseScheduled = new boolean[1];
             try {
                 faceDetector = new FaceDetector.Builder(ApplicationLoader.applicationContext)
                         .setMode(FaceDetector.FAST_MODE)
@@ -12024,23 +12028,32 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
                     Frame frame = new Frame.Builder().setBitmap(bitmap.bitmap).setRotation(orientation).build();
                     SparseArray<Face> faces = faceDetector.detect(frame);
                     boolean hasFaces = faces != null && faces.size() != 0;
+                    releaseScheduled[0] = true;
                     AndroidUtilities.runOnUIThread(() -> {
-                        String imageKey = centerImage.getImageKey();
-                        if (key.equals(imageKey)) {
-                            currentImageHasFace = hasFaces ? 1 : 0;
-                            currentImageFaceKey = key;
+                        try {
+                            String imageKey = centerImage.getImageKey();
+                            if (key.equals(imageKey)) {
+                                currentImageHasFace = hasFaces ? 1 : 0;
+                                currentImageFaceKey = key;
+                            }
+                        } finally {
+                            bitmap.release();
                         }
                     });
                 } else {
                     if (BuildVars.LOGS_ENABLED) {
                         FileLog.e("face detection is not operational");
                     }
+                    releaseScheduled[0] = true;
                     AndroidUtilities.runOnUIThread(() -> {
-                        bitmap.release();
-                        String imageKey = centerImage.getImageKey();
-                        if (key.equals(imageKey)) {
-                            currentImageHasFace = 2;
-                            currentImageFaceKey = key;
+                        try {
+                            String imageKey = centerImage.getImageKey();
+                            if (key.equals(imageKey)) {
+                                currentImageHasFace = 2;
+                                currentImageFaceKey = key;
+                            }
+                        } finally {
+                            bitmap.release();
                         }
                     });
                 }
@@ -12049,6 +12062,9 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
             } finally {
                 if (faceDetector != null) {
                     faceDetector.release();
+                }
+                if (!releaseScheduled[0]) {
+                    AndroidUtilities.runOnUIThread(bitmap::release);
                 }
             }
         });
@@ -21899,7 +21915,15 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
     private RenderNode renderNode;
 
     public boolean BLUR_RENDERNODE() {
-        return !textureViewSkipRender && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && SharedConfig.useNewBlur && SharedConfig.getDevicePerformanceClass() >= SharedConfig.PERFORMANCE_CLASS_HIGH && !AndroidUtilities.makingGlobalBlurBitmap;
+        return shouldDrawDynamicPhotoViewerBlur() && !textureViewSkipRender && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && SharedConfig.useNewBlur && SharedConfig.getDevicePerformanceClass() >= SharedConfig.PERFORMANCE_CLASS_HIGH && !AndroidUtilities.makingGlobalBlurBitmap;
+    }
+
+    private boolean shouldDrawDynamicPhotoViewerBlur() {
+        return SharedConfig.photoViewerBlur && animationInProgress == 0 && !shouldUseStaticPhotoViewerControlsBackground();
+    }
+
+    private boolean shouldUseStaticPhotoViewerControlsBackground() {
+        return !imagesArrLocals.isEmpty() && sendPhotoType != SELECT_TYPE_AVATAR && sendPhotoType != SELECT_TYPE_STICKER;
     }
 
     public void drawCaptionBlur(Canvas canvas, BlurringShader.StoryBlurDrawer drawer, int bgColor, int overlayColor, boolean clip, boolean allowTransparent, boolean allowCrossfade) {
@@ -21934,8 +21958,10 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
             canvas.drawPaint(drawer.paint);
         }
 
-        if (!SharedConfig.photoViewerBlur || animationInProgress != 0) {
-            blurAlpha.set(0, true);
+        if (!shouldDrawDynamicPhotoViewerBlur()) {
+            if (!SharedConfig.photoViewerBlur || animationInProgress != 0) {
+                blurAlpha.set(0, true);
+            }
             if (overlayColor != 0) {
                 drawer.paint.setColor(overlayColor);
                 drawer.paint.setAlpha((int) (drawer.paint.getAlpha() * lerp(.7f, 1f, allowTransparent ? maxAlpha : 1f)));
