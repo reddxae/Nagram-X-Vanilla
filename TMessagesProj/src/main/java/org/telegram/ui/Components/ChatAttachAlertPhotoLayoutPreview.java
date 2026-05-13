@@ -973,6 +973,7 @@ public class ChatAttachAlertPhotoLayoutPreview extends ChatAttachAlert.AttachAle
                 groupCells.get(i).detach();
             }
             groupCells.clear();
+            lastGroupSeen = null;
             ArrayList<MediaController.PhotoEntry> photos = new ArrayList<>();
             final int photosOrderSize = photosOrder.size(),
                     photosOrderLast = photosOrderSize - 1;
@@ -986,6 +987,7 @@ public class ChatAttachAlertPhotoLayoutPreview extends ChatAttachAlert.AttachAle
                     photos = new ArrayList<>();
                 }
             }
+            updateMeasuredHeight();
         }
 
         HashMap<Object, Object> photosMap;
@@ -1090,7 +1092,7 @@ public class ChatAttachAlertPhotoLayoutPreview extends ChatAttachAlert.AttachAle
             int height = paddingTop + paddingBottom;
             final int groupCellsCount = groupCells.size();
             for (int i = 0; i < groupCellsCount; ++i) {
-                height += groupCells.get(i).measure();
+                height += groupCells.get(i).measureForLayout();
             }
             if (hintView.getMeasuredHeight() <= 0) {
                 hintView.measure(
@@ -1105,6 +1107,14 @@ public class ChatAttachAlertPhotoLayoutPreview extends ChatAttachAlert.AttachAle
             return Math.max(measurePureHeight(), AndroidUtilities.displaySize.y - ActionBar.getCurrentActionBarHeight() - AndroidUtilities.dp(8 + 46 - 9));
         }
 
+        private void updateMeasuredHeight() {
+            int measuredHeight = measureHeight();
+            if (lastMeasuredHeight != measuredHeight) {
+                lastMeasuredHeight = measuredHeight;
+                requestLayout();
+            }
+        }
+
         @Override
         protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
             hintView.measure(widthMeasureSpec, MeasureSpec.makeMeasureSpec(9999, MeasureSpec.AT_MOST));
@@ -1116,11 +1126,6 @@ public class ChatAttachAlertPhotoLayoutPreview extends ChatAttachAlert.AttachAle
 
         @Override
         public void invalidate() {
-            int measuredHeight = measureHeight();
-            if (lastMeasuredHeight != measuredHeight) {
-                lastMeasuredHeight = measuredHeight;
-                requestLayout();
-            }
             super.invalidate();
         }
 
@@ -1148,9 +1153,9 @@ public class ChatAttachAlertPhotoLayoutPreview extends ChatAttachAlert.AttachAle
         }
 
         public void onScroll() {
+            boolean[] seen = groupSeen();
             boolean newGroupSeen = lastGroupSeen == null;
             if (!newGroupSeen) {
-                boolean[] seen = groupSeen();
                 if (seen.length != lastGroupSeen.length) {
                     newGroupSeen = true;
                 } else {
@@ -1161,11 +1166,10 @@ public class ChatAttachAlertPhotoLayoutPreview extends ChatAttachAlert.AttachAle
                         }
                     }
                 }
-            } else {
-                lastGroupSeen = groupSeen();
             }
 
             if (newGroupSeen) {
+                lastGroupSeen = seen;
                 invalidate();
             }
         }
@@ -1918,6 +1922,7 @@ public class ChatAttachAlertPhotoLayoutPreview extends ChatAttachAlert.AttachAle
             private long lastMediaUpdate = 0;
             private float groupWidth = 0, groupHeight = 0;
             private float previousGroupWidth = 0, previousGroupHeight = 0;
+            private boolean updateMeasuredHeightAfterAnimation;
             public ArrayList<MediaCell> media = new ArrayList<>();
             public long stars;
 
@@ -2352,10 +2357,7 @@ public class ChatAttachAlertPhotoLayoutPreview extends ChatAttachAlert.AttachAle
                     image.draw(canvas);
 
                     if (photoEntry != null && photoEntry.hasSpoiler && !photoEntry.isChatPreviewSpoilerRevealed) {
-                        if (!wasSpoiler && blurredImage.getBitmap() == null && image.getBitmap() != null) {
-                            wasSpoiler = true;
-                            blurredImage.setImageBitmap(Utilities.stackBlurBitmapMax(image.getBitmap()));
-                        } else if (!wasSpoiler && blurredImage.getBitmap() != null) {
+                        if (!wasSpoiler && blurredImage.getBitmap() != null) {
                             wasSpoiler = true;
                         }
 
@@ -2385,9 +2387,6 @@ public class ChatAttachAlertPhotoLayoutPreview extends ChatAttachAlert.AttachAle
                         }
                         spoilerEffect.draw(canvas, PreviewGroupsView.this, getWidth(), getHeight());
                         canvas.restore();
-
-                        invalidate();
-                        PreviewGroupsView.this.invalidate();
                     }
 
                     if (spoilerCrossfadeProgress != 1f && spoilerCrossfadeBitmap != null) {
@@ -2462,6 +2461,7 @@ public class ChatAttachAlertPhotoLayoutPreview extends ChatAttachAlert.AttachAle
                 groupWidth = group.width / 1000f;
                 groupHeight = group.height;
                 lastMediaUpdate = animated ? now : 0;
+                updateMeasuredHeightAfterAnimation = animated && previousGroupHeight > groupHeight;
                 stars = 0;
                 List<MediaController.PhotoEntry> photoEntries = new ArrayList<>(group.positions.keySet());
                 final int photoEntriesCount = photoEntries.size();
@@ -2506,6 +2506,9 @@ public class ChatAttachAlertPhotoLayoutPreview extends ChatAttachAlert.AttachAle
                 }
 
                 PreviewGroupsView.this.invalidate();
+                if (groupCells.contains(this)) {
+                    PreviewGroupsView.this.updateMeasuredHeight();
+                }
             }
 
             final int padding = AndroidUtilities.dp(4);
@@ -2521,6 +2524,14 @@ public class ChatAttachAlertPhotoLayoutPreview extends ChatAttachAlert.AttachAle
             public float measure() {
                 final float maxHeight = Math.max(AndroidUtilities.displaySize.x, AndroidUtilities.displaySize.y) * 0.5f;
                 return AndroidUtilities.lerp(previousGroupHeight, this.groupHeight, getT()) * maxHeight * getPreviewScale(); // height
+            }
+            public float measureForLayout() {
+                final float maxHeight = Math.max(AndroidUtilities.displaySize.x, AndroidUtilities.displaySize.y) * 0.5f;
+                float groupHeight = this.groupHeight;
+                if (getT() < 1f) {
+                    groupHeight = Math.max(previousGroupHeight, groupHeight);
+                }
+                return groupHeight * maxHeight * getPreviewScale();
             }
             public float maxHeight() {
                 final float maxHeight = Math.max(AndroidUtilities.displaySize.x, AndroidUtilities.displaySize.y) * 0.5f;
@@ -2539,6 +2550,9 @@ public class ChatAttachAlertPhotoLayoutPreview extends ChatAttachAlert.AttachAle
                 final float t = interpolator.getInterpolation(Math.min(1, (SystemClock.elapsedRealtime() - lastMediaUpdate) / (float) updateDuration));
                 if (t < 1f) {
                     update = true;
+                } else if (updateMeasuredHeightAfterAnimation) {
+                    updateMeasuredHeightAfterAnimation = false;
+                    PreviewGroupsView.this.updateMeasuredHeight();
                 }
 
                 final float maxHeight = Math.max(AndroidUtilities.displaySize.x, AndroidUtilities.displaySize.y) * 0.5f;

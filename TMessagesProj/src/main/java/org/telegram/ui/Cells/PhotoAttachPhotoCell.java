@@ -188,8 +188,8 @@ public class PhotoAttachPhotoCell extends FrameLayout {
                         }
                         spoilerEffect.setBounds(0, 0, getWidth(), getHeight());
                         spoilerEffect.draw(canvas);
+                        invalidate();
                     }
-                    invalidate();
 
                     if (spoilerRevealProgress != 0f) {
                         canvas.restore();
@@ -296,18 +296,26 @@ public class PhotoAttachPhotoCell extends FrameLayout {
                     imageView.setOrientation(0, true);
                     videoInfoContainer.setVisibility(VISIBLE);
                     videoPlayImageView.setVisibility(VISIBLE);
-                    ((LayoutParams) videoTextView.getLayoutParams()).leftMargin = dp(13);
+                    setVideoTextLeftMargin(dp(13));
                     videoTextView.setText(AndroidUtilities.formatShortDuration(photoEntry.duration));
                 } else if (photoEntry.highQuality && !NaConfig.INSTANCE.getSendHighQualityPhoto().Bool()) {
                     videoInfoContainer.setVisibility(VISIBLE);
                     videoPlayImageView.setVisibility(GONE);
-                    ((LayoutParams) videoTextView.getLayoutParams()).leftMargin = dp(0);
+                    setVideoTextLeftMargin(0);
                     videoTextView.setText(getString(R.string.ShortHighQuality));
                 } else {
                     videoPlayImageView.setVisibility(GONE);
                     videoInfoContainer.setVisibility(INVISIBLE);
                 }
             }
+        }
+    }
+
+    private void setVideoTextLeftMargin(int margin) {
+        LayoutParams params = (LayoutParams) videoTextView.getLayoutParams();
+        if (params.leftMargin != margin) {
+            params.leftMargin = margin;
+            videoTextView.requestLayout();
         }
     }
 
@@ -476,17 +484,18 @@ public class PhotoAttachPhotoCell extends FrameLayout {
     public void setPhotoEntry(MediaController.PhotoEntry entry, boolean selectedMultiple, boolean needCheckShow, boolean last) {
         pressed = false;
         photoEntry = entry;
+        boolean wasLast = isLast;
         isLast = last;
         if (photoEntry.isVideo) {
             imageView.setOrientation(0, true);
             videoInfoContainer.setVisibility(VISIBLE);
             videoPlayImageView.setVisibility(VISIBLE);
-            ((LayoutParams) videoTextView.getLayoutParams()).leftMargin = dp(13);
+            setVideoTextLeftMargin(dp(13));
             videoTextView.setText(AndroidUtilities.formatShortDuration(photoEntry.duration));
         } else if (photoEntry.highQuality && !NaConfig.INSTANCE.getSendHighQualityPhoto().Bool()) {
             videoInfoContainer.setVisibility(VISIBLE);
             videoPlayImageView.setVisibility(GONE);
-            ((LayoutParams) videoTextView.getLayoutParams()).leftMargin = dp(0);
+            setVideoTextLeftMargin(0);
             videoTextView.setText(getString(R.string.ShortHighQuality));
         } else {
             videoPlayImageView.setVisibility(GONE);
@@ -510,7 +519,9 @@ public class PhotoAttachPhotoCell extends FrameLayout {
         imageView.getImageReceiver().setVisible(!showing, true);
         checkBox.setAlpha(showing ? 0.0f : 1.0f);
         videoInfoContainer.setAlpha(showing ? 0.0f : 1.0f);
-        requestLayout();
+        if (!itemSizeChanged && wasLast != last) {
+            requestLayout();
+        }
         setHasSpoiler(entry.hasSpoiler);
         setHighQuality(entry.highQuality);
         setStarsPrice(entry.starsAmount, selectedMultiple);
@@ -519,6 +530,7 @@ public class PhotoAttachPhotoCell extends FrameLayout {
     public void setPhotoEntry(MediaController.SearchImage searchImage, boolean needCheckShow, boolean last) {
         pressed = false;
         searchEntry = searchImage;
+        boolean wasLast = isLast;
         isLast = last;
 
         Drawable thumb = zoomOnSelect ? Theme.chat_attachEmptyDrawable : getResources().getDrawable(R.drawable.nophotos);
@@ -551,7 +563,9 @@ public class PhotoAttachPhotoCell extends FrameLayout {
         imageView.getImageReceiver().setVisible(!showing, true);
         checkBox.setAlpha(showing ? 0.0f : 1.0f);
         videoInfoContainer.setAlpha(showing ? 0.0f : 1.0f);
-        requestLayout();
+        if (!itemSizeChanged && wasLast != last) {
+            requestLayout();
+        }
         setHasSpoiler(false);
         setHighQuality(false);
         setStarsPrice(0, false);
