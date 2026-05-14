@@ -397,7 +397,7 @@ public class SessionCell extends FrameLayout {
         Drawable iconDrawable;
         if (lottieIcon) {
             int iconSize = Math.round(dp(sz) * 0.85f);
-            iconDrawable = new RLottieDrawable(iconId, "" + iconId, iconSize, iconSize, true, new int[]{0x000000, Theme.getColor(colorKey)});
+            iconDrawable = new RLottieDrawable(iconId, "" + iconId, iconSize, iconSize, true, new int[]{0x000000, Theme.getColor(colorKey), 0xFFFFFF, Theme.getColor(Theme.key_avatar_text)});
             ((RLottieDrawable) iconDrawable).setCurrentFrame(0, true, true);
         } else {
             iconDrawable = ContextCompat.getDrawable(ApplicationLoader.applicationContext, iconId).mutate();
