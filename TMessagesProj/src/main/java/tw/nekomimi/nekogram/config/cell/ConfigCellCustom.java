@@ -2,7 +2,7 @@ package tw.nekomimi.nekogram.config.cell;
 
 import androidx.recyclerview.widget.RecyclerView;
 
-public class ConfigCellCustom extends AbstractConfigCell {
+public class ConfigCellCustom extends AbstractConfigCell implements WithKey {
 
     public static final int CUSTOM_ITEM_ProfilePreview = 999;
     public static final int CUSTOM_ITEM_StickerSize = 998;

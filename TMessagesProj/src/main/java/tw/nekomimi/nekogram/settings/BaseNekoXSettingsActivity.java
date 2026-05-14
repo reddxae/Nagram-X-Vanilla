@@ -71,19 +71,20 @@ public class BaseNekoXSettingsActivity extends BaseFragment {
             AbstractConfigCell row = cellGroup.rows.get(i);
             config = getBindConfig(row);
             key = getRowKey(row);
-            if (key == null) key = String.valueOf(i);
-            rowMap.put(key, i);
-            rowMapReverse.put(i, key);
+            if (key == null && config != null) {
+                key = config.getKey();
+            }
+            if (key != null) {
+                rowMap.put(key, i);
+                rowMapReverse.put(i, key);
+            }
             rowConfigMapReverse.put(i, config);
             rowCellMapReverse.put(i, row);
         }
     }
 
     protected String getRowKey(int position) {
-        if (rowMapReverse.containsKey(position)) {
-            return rowMapReverse.get(position);
-        }
-        return String.valueOf(position);
+        return rowMapReverse.get(position);
     }
 
     protected String getRowValue(int position) {
@@ -132,6 +133,9 @@ public class BaseNekoXSettingsActivity extends BaseFragment {
 
     protected void createLongClickDialog(Context context, BaseFragment fragment, String prefix,  int position) {
         String key = getRowKey(position);
+        if (key == null) {
+            return;
+        }
         String value = getRowValue(position);
         ArrayList<CharSequence> itemsArray = new ArrayList<>();
         itemsArray.add(getString(R.string.CopyLink));

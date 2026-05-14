@@ -56,6 +56,7 @@ import tw.nekomimi.nekogram.config.cell.AbstractConfigCell;
 import tw.nekomimi.nekogram.config.cell.ConfigCellCustom;
 import tw.nekomimi.nekogram.config.cell.ConfigCellDivider;
 import tw.nekomimi.nekogram.config.cell.ConfigCellHeader;
+import tw.nekomimi.nekogram.config.cell.WithKey;
 import tw.nekomimi.nekogram.ui.PopupBuilder;
 import tw.nekomimi.nekogram.ui.cells.HeaderCell;
 import xyz.nextalone.nagram.NaConfig;
@@ -423,6 +424,11 @@ public class NekoCameraSettingsActivity extends BaseNekoXSettingsActivity {
     }
 
     @Override
+    public int getBaseGuid() {
+        return 16000;
+    }
+
+    @Override
     public int getDrawable() {
         return R.drawable.msg_camera;
     }
@@ -526,7 +532,12 @@ public class NekoCameraSettingsActivity extends BaseNekoXSettingsActivity {
         ADAPTIVE_BITRATE
     }
 
-    private class RecordFromDropdownCell extends AbstractConfigCell {
+    private class RecordFromDropdownCell extends AbstractConfigCell implements WithKey {
+        @Override
+        public String getKey() {
+            return NekoConfig.videoMessagesRecordFrom.getKey();
+        }
+
         @Override
         public int getType() {
             return CellGroup.ITEM_TYPE_TEXT_SETTINGS_CELL;
@@ -562,7 +573,12 @@ public class NekoCameraSettingsActivity extends BaseNekoXSettingsActivity {
         }
     }
 
-    private class StartCameraDropdownCell extends AbstractConfigCell {
+    private class StartCameraDropdownCell extends AbstractConfigCell implements WithKey {
+        @Override
+        public String getKey() {
+            return NekoConfig.videoMessagesStartCamera.getKey();
+        }
+
         @Override
         public int getType() {
             return CellGroup.ITEM_TYPE_TEXT_SETTINGS_CELL;
@@ -601,7 +617,12 @@ public class NekoCameraSettingsActivity extends BaseNekoXSettingsActivity {
         }
     }
 
-    private class Camera2ApiToggleCell extends AbstractConfigCell {
+    private class Camera2ApiToggleCell extends AbstractConfigCell implements WithKey {
+        @Override
+        public String getKey() {
+            return "VideoMessagesCamera2Api";
+        }
+
         @Override
         public int getType() {
             return CellGroup.ITEM_TYPE_TEXT_CHECK;
@@ -631,7 +652,7 @@ public class NekoCameraSettingsActivity extends BaseNekoXSettingsActivity {
         }
     }
 
-    private class VideoMessagesToggleCell extends AbstractConfigCell {
+    private class VideoMessagesToggleCell extends AbstractConfigCell implements WithKey {
         private final ConfigItem bindConfig;
         private final int titleResId;
         private final ToggleType toggleType;
@@ -640,6 +661,11 @@ public class NekoCameraSettingsActivity extends BaseNekoXSettingsActivity {
             this.bindConfig = bindConfig;
             this.titleResId = titleResId;
             this.toggleType = toggleType;
+        }
+
+        @Override
+        public String getKey() {
+            return bindConfig.getKey();
         }
 
         @Override
@@ -705,9 +731,14 @@ public class NekoCameraSettingsActivity extends BaseNekoXSettingsActivity {
         }
     }
 
-    private class StabilizationDropdownCell extends AbstractConfigCell {
+    private class StabilizationDropdownCell extends AbstractConfigCell implements WithKey {
         private static final int FRONT_CAMERA_ID = 0;
         private static final int REAR_CAMERA_ID = 1;
+
+        @Override
+        public String getKey() {
+            return "VideoMessagesStabilization";
+        }
 
         @Override
         public int getType() {
@@ -796,7 +827,12 @@ public class NekoCameraSettingsActivity extends BaseNekoXSettingsActivity {
         }
     }
 
-    private class ResetVideoNoteDefaultsCell extends AbstractConfigCell {
+    private class ResetVideoNoteDefaultsCell extends AbstractConfigCell implements WithKey {
+        @Override
+        public String getKey() {
+            return "VideoMessagesResetQualityDefaults";
+        }
+
         @Override
         public int getType() {
             return CellGroup.ITEM_TYPE_TEXT_CHECK_ICON;
