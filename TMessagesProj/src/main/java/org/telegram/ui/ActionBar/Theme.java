@@ -4660,16 +4660,6 @@ public class Theme {
         themesDict.put("Blue", themeInfo);
 
         themeInfo = new ThemeInfo();
-        themeInfo.name = "Indigo";
-        themeInfo.assetName = "indigo.attheme";
-        themeInfo.previewBackgroundColor = -657931;
-        themeInfo.previewInColor = Color.parseColor("#c0ffffff");
-        themeInfo.previewOutColor = Color.parseColor("#3f51b5");
-        themeInfo.sortIndex = 0;
-        themes.add(themeInfo);
-        themesDict.put("Indigo", themeInfo);
-
-        themeInfo = new ThemeInfo();
         themeInfo.name = "Dark Blue";
         themeInfo.assetName = "darkblue.attheme";
         themeInfo.previewBackgroundColor = 0xff5f6e82;
