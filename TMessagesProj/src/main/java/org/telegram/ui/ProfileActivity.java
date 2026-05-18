@@ -13862,6 +13862,13 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                         protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
                             super.onMeasure(MeasureSpec.makeMeasureSpec(MeasureSpec.getSize(widthMeasureSpec), MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec(AndroidUtilities.dp(7.33f), MeasureSpec.EXACTLY));
                         }
+
+                        @Override
+                        protected void onDraw(Canvas canvas) {
+                            if (!NaConfig.INSTANCE.getHideDividers().Bool() && getTag() instanceof Integer && (Integer) getTag() == infoHeaderRowEmpty) {
+                                canvas.drawLine(0, 0, getMeasuredWidth(), 0, Theme.dividerPaint);
+                            }
+                        }
                     };
                     view.setBackgroundColor(getThemedColor(Theme.key_windowBackgroundWhite));
                     break;
@@ -14711,6 +14718,11 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                         userCell.setAdminRole(role);
                         userCell.setData(getMessagesController().getUser(part.user_id), null, null, 0, position != membersEndRow - 1);
                     }
+                    break;
+                case VIEW_TYPE_HEADER_EMPTY:
+                    holder.itemView.setTag(position);
+                    holder.itemView.setWillNotDraw(NaConfig.INSTANCE.getHideDividers().Bool() || position != infoHeaderRowEmpty);
+                    holder.itemView.invalidate();
                     break;
                 case VIEW_TYPE_BOTTOM_PADDING:
                     holder.itemView.requestLayout();
