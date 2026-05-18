@@ -1388,7 +1388,11 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
             final int color1 = color1Animated.set(this.color1);
             final int color2 = color2Animated.set(this.color2);
             if (actionsView != null) {
-                actionsView.setActionsColor(btnColor, hasColorById);
+                boolean useThemeProfileActionBackground = shouldUseProfileActionBackgroundForCollapsedProfileActions();
+                actionsView.setActionsColor(
+                        useThemeProfileActionBackground ? getThemedColor(Theme.key_profile_actionBackground) : btnColor,
+                        !useThemeProfileActionBackground && hasColorById
+                );
             }
 
             int gradientX = getWidth() / 2;
@@ -5483,8 +5487,9 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                     );
                 }
                 if (musicView != null) {
+                    boolean disableAvatarBlurInLightTheme = NaConfig.INSTANCE.getDisableAvatarBlur().Bool() && !Theme.isCurrentThemeDark();
                     musicView.setUseNeutralBackgroundForExpandedAvatar(blur && shouldUseNeutralExpandedAvatarColors());
-                    musicView.handleCustomColor(blur);
+                    musicView.handleCustomColor(disableAvatarBlurInLightTheme ? false : blur);
                 }
             }
         };
@@ -6201,7 +6206,26 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
     }
 
     private int getDefaultExpandedAvatarActionsButtonBackgroundColor() {
+        if (shouldUseProfileActionBackgroundForLightProfileActions()) {
+            return getThemedColor(Theme.key_profile_actionBackground);
+        }
         return Theme.getProfileActionBackgroundColorForNoAvatarBlur(resourcesProvider);
+    }
+
+    private boolean shouldUseProfileActionBackgroundForLightProfileActions() {
+        Theme.ThemeInfo themeInfo = Theme.getActiveTheme();
+        if (themeInfo == null) {
+            return false;
+        }
+        String key = themeInfo.getKey();
+        return "Day".equals(key) || "Arctic Blue".equals(key) || "Monet Light".equals(key);
+    }
+
+    private boolean shouldUseProfileActionBackgroundForCollapsedProfileActions() {
+        if (!shouldUseProfileActionBackgroundForLightProfileActions()) {
+            return false;
+        }
+        return !NaConfig.INSTANCE.getPremiumItemCustomColorInProfiles().Bool() || peerColor == null;
     }
 
     private boolean shouldUseNeutralExpandedAvatarColors() {
