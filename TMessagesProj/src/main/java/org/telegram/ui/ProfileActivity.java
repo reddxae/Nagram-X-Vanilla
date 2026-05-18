@@ -1355,13 +1355,17 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
         private boolean emojiIsCollectible;
 
         public void setBackgroundEmojiId(long emojiId, boolean isCollectible, boolean animated) {
-            emoji.set(emojiId, animated);
-            emoji.setColor(emojiColor);
+            if (emojiId != 0 && emojiId != -1) {
+                emoji.set(emojiId, animated);
+                emoji.setColor(emojiColor);
+            } else {
+                emoji.set((Drawable) null, animated);
+            }
             emojiIsCollectible = isCollectible;
             if (!animated) {
                 emojiFullT.force(isCollectible);
             }
-            hasEmoji = hasEmoji || emojiId != 0 && emojiId != -1;
+            hasEmoji = emojiId != 0 && emojiId != -1;
             invalidate();
         }
 
@@ -11852,8 +11856,8 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
             avatarDrawable.setInfo(currentAccount, user);
 
             final MessagesController.PeerColor wasPeerColor = peerColor;
-            peerColor = MessagesController.PeerColor.fromCollectible(user.emoji_status);
-            if (peerColor == null) {
+            peerColor = NaConfig.INSTANCE.getPremiumItemCustomColorInProfiles().Bool() ? MessagesController.PeerColor.fromCollectible(user.emoji_status) : null;
+            if (peerColor == null && NaConfig.INSTANCE.getPremiumItemCustomColorInProfiles().Bool()) {
                 final int colorId = UserObject.getProfileColorId(user);
                 final MessagesController.PeerColors peerColors = MessagesController.getInstance(currentAccount).profilePeerColors;
                 peerColor = peerColors == null ? null : peerColors.getColor(colorId);
@@ -11862,14 +11866,15 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                 updatedPeerColor();
             }
             if (topView != null) {
-                topView.setBackgroundEmojiId(UserObject.getProfileEmojiId(user), user != null && user.emoji_status instanceof TLRPC.TL_emojiStatusCollectible, true);
+                boolean showProfileEmoji = NaConfig.INSTANCE.getPremiumItemEmojiInProfiles().Bool();
+                topView.setBackgroundEmojiId(showProfileEmoji ? UserObject.getProfileEmojiId(user) : 0, showProfileEmoji && user != null && user.emoji_status instanceof TLRPC.TL_emojiStatusCollectible, true);
             }
             if (ratingView != null) {
                 ratingView.updateColors(peerColor);
                 ratingView.set(getVisibleStarRating());
                 checkStarRatingVisible();
             }
-            setCollectibleGiftStatus(user.emoji_status instanceof TLRPC.TL_emojiStatusCollectible ? (TLRPC.TL_emojiStatusCollectible) user.emoji_status : null);
+            setCollectibleGiftStatus(NaConfig.INSTANCE.getPremiumItemCollectibleGiftBadge().Bool() && user.emoji_status instanceof TLRPC.TL_emojiStatusCollectible ? (TLRPC.TL_emojiStatusCollectible) user.emoji_status : null);
 
 
             final ImageLocation imageLocation = ImageLocation.getForUserOrChat(user, ImageLocation.TYPE_BIG);
@@ -12190,8 +12195,8 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
             }
 
             final MessagesController.PeerColor wasPeerColor = peerColor;
-            peerColor = MessagesController.PeerColor.fromCollectible(chat.emoji_status);
-            if (peerColor == null) {
+            peerColor = NaConfig.INSTANCE.getPremiumItemCustomColorInProfiles().Bool() ? MessagesController.PeerColor.fromCollectible(chat.emoji_status) : null;
+            if (peerColor == null && NaConfig.INSTANCE.getPremiumItemCustomColorInProfiles().Bool()) {
                 final int colorId = ChatObject.getProfileColorId(chat);
                 MessagesController.PeerColors peerColors = MessagesController.getInstance(currentAccount).profilePeerColors;
                 peerColor = peerColors == null ? null : peerColors.getColor(colorId);
@@ -12200,9 +12205,10 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                 updatedPeerColor();
             }
             if (topView != null) {
-                topView.setBackgroundEmojiId(ChatObject.getProfileEmojiId(chat), chat != null && chat.emoji_status instanceof TLRPC.TL_emojiStatusCollectible, true);
+                boolean showProfileEmoji = NaConfig.INSTANCE.getPremiumItemEmojiInProfiles().Bool();
+                topView.setBackgroundEmojiId(showProfileEmoji ? ChatObject.getProfileEmojiId(chat) : 0, showProfileEmoji && chat != null && chat.emoji_status instanceof TLRPC.TL_emojiStatusCollectible, true);
             }
-            setCollectibleGiftStatus(chat.emoji_status instanceof TLRPC.TL_emojiStatusCollectible ? (TLRPC.TL_emojiStatusCollectible) chat.emoji_status : null);
+            setCollectibleGiftStatus(NaConfig.INSTANCE.getPremiumItemCollectibleGiftBadge().Bool() && chat.emoji_status instanceof TLRPC.TL_emojiStatusCollectible ? (TLRPC.TL_emojiStatusCollectible) chat.emoji_status : null);
 
             if (isTopic) {
                 topic = getMessagesController().getTopicsController().findTopic(chatId, topicId);

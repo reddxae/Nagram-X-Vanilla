@@ -101,8 +101,11 @@ public class NekoChatSettingsActivity extends BaseNekoXSettingsActivity implemen
     private final AbstractConfigCell emojiSetsRow = cellGroup.appendCell(new ConfigCellCustom("EmojiSet", ConfigCellCustom.CUSTOM_ITEM_EmojiSet, true));
     private final AbstractConfigCell premiumElementsToggleRow = cellGroup.appendCell(new ConfigCellTextCheck2("PremiumElements", getString(R.string.PremiumElements), new ArrayList<>() {{
             add(new ConfigCellCheckBox(NaConfig.INSTANCE.getPremiumItemEmojiStatus()));
+            add(new ConfigCellCheckBox(NaConfig.INSTANCE.getPremiumItemCollectibleGiftBadge()));
             add(new ConfigCellCheckBox(NaConfig.INSTANCE.getPremiumItemEmojiInReplies()));
+            add(new ConfigCellCheckBox(NaConfig.INSTANCE.getPremiumItemEmojiInProfiles()));
             add(new ConfigCellCheckBox(NaConfig.INSTANCE.getPremiumItemCustomColorInReplies()));
+            add(new ConfigCellCheckBox(NaConfig.INSTANCE.getPremiumItemCustomColorInProfiles()));
             add(new ConfigCellCheckBox(NaConfig.INSTANCE.getPremiumItemCustomWallpaper()));
             add(new ConfigCellCheckBox(NaConfig.INSTANCE.getPremiumItemVideoAvatar()));
             add(new ConfigCellCheckBox(NaConfig.INSTANCE.getPremiumItemStarInReactions()));
@@ -702,6 +705,11 @@ public class NekoChatSettingsActivity extends BaseNekoXSettingsActivity implemen
                 stickerSizeCell.invalidate();
             } else if (key.equals(NaConfig.INSTANCE.getPremiumItemCustomColorInReplies().getKey())) {
                 stickerSizeCell.invalidate();
+            } else if (key.equals(NaConfig.INSTANCE.getPremiumItemCollectibleGiftBadge().getKey()) ||
+                    key.equals(NaConfig.INSTANCE.getPremiumItemEmojiInProfiles().getKey()) ||
+                    key.equals(NaConfig.INSTANCE.getPremiumItemCustomColorInProfiles().getKey())) {
+                setCanNotChange();
+                NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.reloadInterface);
             } else if (key.equals("DisableSwipeToNext" + "_check")) {
                 NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.reloadInterface);
             } else if (key.equals(NekoConfig.disableSwipeToNext.getKey())) {

@@ -389,14 +389,14 @@ public class ProfileStoriesView extends View implements NotificationCenter.Notif
 
         if (dialogId >= 0) {
             final TLRPC.User user = MessagesController.getInstance(currentAccount).getUser(dialogId);
-            if (user != null && user.emoji_status instanceof TLRPC.TL_emojiStatusCollectible) {
+            if (NaConfig.INSTANCE.getPremiumItemCustomColorInProfiles().Bool() && user != null && user.emoji_status instanceof TLRPC.TL_emojiStatusCollectible) {
                 gradientTools.setColor(MessagesController.PeerColor.fromCollectible(user.emoji_status), animated);
             } else {
                 gradientTools.setUser(user, animated);
             }
         } else {
             TLRPC.Chat chat = MessagesController.getInstance(currentAccount).getChat(-dialogId);
-            if (chat != null && chat.emoji_status instanceof TLRPC.TL_emojiStatusCollectible) {
+            if (NaConfig.INSTANCE.getPremiumItemCustomColorInProfiles().Bool() && chat != null && chat.emoji_status instanceof TLRPC.TL_emojiStatusCollectible) {
                 gradientTools.setColor(MessagesController.PeerColor.fromCollectible(chat.emoji_status), animated);
             } else {
                 gradientTools.setChat(chat, animated);

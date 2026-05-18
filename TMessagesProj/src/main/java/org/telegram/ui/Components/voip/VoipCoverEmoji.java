@@ -19,6 +19,8 @@ import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.Components.AnimatedEmojiDrawable;
 import org.telegram.ui.Components.CubicBezierInterpolator;
 
+import xyz.nextalone.nagram.NaConfig;
+
 public class VoipCoverEmoji {
 
     private AnimatedEmojiDrawable.SwapAnimatedEmojiDrawable emoji;
@@ -46,7 +48,7 @@ public class VoipCoverEmoji {
         this.parent = parent;
         this.size = size;
         allowAnimations = LiteMode.isEnabled(LiteMode.FLAG_CALLS_ANIMATIONS);
-        long emojiId = UserObject.getProfileEmojiId(user);
+        long emojiId = NaConfig.INSTANCE.getPremiumItemEmojiInProfiles().Bool() ? UserObject.getProfileEmojiId(user) : 0;
         if (allowAnimations && emojiId != 0) {
             emoji = new AnimatedEmojiDrawable.SwapAnimatedEmojiDrawable(parent, false, size, AnimatedEmojiDrawable.CACHE_TYPE_ALERT_PREVIEW_STATIC);
             emoji.set(emojiId, false);

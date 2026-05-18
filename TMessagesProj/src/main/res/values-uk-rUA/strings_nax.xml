@@ -222,8 +222,11 @@
     <string name="PremiumItemBoosts">Лічильник бустів</string>
     <string name="PremiumItemStickerEffects">Ефекти наклейок</string>
     <string name="PremiumItemEmojiStatus">Емоджі-статуси</string>
+    <string name="PremiumItemCollectibleGiftBadge">Бейджі колекційних подарунків</string>
     <string name="PremiumItemEmojiInReplies">Емодзі у відповідях</string>
-    <string name="PremiumItemCustomColorInReplies">Користувацькі кольори</string>
+    <string name="PremiumItemEmojiInProfiles">Емодзі у профілях</string>
+    <string name="PremiumItemCustomColorInReplies">Користувацький колір у відповідях</string>
+    <string name="PremiumItemCustomColorInProfiles">Користувацькі кольори у профілях</string>
     <string name="PremiumItemStarInReactions">Зірка у реакціях</string>
     <string name="PremiumItemVideoAvatar">Анімовані аватари</string>
     <string name="PremiumItemCustomWallpaper">Користувацькі шпалери</string>

@@ -1249,9 +1249,27 @@ object NaConfig {
             ConfigItem.configTypeBool,
             true
         )
+    val premiumItemEmojiInProfiles =
+        addConfig(
+            "PremiumItemEmojiInProfiles",
+            ConfigItem.configTypeBool,
+            true
+        )
     val premiumItemCustomColorInReplies =
         addConfig(
             "PremiumItemCustomColorInReplies",
+            ConfigItem.configTypeBool,
+            true
+        )
+    val premiumItemCustomColorInProfiles =
+        addConfig(
+            "PremiumItemCustomColorInProfiles",
+            ConfigItem.configTypeBool,
+            true
+        )
+    val premiumItemCollectibleGiftBadge =
+        addConfig(
+            "PremiumItemCollectibleGiftBadge",
             ConfigItem.configTypeBool,
             true
         )

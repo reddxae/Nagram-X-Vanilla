@@ -222,8 +222,11 @@
     <string name="PremiumItemBoosts">Счётчик голосов</string>
     <string name="PremiumItemStickerEffects">Эффекты стикеров</string>
     <string name="PremiumItemEmojiStatus">Эмодзи-статусы</string>
+    <string name="PremiumItemCollectibleGiftBadge">Бейджи коллекционных подарков</string>
     <string name="PremiumItemEmojiInReplies">Эмодзи в ответах</string>
-    <string name="PremiumItemCustomColorInReplies">Пользовательские цвета</string>
+    <string name="PremiumItemEmojiInProfiles">Эмодзи в профилях</string>
+    <string name="PremiumItemCustomColorInReplies">Пользовательский цвет в ответах</string>
+    <string name="PremiumItemCustomColorInProfiles">Пользовательские цвета в профилях</string>
     <string name="PremiumItemStarInReactions">Звезда в реакциях</string>
     <string name="PremiumItemVideoAvatar">Анимированные аватары</string>
     <string name="PremiumItemCustomWallpaper">Пользовательские обои</string>

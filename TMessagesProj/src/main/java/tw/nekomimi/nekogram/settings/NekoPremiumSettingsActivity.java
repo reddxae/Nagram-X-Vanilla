@@ -56,8 +56,11 @@ public class NekoPremiumSettingsActivity extends BaseNekoXSettingsActivity {
     private final AbstractConfigCell headerAnnoyances = cellGroup.appendCell(new ConfigCellHeader(getString(R.string.Annoyances)));
     private final AbstractConfigCell premiumElementsToggleRow = cellGroup.appendCell(new ConfigCellTextCheck2("PremiumElements", getString(R.string.PremiumElements), new ArrayList<>() {{
         add(new ConfigCellCheckBox(NaConfig.INSTANCE.getPremiumItemEmojiStatus()));
+        add(new ConfigCellCheckBox(NaConfig.INSTANCE.getPremiumItemCollectibleGiftBadge()));
         add(new ConfigCellCheckBox(NaConfig.INSTANCE.getPremiumItemEmojiInReplies()));
+        add(new ConfigCellCheckBox(NaConfig.INSTANCE.getPremiumItemEmojiInProfiles()));
         add(new ConfigCellCheckBox(NaConfig.INSTANCE.getPremiumItemCustomColorInReplies()));
+        add(new ConfigCellCheckBox(NaConfig.INSTANCE.getPremiumItemCustomColorInProfiles()));
         add(new ConfigCellCheckBox(NaConfig.INSTANCE.getPremiumItemCustomWallpaper()));
         add(new ConfigCellCheckBox(NaConfig.INSTANCE.getPremiumItemVideoAvatar()));
         add(new ConfigCellCheckBox(NaConfig.INSTANCE.getPremiumItemStarInReactions()));
@@ -153,7 +156,10 @@ public class NekoPremiumSettingsActivity extends BaseNekoXSettingsActivity {
             if (key.equals("PremiumElements_check")) {
                 setCanNotChange();
                 NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.reloadInterface);
-            } else if (key.equals(NaConfig.INSTANCE.getPremiumItemRatingInProfiles().getKey()) ||
+            } else if (key.equals(NaConfig.INSTANCE.getPremiumItemCollectibleGiftBadge().getKey()) ||
+                    key.equals(NaConfig.INSTANCE.getPremiumItemEmojiInProfiles().getKey()) ||
+                    key.equals(NaConfig.INSTANCE.getPremiumItemCustomColorInProfiles().getKey()) ||
+                    key.equals(NaConfig.INSTANCE.getPremiumItemRatingInProfiles().getKey()) ||
                     key.equals(NaConfig.INSTANCE.getPremiumItemGiftsInUserProfiles().getKey()) ||
                     key.equals(NaConfig.INSTANCE.getPremiumItemGiftsInChannelProfiles().getKey()) ||
                     key.equals(NekoConfig.hideGiftButtonInProfiles.getKey()) ||
